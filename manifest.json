@@ -18,7 +18,8 @@
   },
   "page_action": {
     "default_icon": "icon128.png",
-    "default_title": "iguLemuria"
+    "default_title": "iguLemuria",
+    "default_popup": "popup/popup.html"
   },
   "permissions": [
     "tabs",
@@ -26,5 +27,6 @@
     "webRequestBlocking",
     "activeTab",
     "http://lm-s4.ujj.co.jp/*", "https://lm-s4.ujj.co.jp/*"
-  ]
+  ],
+  "content_security_policy": "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net/ ; object-src 'self’"
 }

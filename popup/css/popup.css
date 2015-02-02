@@ -1,0 +1,18 @@
+body {
+  width: 400px;
+  padding-top: 50px;
+}
+
+.nav,
+.pagination,
+.carousel,
+.panel-title a {
+  cursor: pointer;
+}
+.main {
+  padding-top: 10px;
+}
+
+.contents {
+  padding: 10px;
+}
