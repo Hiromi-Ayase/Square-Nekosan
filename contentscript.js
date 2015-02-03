@@ -1342,3 +1342,11 @@ $(function() {
     });
 */
 });
+
+chrome.runtime.onMessage.addListener(function (request, sender, response) {
+    if (request.op === "map") {
+        g_mapid = request.mapId;
+        GetBlockid()
+        .then(repeatBattle);
+    }
+});

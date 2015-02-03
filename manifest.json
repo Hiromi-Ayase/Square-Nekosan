@@ -1,32 +1,31 @@
 {
-  "manifest_version": 2,
-  "name": "iguLemuria",
-  "version": "0.1",
-  "description": "Lemuria Automation Tool.",
-  "icons": {
-    "128": "icon128.png"
-  },
-  "content_scripts": [
-    {
-      "matches": ["http://lm-s4.ujj.co.jp/*", "https://lm-s4.ujj.co.jp/*"],
-      "js": ["jquery.js", "contentscript.js"],
-      "run_at": "document_end"
+    "manifest_version": 2,
+    "name": "iguLemuria",
+    "version": "0.1",
+    "description": "Lemuria Automation Tool.",
+    "icons": {
+        "128": "icon128.png"
+    },
+    "content_scripts": [
+        {
+            "matches": ["http://lm-s4.ujj.co.jp/*", "https://lm-s4.ujj.co.jp/*"],
+            "js": ["jquery.js", "contentscript.js"],
+            "run_at": "document_end"
     }
   ],
-  "background": {
-    "scripts": ["background.js"]
-  },
-  "page_action": {
-    "default_icon": "icon128.png",
-    "default_title": "iguLemuria",
-    "default_popup": "popup/popup.html"
-  },
-  "permissions": [
+    "background": {
+        "scripts": ["background/background.js"]
+    },
+    "page_action": {
+        "default_icon": "icon128.png",
+        "default_title": "iguLemuria",
+        "default_popup": "popup/popup.html"
+    },
+    "permissions": [
     "tabs",
     "webRequest",
     "webRequestBlocking",
     "activeTab",
     "http://lm-s4.ujj.co.jp/*", "https://lm-s4.ujj.co.jp/*"
-  ],
-  "content_security_policy": "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net/ ; object-src 'self’"
+  ]
 }

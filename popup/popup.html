@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html ng-app="SquareNekosan" lang="">
+<html ng-app="SquareNekosan" ng-csp lang="">
 
 <head>
   <meta charset="UTF-8">
@@ -32,9 +32,9 @@
       <tab heading="遺跡巡回">
         <div class="contents">
           <div ng-controller="MapController">
-            <select ng-model="mapList" ng-options="map.id as (map.name + '(' + map.id + ')') for map in data">
+            <select ng-model="mapId" ng-options="map.id as (map.name + '(' + map.id + ')') for map in data">
             </select>
-            <button>巡回</button>
+            <button class="btn btn-xs btn-primary" ng-click="send()">巡回</button>
           </div>
         </div>
         </select>
