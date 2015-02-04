@@ -1,4 +1,5 @@
-/*global angular, chrome*/
+/*jslint vars: true */
+/*global angular, chrome, COMMON*/
 (function () {
     "use strict";
     var app = angular.module("SquareNekosan", ["ui.bootstrap"]),
@@ -16,23 +17,26 @@
         };
     }]);
 
-
-    app.controller("MapController", ["$scope", "getData", function ($scope, getData) {
-        getData.get("mapId").then(function (res) {
-            $scope.data = res.data.map;
-            $scope.mapId = res.data.map[0].id;
+    app.controller("MainController", ["$scope", "getData", function ($scope, getData) {
+        $scope.COMMON = COMMON;
+        $scope.args = {};
+        getData.get("config").then(function (response) {
+            $scope.config = response.data;
+            angular.forEach(response.data, function (value, key) {
+                $scope.args[key] = value[0].value;
+            });
         });
 
-        $scope.send = function () {
+        $scope.send = function (op) {
             chrome.tabs.sendMessage(data.tabId, {
-                "op": "map",
-                "mapId": $scope.mapId
+                "op": op,
+                "args": $scope.args
             }, function (response) {});
         };
     }]);
 
     chrome.runtime.sendMessage({
-        "op": "get"
+        "op": COMMON.OP.GET
     }, function (response) {
         data = response.data;
         storage = response.storage;

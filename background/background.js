@@ -1,4 +1,5 @@
-/*global chrome*/
+/*jslint vars: true*/
+/*global chrome, localStorage, COMMON*/
 (function () {
     'use strict';
 
@@ -8,21 +9,21 @@
         function (request, sender, sendResponse) {
             var storageData,
                 storageObject;
-            if (request.op === "get") {
-                storageData = localStorage.getItem("storage");
+            if (request.op === COMMON.OP.GET) {
+                storageData = localStorage.getItem(COMMON.STORAGE);
                 storageObject = JSON.parse(storageData);
                 sendResponse({
                     data: data,
                     storage: storageObject
                 });
-            } else if (request.op === 'set') {
+            } else if (request.op === COMMON.OP.SET) {
                 if (request.data !== 'undefined') {
                     data = request.data;
                 }
                 if (request.storage !== 'undefined') {
                     storageObject = request.storage;
                     storageData = JSON.stringify(storageObject);
-                    localStorage.setItem("storage", storageData);
+                    localStorage.setItem(COMMON.STORAGE, storageData);
                 }
             }
         }

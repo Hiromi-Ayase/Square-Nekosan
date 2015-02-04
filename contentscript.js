@@ -21,7 +21,7 @@ var g_blockid = 0;
 var g_blockidList = [];
 
 /* --- キャラのレベルアップ --- */
-var IS_AUTO_LVUP = 1;   // 自動でLVUPするか
+var IS_AUTO_LVUP = 0;   // 自動でLVUPするか
 var g_isLvup = 0;
 var g_lvupCharaId = 0;
 var g_lvupCharaList = [];
@@ -1341,12 +1341,4 @@ $(function() {
         timer = setInterval(watch, interval * 1000);
     });
 */
-});
-
-chrome.runtime.onMessage.addListener(function (request, sender, response) {
-    if (request.op === "map") {
-        g_mapid = request.mapId;
-        GetBlockid()
-        .then(repeatBattle);
-    }
 });
