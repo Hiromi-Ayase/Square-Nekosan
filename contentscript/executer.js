@@ -5,13 +5,9 @@ var logBuffer = [];
 
 function log (message) {
     'use strict';
-    var date = new Date();
-    var dateString = date.getFullYear() + "/" + date.getMonth() + "/" + date.getDay()
-        + " " + date.getHours() + ":" + date.getMinutes() + ":" + date.getSeconds()
-        + "." + date.getMilliseconds();
-    logBuffer.unshift("[" + dateString + "] " + message);
+    logBuffer.unshift("[" + COMMON.NOW() + "] " + message);
     if (logBuffer.length > COMMON.LOG.MAX) {
-        logBuffer.splice(0, COMMON.LOG.MAX);
+        logBuffer.splice(COMMON.LOG.MAX);
     }
 }
 

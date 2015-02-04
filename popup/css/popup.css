@@ -19,5 +19,7 @@ body {
 
 #log {
     height: 200px;
+    max-width: 100%;
+    overflow-x: scroll;
     margin-bottom: 10px;
 }
