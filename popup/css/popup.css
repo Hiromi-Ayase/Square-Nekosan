@@ -16,3 +16,8 @@ body {
 .contents {
   padding: 10px;
 }
+
+#log {
+    height: 200px;
+    margin-bottom: 10px;
+}

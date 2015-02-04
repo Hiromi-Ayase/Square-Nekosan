@@ -17,7 +17,7 @@
         };
     }]);
 
-    app.controller("MainController", ["$scope", "getData", function ($scope, getData) {
+    app.controller("MainController", ["$scope", "$interval", "getData", function ($scope, $interval, getData) {
         $scope.COMMON = COMMON;
         $scope.args = {};
         getData.get("config").then(function (response) {
@@ -33,6 +33,14 @@
                 "args": $scope.args
             }, function (response) {});
         };
+
+        $interval(function () {
+            chrome.tabs.sendMessage(data.tabId, {
+                "op": COMMON.OP.LOG
+            }, function (response) {
+                $scope.log = response.log;
+            });
+        }, COMMON.LOG.RELOAD);
     }]);
 
     chrome.runtime.sendMessage({
