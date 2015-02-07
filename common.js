@@ -36,6 +36,9 @@ COMMON.NOW = function () {
     if (n < 10) {
         n = '0' + n;
     }
+    if (s < 10) {
+        s = '0' + s;
+    }
     if (l < 10) {
         l = '00' + l;
     } else if (l < 100) {
