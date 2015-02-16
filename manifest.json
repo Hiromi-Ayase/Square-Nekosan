@@ -9,7 +9,7 @@
     "content_scripts": [
         {
             "matches": ["http://lm-s4.ujj.co.jp/*", "https://lm-s4.ujj.co.jp/*"],
-            "js": ["jquery.js", "contentscript.js", "common.js", "contentscript/executer.js"],
+            "js": ["jquery.js", "contentscript.js", "common.js", "contentscript/executer.js", "contentscript/commandmanager.js"],
             "run_at": "document_end"
     }
   ],
