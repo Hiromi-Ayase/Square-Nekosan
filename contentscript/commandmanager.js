@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true*/
-/*global $, console, chrome, COMMON, g_cmdList, g_mapid, GetBlockid, Battle, dystopiaAllBattle,
+/*global $, console, log, chrome, COMMON, task, DystopiaMapList,
 waitTime, executeTask*/
 
 /*
@@ -23,9 +23,22 @@ ReportQuest : 任務報告
 （ジュールズベルグ、ゼクスタワー）
 */
 
+/* --- タスク管理用変数 --- */
+
 var cmdManager = {};
 (function () {
     'use strict';
+
+    var cmdList = [];
+
+    var sendMessage = function (op, key) {
+        chrome.runtime.sendMessage({
+            "op": op,
+            "key": key
+        }, function (response) {
+            return response;
+        });
+    };
 
     function waitTime(time) {
         var defer = $.Deferred();
@@ -35,34 +48,29 @@ var cmdManager = {};
         return defer.promise();
     }
 
-        /*
-        this.func = GetBlockid;
-        this.param = {mapid: this.mapid};
-        this.result = null;
-        this.funcState = null;
-        */
     /* タスクの実行および終了コマンドの削除 */
+    // これ非同期処理にする必要ないかも
     function executeTask() {
         var defer = $.Deferred();
 
         // 終了済みのコマンドをリストから削除する
         var i = 0;
-        for (i = 0; i < g_cmdList.length; i++) {
-            if (g_cmdList[i].state === "END") {
-                g_cmdList.splice(i, 1);
+        for (i = 0; i < cmdList.length; i++) {
+            if (cmdList[i].cmd.state === "END") {
+                cmdList.splice(i, 1);
                 i--;
             }
         }
 
         // コマンドリストを時間で並び替え、先頭のコマンドのタスクを実行する
         // 終わったら次のタスクをセットする
-        if (g_cmdList.length !== 0) {
-            g_cmdList.sort(function (a, b) {
-                return a.time - b.time;
+        if (cmdList.length !== 0) {
+            cmdList.sort(function (a, b) {
+                return a.cmd.time - b.cmd.time;
             });
             var now = new Date();
-            if (g_cmdList[0].time < now) {
-                var task = g_cmdList[0].cmd;
+            if (cmdList[0].cmd.time < now) {
+                var task = cmdList[0].cmd;
                 task.func(task.param)
                     .then(function (result) {
                         task.funcState = "OK";
@@ -71,9 +79,11 @@ var cmdManager = {};
                         task.funcState = "NG";
                     })
                     .always(function () {
-                        g_cmdList[0].setNextTask();
+                        cmdList[0].setNextTask();
                         defer.resolve();
                     });
+            } else {
+                defer.resolve();
             }
         } else {
             defer.resolve();
@@ -86,181 +96,364 @@ var cmdManager = {};
     cmdManager.pollTask = function () {
         var defer = $.Deferred();
 
-        waitTime(5000)
+        waitTime(1000)
             .then(executeTask)
             .then(cmdManager.pollTask);
 
         return defer.promise();
     };
-/*
-    function cmdManager() {
-        var i = 0;
-        for (i = 0; i < g_cmdList.length; i++) {
-            if (g_cmdList[i].state === "END") {
-                g_cmdList.splice(i, 1);
-            } else if (g_cmdList[i].state === "RUN") {
-                g_cmdList[i].setNextTask();
-            }
-        }
-    }
-*/
+
     /* 共通のコマンドオブジェクト */
     function Command(name) {
-        return {
-            name: name,
-            state: "RUN",
-
-            time: null,
-            func: null,
-            param: null,
-            result: null,
-            funcState: null
-        };
-        /*this.name = name;
+        this.name = name;
         this.state = "RUN"; // RUN, PAUSE, ABORT, END
 
         this.time = null;
         this.func = null;
         this.param = null;
         this.result = null;
-        this.funcState = null;*/
+        this.funcState = null;
     }
 
-    /* Command : 指定されたマップの初めから順にすべてのマスで手動戦闘する */
-    function CmdMapBattle(mapid) {
+    Command.prototype.reset = function () {
+        this.time = null;
+        this.func = null;
+        this.param = null;
+        this.result = null;
+        this.funcState = null;
+    };
 
+    /* Command : 指定されたマップの初めから順にすべてのマスで手動戦闘する */
+    cmdManager.CmdMapBattle = function (mapid) {
         this.mapid = mapid;
-        this.battleCount = 0;
         this.blockidList = null;
+        this.battleCount = 0;
 
         this.cmd = new Command("CmdMapBattle");
         this.setNextTask();
-    }
+        cmdList.push(this);
+    };
 
-    CmdMapBattle.prototype.setNextTask = function () {
-        var now = new Date();.0@pageXOffset
+    cmdManager.CmdMapBattle.prototype.setNextTask = function () {
+        var now = new Date();
+        var cmd = this.cmd;
 
         if (cmd.state === "END") {
             return;
+        } else if (cmd.funcState === "NG") {
+            cmd.state = "END";
+            return;
+        }
 
-        } else if (cmd.func === null) {
+        if (cmd.func === null) {
+            cmd.reset();
+
             cmd.time = now;
-            cmd.cmd.func = GetBlockid;
+            cmd.func = task.GetBlockid;
             cmd.param = {
                 mapid: this.mapid
             };
-            cmd.result = null;
-            cmd.funcState = null;
 
-        } else if ((cmd.func === GetBlockid || cmd.func === Battle) && cmd.funcState === "OK") {
-            if (cmd.func === GetBlockid) {
+        } else if (cmd.func === task.GetBlockid || cmd.func === task.Battle) {
+            if (cmd.func === task.GetBlockid) {
                 this.blockidList = cmd.result.blockidList;
             }
             var blockid = (this.blockidList).shift();
+            cmd.reset();
 
             if (blockid) {
                 cmd.time = now;
-                cmd.func = Battle;
+                cmd.func = task.Battle;
                 cmd.param = {
                     blockid: blockid
                 };
-                cmd.result = null;
-                cmd.funcState = null;
             } else {
                 cmd.state = "END";
             }
-
-        } else if (cmd.funcState === "NG") {
-            cmd.state = "END";
         }
     };
 
     /* Command : 指定された1つ以上のマスで手動戦闘する */
-    function CmdBlockBatttle(mapid) {
-
-        this.battleCount = 0;
+    cmdManager.CmdBlockBatttle = function (blockidList) {
         this.blockidList = [7100, 7100, 7099];
+        this.battleCount = 0;
 
-        this.cmd = "BlockBatttle";
-        this.state = "RUN"; // RUN, PAUSE, ABORT, END
-
-        this.time = null;
-        this.func = null;
-        this.param = null;
-        this.result = null;
-        this.funcState = null;
-
+        this.cmd = new Command("CmdBlockBatttle");
         this.setNextTask();
-    }
+        cmdList.push(this);
+    };
 
-    CmdBlockBatttle.prototype.setNextTask = function () {
+    cmdManager.CmdBlockBatttle.prototype.setNextTask = function () {
         var now = new Date();
+        var cmd = this.cmd;
 
-        if (this.state === "END") {
+        if (cmd.state === "END") {
             return;
+        } else if (this.funcState === "NG") {
+            cmd.state = "END";
+            return;
+        }
 
-        } else if (this.func === null || (this.func === Battle && this.funcState === "OK")) {
+        if (cmd.func === null || cmd.func === task.Battle) {
             var blockid = (this.blockidList).shift();
+            cmd.reset();
 
             if (blockid) {
-                this.time = now;
-                this.func = Battle;
-                this.param = {
+                cmd.time = now;
+                cmd.func = task.Battle;
+                cmd.param = {
                     blockid: blockid
                 };
-                this.result = null;
             } else {
-                this.state = "END";
+                cmd.state = "END";
             }
-            this.funcState = null;
-
-        } else if (this.funcState === "NG") {
-            this.state = "END";
         }
     };
 
-    /* Command : 入場可能な魔界戦マップをすべて手動戦闘する（攻略済みがあってもOK） */
-    function CmdDystopia(mapid) {
-
+    /* Command : 入場可能な魔界戦マップすべてで手動戦闘する（攻略済みがあってもOK） */
+    cmdManager.CmdAllDystopia = function () {
+        this.mapno = 0;     // DystopiaMapListのうち何番目のマップか
+        this.rank = 0;      // 0:Heaven, 1:Hell
+        this.blockidList = null;
         this.battleCount = 0;
-        this.blockidList = [7100, 7100, 7099];
 
-        this.cmd = "Dystopia";
-        this.state = "RUN"; // RUN, PAUSE, ABORT, END
-
-        this.time = null;
-        this.func = null;
-        this.param = null;
-        this.result = null;
-        this.funcState = null;
-
+        this.cmd = new Command("CmdAllDystopia");
         this.setNextTask();
-    }
+        cmdList.push(this);
+    };
 
-    CmdDystopia.prototype.setNextTask = function () {
+    cmdManager.CmdAllDystopia.prototype.setNextTask = function () {
         var now = new Date();
-        var rank = 1; // 0 : Heaven, 1: Hell
+        var cmd = this.cmd;
 
-        if (this.state === "END") {
+        if (cmd.state === "END") {
             return;
+        } else if (cmd.funcState === "NG") {
+            cmd.state = "END";
+            return;
+        }
 
-        } else if (this.func === null || (this.func === Battle && this.funcState === "OK")) {
+        if (cmd.func === null) {
+            cmd.reset();
+
+            cmd.time = now;
+            cmd.func = task.GetDystopiaMap;
+            cmd.param = {
+                mapid: DystopiaMapList[0],
+                rank: this.rank
+            };
+
+        } else if (cmd.func === task.GetDystopiaMap || cmd.func === task.Battle) {
+            if (cmd.func === task.GetDystopiaMap) {
+                this.blockidList = cmd.result.blockidList;
+            }
             var blockid = (this.blockidList).shift();
+            cmd.reset();
 
             if (blockid) {
-                this.time = now;
-                this.func = dystopiaAllBattle;
-                this.param = {
-                    rank: rank
+                // Hellは攻略に時間をかける
+                if (this.rank === 1) {
+                    cmd.time = now.setMinutes(now.getMinutes() + 5);
+                } else {
+                    cmd.time = now;
+                }
+                cmd.func = task.Battle;
+                cmd.param = {
+                    blockid: blockid
                 };
-                this.result = null;
             } else {
-                this.state = "END";
-            }
-            this.funcState = null;
+                this.mapno++;
+                if (this.mapno < DystopiaMapList.length) {
+                    cmd.time = now;
+                    cmd.func = task.GetDystopiaMap;
+                    cmd.param = {
+                        mapid: DystopiaMapList[this.mapno],
+                        rank: this.rank
+                    };
+                } else if (this.rank === 0) {
+                    this.mapno = 0;
+                    this.rank = 1;
 
-        } else if (this.funcState === "NG") {
-            this.state = "END";
+                    cmd.time = now;
+                    cmd.func = task.GetDystopiaMap;
+                    cmd.param = {
+                        mapid: DystopiaMapList[this.mapno],
+                        rank: this.rank
+                    };
+                } else {
+                    cmd.state = "END";
+                }
+            }
         }
+    };
+
+    /* Command : 指定された魔界戦マップ・ランクで手動戦闘する */
+    cmdManager.CmdDystopia = function (mapid, rank) {
+        this.mapid = mapid;
+        this.rank = rank;      // 0:Heaven, 1:Hell
+        this.blockidList = null;
+        this.battleCount = 0;
+
+        this.cmd = new Command("CmdDystopia");
+        this.setNextTask();
+        cmdList.push(this);
+    };
+
+    cmdManager.CmdDystopia.prototype.setNextTask = function () {
+        var now = new Date();
+        var cmd = this.cmd;
+
+        if (cmd.state === "END") {
+            return;
+        } else if (cmd.funcState === "NG") {
+            cmd.state = "END";
+            return;
+        }
+
+        if (cmd.func === null) {
+            cmd.reset();
+
+            cmd.time = now;
+            cmd.func = task.GetDystopiaMap;
+            cmd.param = {
+                mapid: this.mapid,
+                rank: this.rank
+            };
+
+        } else if (cmd.func === task.GetDystopiaMap || cmd.func === task.Battle) {
+            if (cmd.func === task.GetDystopiaMap) {
+                this.blockidList = cmd.result.blockidList;
+            }
+            var blockid = (this.blockidList).shift();
+            cmd.reset();
+
+            if (blockid) {
+                // Hellは攻略に時間をかける
+                if (this.rank === 1) {
+                    cmd.time = now.setMinutes(now.getMinutes() + COMMON.HELLWAIT);
+                } else {
+                    cmd.time = now;
+                }
+                cmd.func = task.Battle;
+                cmd.param = {
+                    blockid: blockid
+                };
+            } else {
+                cmd.state = "END";
+            }
+        }
+    };
+
+    /* Command : ログインボーナスを獲得する */
+    /* スクリプト開始時にトリガーされる */
+    cmdManager.CmdLoginBonus = function () {
+        this.statusMsg = "";
+
+        this.cmd = new Command("CmdLoginBonus");
+
+        // ログインボーナス獲得までの残り時間を取得しタスクをセットする
+        var now = new Date();
+        var targetTime = now;   // 次回ログインボーナス獲得時刻 (本来の予定時刻+5分)
+
+        var $iframe = $('#main');
+        var ifrmDoc = $iframe[0].contentWindow.document;
+
+        var timeStr = $("#logintime", ifrmDoc).text();
+        if (timeStr === "00:00:00") {
+            targetTime = now;
+
+        // エラーで取得できなかった場合と判別できない気がする
+        } else if (timeStr  === "") {
+            console.log("ログインボーナス完了済み");
+            // targetTimeを次の3時にセット
+            if (now.getHours() >= 3) {
+                targetTime.setHours(now.getDay() + 1);
+            }
+            targetTime.setHours(3);
+            targetTime.setMinutes(5);
+            targetTime.setSeconds(0);
+        } else {
+            var timeArray = timeStr.split(":");
+            if (timeArray.length !== 3) {
+                log("ログインボーナス時間取得に失敗");
+                // 5分後にリトライ
+                targetTime.setMinutes(now.getMinutes() + 5);
+            } else {
+                var h = parseInt(timeArray[0], 10);
+                var m = parseInt(timeArray[1], 10);
+                var s = parseInt(timeArray[2], 10);
+
+                targetTime.setHours(now.getHours() + h);
+                targetTime.setMinutes(now.getMinutes() + m + 5);    // 余裕を持って5分後に
+                targetTime.setSeconds(now.getSeconds() + s);
+
+                // ログインボーナス獲得時刻が3時を過ぎていたら、targetTimeを3時にする
+                // # ログインボーナス獲得までの時間は最大2ｈなのでこの判定でいけるはず
+                if (now.getHours() < 3 && targetTime.getHours() >= 3) {
+                    targetTime.setHours(3);
+                    targetTime.setMinutes(5);
+                    targetTime.setSeconds(0);
+                }
+            }
+        }
+
+        this.cmd.time = targetTime;
+        this.cmd.func = task.getLoginBonus;
+        this.statusMsg = "次のログインボーナス獲得予定時刻: " + COMMON.DATESTR(targetTime);
+
+        cmdList.push(this);
+    };
+
+    cmdManager.CmdLoginBonus.prototype.setNextTask = function () {
+        var now = new Date();
+        var cmd = this.cmd;
+
+        var targetTime = now;   // 次回ログインボーナス獲得時刻 (本来の予定時刻+5分)
+
+        if (cmd.state === "END") {
+            this.statusMsg = "次のログインボーナス獲得予定時刻: " + "停止中";
+            return;
+        } else if (cmd.funcState === "NG") {
+            // 5分後にリトライ
+            targetTime.setMinutes(now.getMinutes() + 5);
+        }
+
+        if (cmd.funcState === "OK" && cmd.result.isNext === 1) {
+            var timeStr = cmd.result.time;
+            var timeArray = timeStr.split(":");
+            if (timeArray.length !== 3) {
+                log("ログインボーナス時間取得に失敗");
+                // 5分後にリトライ
+                targetTime.setMinutes(now.getMinutes() + 5);
+            } else {
+                var h = parseInt(timeArray[0], 10);
+                var m = parseInt(timeArray[1], 10);
+                var s = parseInt(timeArray[2], 10);
+
+                targetTime.setHours(now.getHours() + h);
+                targetTime.setMinutes(now.getMinutes() + m + 5);    // 余裕を持って5分後に
+                targetTime.setSeconds(now.getSeconds() + s);
+
+                // ログインボーナス獲得時刻が3時を過ぎていたら、targetTimeを3時にする
+                // # ログインボーナス獲得までの時間は最大2ｈなのでこの判定でいけるはず
+                if (now.getHours() < 3 && targetTime.getHours() >= 3) {
+                    targetTime.setHours(3);
+                    targetTime.setMinutes(5);
+                    targetTime.setSeconds(0);
+                }
+            }
+        } else if (cmd.funcState === "OK" && cmd.result.isNext === 2) {
+            if (now.getHours() >= 3) {
+                targetTime.setHours(now.getDay() + 1);
+            }
+            targetTime.setHours(3);
+            targetTime.setMinutes(5);
+            targetTime.setSeconds(0);
+        }
+
+        cmd.reset();
+        cmd.time = targetTime;
+        cmd.func = task.getLoginBonus;
+        this.statusMsg = "次のログインボーナス獲得予定時刻: " + COMMON.DATESTR(targetTime);
     };
 }());

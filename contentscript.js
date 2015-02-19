@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true*/
-/*global $, chrome, console, log, manager*/
+/*global $, chrome, console, log, COMMON, cmdManager*/
 
 /*
     jQuery JavaScript Library v1.9.1 で動作確認
@@ -14,10 +14,6 @@
 // result: 1
 // time: "1:30:00"
 // }
-
-/* --- タスク管理用変数 --- */
-var g_cmdList = [];
-var g_taskQueue = [];
 
 /* --- 戦闘用変数 --- */
 var g_mapid = 0;
@@ -47,7 +43,7 @@ var NormalMapList = [1001, 2001, 3001, 4001, 5001,
 var valley = [8001];
 
 
-
+var task = {};
 (function () {
     'use strict';
     /* 指定マスの最大パーティ数を取得する */
@@ -127,7 +123,13 @@ var valley = [8001];
                         }
                     }
                 }
-                defer.resolve(blockid, partyData); // goto battlePrepare
+
+                if (partyData.length === 0) {
+                    log("パーティ無し");
+                    defer.reject();
+                } else {
+                    defer.resolve(blockid, partyData); // goto battlePrepare
+                }
             },
             error: function () {
                 log("パーティ情報取得に失敗");
@@ -761,7 +763,7 @@ var valley = [8001];
 
         if (!mapid) {
             defer.resolve();
-            return;
+            return defer.promise();
         }
 
         $.ajax({
@@ -774,12 +776,12 @@ var valley = [8001];
                 index: mapid
             }),
             success: function (res) {
-                if (res.self_guild.name === res.win_guild.name && res.win_guild.open === 0) {
+                if (res.self_guild.name === res.win_guild.name && res.win_guild.open === "0") {
                     log("魔界線入場可能マップ : " + res.name);
-                    defer.resolve(mapid, rank);
+                    defer.resolve(mapid, rank); // goto getAllBlockidDystopia
                 } else {
                     log("魔界線入場不可マップ : " + res.name);
-                    defer.resolve(rank); // goto getAllBlockidDystopia
+                    defer.resolve(); // goto getAllBlockidDystopia
                 }
             },
             error: function () {
@@ -796,10 +798,12 @@ var valley = [8001];
         console.log("[Enter]getAllBlockidDystopia");
         var defer = $.Deferred();
 
-        g_blockidList = [];
+        var blockidList = [];
         if (!mapid) {
-            defer.resolve();
-            return;
+            defer.resolve({
+                blockidList: blockidList
+            });
+            return defer.promise();
         }
 
         $.ajax({
@@ -816,10 +820,12 @@ var valley = [8001];
                 $.each(res.remain.heaven || res.remain.hell, function () {
                     // 通過済みのマスは取得しない
                     if (this.id >= res.remain.level) {
-                        g_blockidList.push(this.id);
+                        blockidList.push(this.id);
                     }
                 });
-                defer.resolve();
+                defer.resolve({
+                    blockidList: blockidList
+                });
             },
             error: function () {
                 log("魔界戦マップ情報取得に失敗");
@@ -831,18 +837,25 @@ var valley = [8001];
     };
 
     /*** 魔界戦入場可能マップか判定し、マップ内の全マスのIDを取得 ***/
-    var GetDystopiaMap = function () {
+    task.GetDystopiaMap = function (param) {
         log("[[TaskStart]]GetDystopiaMap");
         var defer = $.Deferred();
 
-        isAvailableDystopia(g_mapid, 0)
-            .then(getAllBlockidDystopia);
+        isAvailableDystopia(param.mapid, param.rank)
+            .then(getAllBlockidDystopia)
+            .then(function (result) {
+                defer.resolve({
+                    blockidList: result.blockidList
+                });
+            }, function () {
+                defer.reject();
+            });
 
         return defer.promise();
     };
 
     /*** マップ内の全マスのIDを取得 ***/
-    var GetBlockid = function (param) {
+    task.GetBlockid = function (param) {
         log("[[TaskStart]]GetBlockid");
         var defer = $.Deferred();
 
@@ -879,7 +892,7 @@ var valley = [8001];
     };
 
     /*** 戦闘 ***/
-    var Battle = function (blockid) {
+    task.Battle = function (blockid) {
         log("[[TaskStart]]Battle");
         var defer = $.Deferred();
 
@@ -1195,48 +1208,50 @@ var valley = [8001];
     
 
     /* ログインボーナスを獲得 */
-    var getDailyLoginPresent = function () {
+    task.getLoginBonus = function () {
+        console.log("[Enter]getLoginBonus");
+        var defer = $.Deferred();
 
-        chrome.runtime.sendMessage({
-            "op": "getVar"
-        }, function (response) {
-            //log("gold_res = " + gold_res);
+        var $iframe = $('#main');
+        var ifrmDoc = $iframe[0].contentWindow.document;
+        var loginTime = $("#logintime", ifrmDoc).text();    // ログインボーナス獲得までの残り時間
+
+        // ログインボーナス獲得までの残り時間の表示が更新されないので、チェックしない
+        $.ajax({
+            url: "updateinfo_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: ({
+                op: "login_reward"
+            }),
+            success: function (res) {
+                // 1:成功, 2:成功（その日のプレゼントは終わり）
+                if (parseInt(res.result, 10) === 1 || parseInt(res.result, 10) === 2) {
+                    log("ログインボーナス " + res.msg);
+                    var isNext;
+                    if (parseInt(res.result, 10) === 1) {
+                        isNext = true;
+                    } else {
+                        isNext = false;
+                    }
+                    defer.resolve({
+                        isNext: isNext,
+                        time: res.time
+                    });
+                } else {
+                    log("ログインボーナス獲得エラー(" + parseInt(res.result, 10) + ")");
+                    defer.reject();
+                }
+            },
+            error: function () {
+                log("ログインボーナス獲得に失敗");
+                defer.reject();
+            }
         });
 
-        /*var $iframe = $('#main');
-        var ifrmDoc = $iframe[0].contentWindow.document;
-
-        if ($("#logintime", ifrmDoc).text() == "00:00:00") {
-            $.ajax({
-                url: "updateinfo_.php",
-                type: "POST",
-                cache: false,
-                dataType: "json",
-                data:({
-                    op: "login_reward"
-                }),
-                success: function(res) {
-                    // 1:成功, 2:成功（その日のプレゼントは終わり）
-                    if (parseInt(res.result,10) == 1 || parseInt(res.result,10) == 2) {
-                        log("ログインボーナス "+ res.msg);
-                    } else {
-                        log("ログインボーナス獲得に失敗");
-                    }
-                },
-                error: function() {
-                    log("ログインボーナス獲得に失敗");
-                }
-            });
-        }*/
+        return defer.promise();
     };
-
-    /*waitUntil = function (targetTime) {
-        now = new Data();
-        if (now >= targetTime) {
-
-
-        }
-    };*/
 }());
 
 $(function () {
@@ -1244,8 +1259,13 @@ $(function () {
 
     var timer;
     log("Start script");
-
-    manager.pollTask();
+/*
+    var loginBonus = null;
+    setTimeout(function () {
+        loginBonus = new cmdManager.CmdLoginBonus();
+    }, 5000);
+*/
+    cmdManager.pollTask();
     var watch = function () {
         var $iframe = $('#main');
         var ifrmDoc = $iframe[0].contentWindow.document;
@@ -1278,11 +1298,6 @@ $(function () {
 
                 // 2.指定されたマップの初めから順にすべてのマスで手動戦闘する
                 // マップIDをgetAllBlockidに渡し(blockListが設定される)、repeatBattleを呼ぶ
-
-                //イベント(2015/1/23-)：レムリアの穴 26001
-                //g_mapid = 5004;
-                //GetBlockid()
-                //.then(repeatBattle);
 
                 // 3.入場可能な魔界戦マップをすべて手動戦闘する（攻略済みがあってもOK）
                 //rank = 1;   // 0 : Heaven, 1: Hell
@@ -1327,8 +1342,15 @@ $(function () {
         //popTaskQueue();
     };
     timer = setInterval(watch, 1000);
-
-    /*
+/*
+    chrome.runtime.onMessage.addListener(
+        function (request, sender, sendResponse) {
+            if (request.op === COMMON.OP.LOGINBONUSSTATUS) {
+                sendResponse({msg: loginBonus.statusMsg});
+            }
+        }
+    );
+*/    /*
         chrome.runtime.sendMessage({
             "op": "get",
             "key": "interval"

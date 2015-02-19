@@ -3,6 +3,8 @@ var COMMON = {};
 COMMON.OP = {
     MAP: "map",
     DYSTOPIA: "dystopia",
+    ALLDYSTOPIA: "allDystopia",
+    LOGINBONUSSTATUS: "loginBonusStatus",
     GET: "get",
     SET: "set",
     LOG: "log"
@@ -14,10 +16,12 @@ COMMON.LOG = {
     RELOAD: 100
 };
 
-COMMON.NOW = function () {
+COMMON.DATESTR = function (date) {
     'use strict';
-    var date = new Date(),
-        y = date.getFullYear(),
+    if (date === undefined) {
+        date = new Date();
+    }
+    var y = date.getFullYear(),
         m = date.getMonth() + 1,
         d = date.getDate(),
         h = date.getHours(),
@@ -47,3 +51,5 @@ COMMON.NOW = function () {
 
     return y + "/" + m + "/" + d + " " + h + ":" + n + ":" + s + "." + l;
 };
+
+COMMON.HELLWAIT = 5;    // minutes

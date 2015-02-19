@@ -1,15 +1,15 @@
 {
     "map": [
-        { "name": "フィグルの森", "value": 1000 },
-        { "name": "デガート遺跡", "value": 2000 },
-        { "name": "アミルレイク", "value": 3000 },
-        { "name": "ゴーズセント", "value": 4000 },
-        { "name": "ベルサイド", "value": 5000 },
-        { "name": "シュタイン城", "value": 6000 },
-        { "name": "バールロック", "value": 7000 },
-        { "name": "ジュールズベルグ", "value": 8000 },
-        { "name": "クレインタワー", "value": 9000 },
-        { "name": "エリアーデ聖堂", "value": 10000 },
+        { "name": "フィグルの森", "value": 1000, "blocknum": 25 },
+        { "name": "デガート遺跡", "value": 2000, "blocknum": 25 },
+        { "name": "アミルレイク", "value": 3000, "blocknum": 25 },
+        { "name": "ゴーズセント", "value": 4000, "blocknum": 25 },
+        { "name": "ベルサイド", "value": 5000, "blocknum": 25 },
+        { "name": "シュタイン城", "value": 6000, "blocknum": 25 },
+        { "name": "バールロック", "value": 7000, "blocknum": 25 },
+        { "name": "ジュールズベルグ", "value": 8000, "blocknum": 25 },
+        { "name": "クレインタワー", "value": 9000, "blocknum": 25 },
+        { "name": "エリアーデ聖堂", "value": 10000, "blocknum": 25 },
         { "name": "イベント", "value": 26000 }
     ],
     "level": [

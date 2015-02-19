@@ -1,5 +1,5 @@
 /*jslint vars: true */
-/*global angular, chrome, COMMON*/
+/*global angular, $, chrome, console, COMMON*/
 (function () {
     "use strict";
     var app = angular.module("SquareNekosan", ["ui.bootstrap"]),
@@ -35,10 +35,18 @@
         };
 
         $interval(function () {
-            chrome.tabs.sendMessage(data.tabId, {
+            /*chrome.tabs.sendMessage(data.tabId, {
                 "op": COMMON.OP.LOG
             }, function (response) {
                 $scope.log = response.log;
+            });*/
+        }, COMMON.LOG.RELOAD);
+
+        $interval(function () {
+            chrome.tabs.sendMessage(data.tabId, {
+                "op": COMMON.OP.LOGINBONUSSTATUS
+            }, function (response) {
+                $scope.loginBonusStatus = response.msg;
             });
         }, COMMON.LOG.RELOAD);
     }]);

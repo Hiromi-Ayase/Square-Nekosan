@@ -40,6 +40,7 @@
                 </div>
                 </select>
             </tab>
+
             <tab heading="魔界戦巡回">
                 <div class="contents">
                     <select ng-model="args.dystopia" ng-options="m.value as m.name + '(' + m.value + ')' for m in config.dystopia">
@@ -48,7 +49,21 @@
                     </select>
                     <button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.DYSTOPIA)">巡回</button>
                 </div>
+                <div class="contents">
+                    <button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.ALLDYSTOPIA)">全て巡回</button>
+                </div>
             </tab>
+
+            <tab heading="オプション">
+                <div class="contents">
+                    <label>
+                        <input type="checkbox"> サドンボスを叩く
+                    </label>
+                    <p>{{loginBonusStatus}}</p>
+                </div>
+                </select>
+            </tab>
+
         </tabset>
         <div class="container">
             <label for="log">Log:</label>

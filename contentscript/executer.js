@@ -1,11 +1,11 @@
 /*jslint vars: true*/
-/*global console, chrome, COMMON, g_cmdList, CmdMapBattle*/
+/*global console, chrome, COMMON, g_cmdList, cmdManager*/
 var debugConsole = console;
 var logBuffer = [];
 
 function log(message) {
     'use strict';
-    logBuffer.unshift("[" + COMMON.NOW() + "] " + message);
+    logBuffer.unshift("[" + COMMON.DATESTR() + "] " + message);
     if (logBuffer.length > COMMON.LOG.MAX) {
         logBuffer.splice(COMMON.LOG.MAX);
     }
@@ -24,16 +24,14 @@ console.log = function (message) {
 
         if (request.op === COMMON.OP.MAP) {
             var mapid = request.args.map + request.args.level;
-            var mapBattle = new CmdMapBattle(mapid);
-            g_cmdList.push(mapBattle);
+            var mapBattle = new cmdManager.CmdMapBattle(mapid);
 
-            //GetBlockid()
-            //    .then(repeatBattle);
+        } else if (request.op === COMMON.OP.ALLDYSTOPIA) {
+            var allDystopia = new cmdManager.CmdAllDystopia();
 
         } else if (request.op === COMMON.OP.DYSTOPIA) {
-            isAvailableDystopia(request.args.dystopia, request.args.dystopiaMode)
-                .then(getAllBlockidDystopia)
-                .then(repeatBattle);
+            var dystopia = new cmdManager.CmdDystopia(request.args.dystopia, request.args.dystopiaMode);
+
         } else if (request.op === COMMON.OP.LOG) {
             var log = logBuffer.join("\n");
             sendResponse({log: log});
