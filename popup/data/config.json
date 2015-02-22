@@ -1,40 +1,111 @@
-{
-    "map": [
-        { "name": "フィグルの森", "value": 1000, "blocknum": 25 },
-        { "name": "デガート遺跡", "value": 2000, "blocknum": 25 },
-        { "name": "アミルレイク", "value": 3000, "blocknum": 25 },
-        { "name": "ゴーズセント", "value": 4000, "blocknum": 25 },
-        { "name": "ベルサイド", "value": 5000, "blocknum": 25 },
-        { "name": "シュタイン城", "value": 6000, "blocknum": 25 },
-        { "name": "バールロック", "value": 7000, "blocknum": 25 },
-        { "name": "ジュールズベルグ", "value": 8000, "blocknum": 25 },
-        { "name": "クレインタワー", "value": 9000, "blocknum": 25 },
-        { "name": "エリアーデ聖堂", "value": 10000, "blocknum": 25 },
-        { "name": "イベント", "value": 26005 }
-    ],
-    "block": [
-        { "name": "フィグルの森の最初", "value": 1001 }
-    ],
-    "level": [
-        { "name": "Normal", "value": 1 },
-        { "name": "Hard", "value": 2 },
-        { "name": "Master", "value": 3 },
-        { "name": "God", "value": 4 }
-    ],
-    "dystopia": [
-        { "name": "フィグルの森", "value": 91001 },
-        { "name": "デガート遺跡", "value": 92001 },
-        { "name": "アミルレイク", "value": 93001 },
-        { "name": "ゴーズセント", "value": 94001 },
-        { "name": "ベルサイド", "value": 95001 },
-        { "name": "シュタイン城", "value": 96001 },
-        { "name": "バールロック", "value": 97001 },
-        { "name": "ジュールズベルグ", "value": 98001 },
-        { "name": "クレインタワー", "value": 99001 },
-        { "name": "エリアーデ聖堂", "value": 100001 }
-    ],
-    "dystopiaMode": [
-        { "name": "Heaven", "value": 0 },
-        { "name": "Hell", "value": 1 }
-    ]
-}
+[
+    {
+        "name": "map",
+        "title": "マップ",
+        "form": [
+            {
+                "type": "select",
+                "name": "map",
+                "title": "マップ",
+                "values": [
+                    { "name": "フィグルの森", "value": 1000 },
+                    { "name": "デガート遺跡", "value": 2000 },
+                    { "name": "アミルレイク", "value": 3000 },
+                    { "name": "ゴーズセント", "value": 4000 },
+                    { "name": "ベルサイド", "value": 5000 },
+                    { "name": "シュタイン城", "value": 6000 },
+                    { "name": "バールロック", "value": 7000 },
+                    { "name": "ジュールズベルグ", "value": 8000 },
+                    { "name": "クレインタワー", "value": 9000 },
+                    { "name": "エリアーデ聖堂", "value": 10000 },
+                    { "name": "イベント", "value": 26005 }
+                ]
+            },
+            {
+                "type": "select",
+                "name": "level",
+                "title": "レベル",
+                "values": [
+                    { "name": "Normal", "value": 1 },
+                    { "name": "Hard", "value": 2 },
+                    { "name": "Master", "value": 3 },
+                    { "name": "God", "value": 4 }
+                ]
+            }
+        ],
+        "button": [
+            { "name": "play", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+            { "name": "pause", "title": "中断", "icon": "glyphicon-pause", "class": "btn-primary" },
+            { "name": "stop", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+        ]
+    },
+    {
+        "name": "dystopia",
+        "title": "魔界戦",
+        "op": "DYSTOPIA",
+        "form": [
+            {
+                "type": "select",
+                "name": "dystopia",
+                "title": "魔界戦",
+                "values": [
+                    { "name": "フィグルの森", "value": 91001 },
+                    { "name": "デガート遺跡", "value": 92001 },
+                    { "name": "アミルレイク", "value": 93001 },
+                    { "name": "ゴーズセント", "value": 94001 },
+                    { "name": "ベルサイド", "value": 95001 },
+                    { "name": "シュタイン城", "value": 96001 },
+                    { "name": "バールロック", "value": 97001 },
+                    { "name": "ジュールズベルグ", "value": 98001 },
+                    { "name": "クレインタワー", "value": 99001 },
+                    { "name": "エリアーデ聖堂", "value": 100001 }
+                ]
+            },
+            {
+                "type": "select",
+                "name": "dystopiaMode",
+                "title": "レベル",
+                "values": [
+                    { "name": "Heaven", "value": 0 },
+                    { "name": "Hell", "value": 1 }
+                ]
+            }
+        ],
+        "button": [
+            { "name": "play", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+            { "name": "pause", "title": "中断", "icon": "glyphicon-pause", "class": "btn-primary" },
+            { "name": "stop", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+        ]
+    },
+    {
+        "name": "block",
+        "title": "マス指定",
+        "form": [
+            {
+                "type": "select",
+                "name": "map",
+                "title": "マップ名",
+                "values": [
+                    { "name": "フィグルの森の最初", "value": 1001 }
+                ]
+            },
+            {
+                "type": "text",
+                "name": "blockid",
+                "title": "ID指定",
+                "init": ""
+            },
+            {
+                "type": "number",
+                "name": "block_count",
+                "title": "回る回数",
+                "init": 1
+            }
+        ],
+        "button": [
+            { "name": "play", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+            { "name": "pause", "title": "中断", "icon": "glyphicon-pause", "class": "btn-primary" },
+            { "name": "stop", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+        ]
+    }
+]

@@ -2,80 +2,64 @@
 /*global angular, $, chrome, console, COMMON*/
 (function () {
     "use strict";
-    var app = angular.module("SquareNekosan", ["ui.bootstrap"]),
+    var app = angular.module("SquareNekosan", ["ui.bootstrap", "ngResource"]),
         data = {},
         storage = {};
 
-    app.factory("getData", ["$http", function ($http) {
-        return {
-            get: function (file) {
-                return $http.get("data/" + file + ".json")
-                    .success(function (data, status, headers, config) {
-                        return data;
-                    });
+    app.directive("ngForm", ['$compile', function ($compile) {
+        return function (scope, element, attr) {
+            if (scope.args[scope.c.name] === undefined) {
+                scope.args[scope.c.name] = {};
+            }
+            var html;
+            var n = scope.c.name + "." + scope.f.name;
+            if (scope.f.type === "select") {
+                html = '<select ng-model="args.' + n + '" ng-options="m.value as m.name + \' (\' + m.value + \')\' for m in f.values" />';
+                element.append($compile(html)(scope));
+                scope.args[scope.c.name][scope.f.name] = scope.f.values[0].value;
+            } else if (scope.f.type === "text") {
+                html = '<input type="text" ng-model="args.' + n + '" />';
+                element.append($compile(html)(scope));
+                scope.args[scope.c.name][scope.f.name] = scope.f.init;
+            } else if (scope.f.type === "number") {
+                html = '<input type="number" ng-model="args.' + n + '" />';
+                element.append($compile(html)(scope));
+                scope.args[scope.c.name][scope.f.name] = scope.f.init;
             }
         };
     }]);
 
-    app.controller("MainController", ["$scope", "$interval", "getData", function ($scope, $interval, getData) {
-        $scope.COMMON = COMMON;
-        $scope.args = {};
-        getData.get("config").then(function (response) {
-            $scope.config = response.data;
-            angular.forEach(response.data, function (value, key) {
-                $scope.args[key] = value[0].value;
-            });
-        });
 
-        $scope.send = function (op) {
+    app.controller("MainController", ["$scope", "$interval", "$resource", function ($scope, $interval, $resource) {
+        $scope.COMMON = COMMON;
+        $scope.config = $resource("/popup/data/config.json").query();
+        $scope.args = {};
+        $scope.state = {};
+        $scope.send = function (btn, op) {
             chrome.tabs.sendMessage(data.tabId, {
                 "op": op,
-                "args": $scope.args
+                "button": btn,
+                "args": $scope.args[op]
             }, function (response) {});
+            $scope.state = btn;
         };
 
-        $scope.args.block_count = 1;
-
-        // state : play  -> btn : pause, stop
-        // state : pause -> btn : play, stop
-        // state : stop  -> btn : play
-        $scope.state = {};
-        $scope.state.block = 'stop';
-        $scope.clickPlay = function (cmd) {
-            if ($scope.state[cmd] === 'play') {
-                $scope.state[cmd] = 'pause';
-            } else if ($scope.state[cmd] === 'pause') {
-                $scope.state[cmd] = 'play';
-            } else if ($scope.state[cmd] === 'stop') {
-                $scope.state[cmd] = 'play';
+        $scope.state = "stop";
+        $scope.btnClass = function (btn, op) {
+            if (btn === 'play') {
+                return {
+                    "disabled": $scope.state === "play"
+                };
+            } else if (btn === 'pause') {
+                return {
+                    "disabled": $scope.state === "stop" || $scope.state === "pause"
+                };
+            } else if (btn === 'stop') {
+                return {
+                    "disabled": $scope.state === "stop"
+                };
             }
         };
-
-        $scope.clickStop = function (cmd) {
-            $scope.state[cmd] = 'stop';
-        };
-
-        $scope.iconClass = function (cmd) {
-            return {
-                'glyphicon-play': $scope.state[cmd] !== 'play',
-                'glyphicon-pause': $scope.state[cmd] === 'play'
-            };
-        };
-
-        $scope.btnClass = function (cmd) {
-            return {
-                'btn-danger': $scope.state[cmd] !== 'play',
-                'btn-primary': $scope.state[cmd] === 'play'
-            };
-        };
-
-        $scope.btnClass2 = function (cmd) {
-            return {
-                'hidden-element': $scope.state[cmd] === 'stop'
-            };
-        };
-
-
 
         $interval(function () {
             chrome.tabs.sendMessage(data.tabId, {
