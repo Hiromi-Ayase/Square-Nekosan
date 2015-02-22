@@ -711,7 +711,7 @@ var task = {};
     };
 
     var lvupProcess = function (charaid) {
-        log("Enter lvupProcess");
+        log("[Enter]lvupProcess");
         var defer = $.Deferred();
 
         g_lvupCharaId = charaid;
@@ -732,8 +732,11 @@ var task = {};
     };
 
     var lvupAllPTChara = function () {
-        log("Enter lvupAllPTChara");
+        log("[Enter]lvupAllPTChara");
         var defer = $.Deferred();
+
+        g_lvupCharaId = 0;
+        g_lvupCharaList = [];
 
         if (!(g_isLvup && IS_AUTO_LVUP)) {
             defer.resolve();
@@ -899,8 +902,6 @@ var task = {};
         var isBattleSuccess = 0;
 
         g_isLvup = 0;
-        g_lvupCharaId = 0;
-        g_lvupCharaList = [];
 
         battleGetMaxParty(blockid)
             .then(battleGetParty)
@@ -915,6 +916,8 @@ var task = {};
                 isBattleSuccess = 0;
                 updateCQ();
             })
+            //.then(getSuddenList)
+            //.then(suddenAllAttack)
             .then(getLvupCharaInParty)
             .then(lvupAllPTChara)
             .then(function () {
@@ -955,13 +958,6 @@ var task = {};
     };
 */
 
-    /* 魔界戦Hellの待ち時間 */
-    var hellWait = function () {
-        return $.Deferred(function (defer) {
-            setTimeout(defer.resolve, 20 * 60 * 1000);
-        }).promise();
-    };
-
     /* 魔界線 入場可能マップをすべて回る(Heaven・Hell個別) */
 /*
     var dystopiaAllBattle = function (rank) {
@@ -988,7 +984,8 @@ var task = {};
     };
 */
     
-    /* 出現しているサドンボスの中から30%以上削られているものを取得 */
+    /* 出現しているサドンボスの中から攻撃対象のものを取得 */
+    /* 攻撃対象：HPが70％以下かつ0以上、または自分が遭遇者 */
     var getSuddenList = function () {
         console.log("Enter getSuddenList");
         var defer = $.Deferred();
@@ -1003,7 +1000,7 @@ var task = {};
             return;
         }
 
-        g_suddenList = [];
+        var g_suddenList = [];
 
         $.ajax({
             url: "guild_.php",
@@ -1027,7 +1024,7 @@ var task = {};
                         log(this.name + "(id=" + this.id + ") : 攻撃対象ではありません");
                     }
                 });
-                defer.resolve();
+                defer.resolve();   // goto suddenAllAttack
             },
             error: function () {
                 log("サドンボス情報取得に失敗");
@@ -1164,7 +1161,7 @@ var task = {};
     };
 
     var suddenProcess = function (suddenid) {
-        log("Enter suddenProcess");
+        log("[Enter]suddenProcess");
         var defer = $.Deferred();
 
         isAttackedSudden(suddenid)
@@ -1182,7 +1179,7 @@ var task = {};
     };
 
     var suddenAllAttack = function () {
-        log("Enter suddenAllAttack");
+        log("[Enter]suddenAllAttack");
         var defer = $.Deferred();
 
         var list = g_suddenList;
@@ -1240,6 +1237,8 @@ var task = {};
                         time: res.time
                     });
                 } else {
+                    // -1:日付をまたいだ時に帰ってきた、例えばmercenary_.php,op:loadを送ってみて回避？
+                    // -2:獲得可能時間前の場合
                     log("ログインボーナス獲得エラー(" + parseInt(res.result, 10) + ")");
                     defer.reject();
                 }
@@ -1259,12 +1258,12 @@ $(function () {
 
     var timer;
     log("Start script");
-/*
+
     var loginBonus = null;
     setTimeout(function () {
         loginBonus = new cmdManager.CmdLoginBonus();
     }, 5000);
-*/
+
     cmdManager.pollTask();
     var watch = function () {
         var $iframe = $('#main');
@@ -1342,7 +1341,7 @@ $(function () {
         //popTaskQueue();
     };
     timer = setInterval(watch, 1000);
-/*
+
     chrome.runtime.onMessage.addListener(
         function (request, sender, sendResponse) {
             if (request.op === COMMON.OP.LOGINBONUSSTATUS) {
@@ -1350,7 +1349,7 @@ $(function () {
             }
         }
     );
-*/    /*
+    /*
         chrome.runtime.sendMessage({
             "op": "get",
             "key": "interval"

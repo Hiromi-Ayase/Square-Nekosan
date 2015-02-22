@@ -75,8 +75,9 @@ var cmdManager = {};
                     .then(function (result) {
                         task.funcState = "OK";
                         task.result = result;
-                    }, function () {
+                    }, function (result) {
                         task.funcState = "NG";
+                        task.result = result;
                     })
                     .always(function () {
                         cmdList[0].setNextTask();
@@ -174,16 +175,16 @@ var cmdManager = {};
     };
 
     /* Command : 指定された1つ以上のマスで手動戦闘する */
-    cmdManager.CmdBlockBatttle = function (blockidList) {
-        this.blockidList = [7100, 7100, 7099];
+    cmdManager.CmdBlockBattle = function (blockidList) {
+        this.blockidList = blockidList;
         this.battleCount = 0;
 
-        this.cmd = new Command("CmdBlockBatttle");
+        this.cmd = new Command("CmdBlockBattle");
         this.setNextTask();
         cmdList.push(this);
     };
 
-    cmdManager.CmdBlockBatttle.prototype.setNextTask = function () {
+    cmdManager.CmdBlockBattle.prototype.setNextTask = function () {
         var now = new Date();
         var cmd = this.cmd;
 
@@ -367,7 +368,7 @@ var cmdManager = {};
             console.log("ログインボーナス完了済み");
             // targetTimeを次の3時にセット
             if (now.getHours() >= 3) {
-                targetTime.setHours(now.getDay() + 1);
+                targetTime.setDate(now.getDate() + 1);
             }
             targetTime.setHours(3);
             targetTime.setMinutes(5);
@@ -376,8 +377,8 @@ var cmdManager = {};
             var timeArray = timeStr.split(":");
             if (timeArray.length !== 3) {
                 log("ログインボーナス時間取得に失敗");
-                // 5分後にリトライ
-                targetTime.setMinutes(now.getMinutes() + 5);
+                // 10分後にリトライ
+                targetTime.setMinutes(now.getMinutes() + 10);
             } else {
                 var h = parseInt(timeArray[0], 10);
                 var m = parseInt(timeArray[1], 10);
@@ -409,22 +410,47 @@ var cmdManager = {};
         var cmd = this.cmd;
 
         var targetTime = now;   // 次回ログインボーナス獲得時刻 (本来の予定時刻+5分)
+        cmd.time = null;
 
         if (cmd.state === "END") {
             this.statusMsg = "次のログインボーナス獲得予定時刻: " + "停止中";
             return;
         } else if (cmd.funcState === "NG") {
-            // 5分後にリトライ
-            targetTime.setMinutes(now.getMinutes() + 5);
+
+            if (cmd.result === undefined) {
+                // 通信失敗or謎のエラー
+                // 10分後にリトライ
+                targetTime.setMinutes(now.getMinutes() + 10);
+            } else if (cmd.result === -1) {
+                // 日付をまたいだ
+                // どうしよう・・・
+                targetTime.setMinutes(now.getMinutes() + 10);
+            } else if (cmd.result === -2) {
+                // 獲得可能時間前
+                // 10分後にリトライ
+                targetTime.setMinutes(now.getMinutes() + 10);
+            } else if (cmd.result === -3) {
+                // ローグインボーナス終了
+                // 次の3時
+                if (now.getHours() >= 3) {
+                    targetTime.setDate(now.getDate() + 1);
+                }
+                targetTime.setHours(3);
+                targetTime.setMinutes(5);
+                targetTime.setSeconds(0);
+            } else {
+                // 10分後にリトライ
+                targetTime.setMinutes(now.getMinutes() + 10);
+            }
         }
 
-        if (cmd.funcState === "OK" && cmd.result.isNext === 1) {
+        if (cmd.funcState === "OK" && cmd.result.isNext === true) {
             var timeStr = cmd.result.time;
             var timeArray = timeStr.split(":");
             if (timeArray.length !== 3) {
                 log("ログインボーナス時間取得に失敗");
-                // 5分後にリトライ
-                targetTime.setMinutes(now.getMinutes() + 5);
+                // 10分後にリトライ
+                targetTime.setMinutes(now.getMinutes() + 10);
             } else {
                 var h = parseInt(timeArray[0], 10);
                 var m = parseInt(timeArray[1], 10);
@@ -442,9 +468,9 @@ var cmdManager = {};
                     targetTime.setSeconds(0);
                 }
             }
-        } else if (cmd.funcState === "OK" && cmd.result.isNext === 2) {
+        } else if (cmd.funcState === "OK" && cmd.result.isNext === false) {
             if (now.getHours() >= 3) {
-                targetTime.setHours(now.getDay() + 1);
+                targetTime.setDate(now.getDate() + 1);
             }
             targetTime.setHours(3);
             targetTime.setMinutes(5);

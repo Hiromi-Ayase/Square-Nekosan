@@ -23,3 +23,15 @@ body {
     overflow-x: scroll;
     margin-bottom: 10px;
 }
+
+#block-count {
+    width: 60px;
+}
+
+.hidden-element {
+    display: none;
+}
+
+#block-specified {
+    width: 70px
+}

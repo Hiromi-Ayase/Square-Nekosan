@@ -7,7 +7,10 @@ COMMON.OP = {
     LOGINBONUSSTATUS: "loginBonusStatus",
     GET: "get",
     SET: "set",
-    LOG: "log"
+    LOG: "log",
+    BLOCK: "block",
+    SUSPEND: "suspend",
+    END: "end"
 };
 
 COMMON.STORAGE = "storage";

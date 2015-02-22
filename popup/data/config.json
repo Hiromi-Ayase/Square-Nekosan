@@ -10,7 +10,10 @@
         { "name": "ジュールズベルグ", "value": 8000, "blocknum": 25 },
         { "name": "クレインタワー", "value": 9000, "blocknum": 25 },
         { "name": "エリアーデ聖堂", "value": 10000, "blocknum": 25 },
-        { "name": "イベント", "value": 26000 }
+        { "name": "イベント", "value": 26005 }
+    ],
+    "block": [
+        { "name": "フィグルの森の最初", "value": 1001 }
     ],
     "level": [
         { "name": "Normal", "value": 1 },

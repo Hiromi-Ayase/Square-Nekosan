@@ -34,12 +34,55 @@
             }, function (response) {});
         };
 
+        $scope.args.block_count = 1;
+
+        // state : play  -> btn : pause, stop
+        // state : pause -> btn : play, stop
+        // state : stop  -> btn : play
+        $scope.state = {};
+        $scope.state.block = 'stop';
+        $scope.clickPlay = function (cmd) {
+            if ($scope.state[cmd] === 'play') {
+                $scope.state[cmd] = 'pause';
+            } else if ($scope.state[cmd] === 'pause') {
+                $scope.state[cmd] = 'play';
+            } else if ($scope.state[cmd] === 'stop') {
+                $scope.state[cmd] = 'play';
+            }
+        };
+
+        $scope.clickStop = function (cmd) {
+            $scope.state[cmd] = 'stop';
+        };
+
+        $scope.iconClass = function (cmd) {
+            return {
+                'glyphicon-play': $scope.state[cmd] !== 'play',
+                'glyphicon-pause': $scope.state[cmd] === 'play'
+            };
+        };
+
+        $scope.btnClass = function (cmd) {
+            return {
+                'btn-danger': $scope.state[cmd] !== 'play',
+                'btn-primary': $scope.state[cmd] === 'play'
+            };
+        };
+
+        $scope.btnClass2 = function (cmd) {
+            return {
+                'hidden-element': $scope.state[cmd] === 'stop'
+            };
+        };
+
+
+
         $interval(function () {
-            /*chrome.tabs.sendMessage(data.tabId, {
+            chrome.tabs.sendMessage(data.tabId, {
                 "op": COMMON.OP.LOG
             }, function (response) {
                 $scope.log = response.log;
-            });*/
+            });
         }, COMMON.LOG.RELOAD);
 
         $interval(function () {

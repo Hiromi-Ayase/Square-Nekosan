@@ -1,4 +1,4 @@
-/*jslint vars: true*/
+/*jslint vars: true, plusplus: true*/
 /*global console, chrome, COMMON, g_cmdList, cmdManager*/
 var debugConsole = console;
 var logBuffer = [];
@@ -35,6 +35,21 @@ console.log = function (message) {
         } else if (request.op === COMMON.OP.LOG) {
             var log = logBuffer.join("\n");
             sendResponse({log: log});
+
+        } else if (request.op === COMMON.OP.BLOCK) {
+            var blockid;
+            if (request.args.blockid === undefined) {
+                blockid = request.args.block;
+            } else {
+                blockid = request.args.blockid;
+            }
+            var blockidList = [];
+            var i;
+            for (i = 0; i < request.args.block_count; i++) {
+                blockidList.push(blockid);
+            }
+            var blockBattle = new cmdManager.CmdBlockBattle(blockidList);
         }
+
     });
 }());
