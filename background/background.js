@@ -11,18 +11,16 @@
                 storageObject;
             if (request.op === COMMON.OP.GET) {
                 storageData = localStorage.getItem(COMMON.STORAGE);
-                storageObject = JSON.parse(storageData);
                 sendResponse({
                     data: data,
-                    storage: storageObject
+                    storage: storageData
                 });
             } else if (request.op === COMMON.OP.SET) {
-                if (request.data !== 'undefined') {
+                if (request.data !== undefined) {
                     data = request.data;
                 }
-                if (request.storage !== 'undefined') {
-                    storageObject = request.storage;
-                    storageData = JSON.stringify(storageObject);
+                if (request.storage !== undefined) {
+                    storageData = request.storage;
                     localStorage.setItem(COMMON.STORAGE, storageData);
                 }
             }

@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true*/
-/*global console, chrome, COMMON, g_cmdList, cmdManager*/
+/*global console, chrome, COMMON, g_cmdList, cmdManager, window, $*/
 var debugConsole = console;
 var logBuffer = [];
 
@@ -26,63 +26,113 @@ console.log = function (message) {
     var mapBattle = null;
     var allDystopia = null;
     var dystopia = null;
+    var loginBonus = null;
+
+    var setting = null;
+    var data = null;
+
+    function buildContentsData() {
+        return {
+            block: blockBattle !== null ? {
+                statusText: "実行中！ - " + blockBattle.counterStr,
+                state: blockBattle.cmd.state
+            } : {
+                statusText: "いぐー",
+                state: COMMON.CMD_STATUS.END
+            },
+            map: mapBattle !== null ? {
+                statusText: "実行中！",
+                state: mapBattle.cmd.state
+            } : {
+                statusText: "いぐー",
+                state: COMMON.CMD_STATUS.END
+            },
+            dystopia: dystopia !== null ? {
+                statusText: "実行中！",
+                state: dystopia.cmd.state
+            } : {
+                state: COMMON.CMD_STATUS.END,
+                statusText: "いぐー"
+            },
+            log: logBuffer.join("\n"),
+            loginBonus: loginBonus === null ? "" : loginBonus.statusMsg
+        };
+    }
+
+    $(function () {
+        window.setTimeout(function () {
+            loginBonus = new cmdManager.CmdLoginBonus();
+        }, 5000);
+
+        window.setInterval(function () {
+            chrome.runtime.sendMessage({
+                "op": "get"
+            }, function (response) {
+                setting = JSON.parse(response.storage);
+                data = response.data;
+            });
+        }, COMMON.INTERVAL.SETTING);
+    });
 
     chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
 
         if (request.op === COMMON.OP.MAP) {
             var mapid = request.args.map + request.args.level;
-            mapBattle = new cmdManager.CmdMapBattle(mapid);
+
+            if (request.ctrl === COMMON.OP_CTRL.RUN) {
+                mapBattle = new cmdManager.CmdMapBattle(mapid, function () {
+                    mapBattle = null;
+                });
+            } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
+                mapBattle.cmd.state = COMMON.CMD_STATUS.END;
+                mapBattle = null;
+            }
 
         } else if (request.op === COMMON.OP.ALLDYSTOPIA) {
             allDystopia = new cmdManager.CmdAllDystopia();
 
         } else if (request.op === COMMON.OP.DYSTOPIA) {
-            dystopia = new cmdManager.CmdDystopia(request.args.dystopia, request.args.dystopiaMode);
-
-        } else if (request.op === COMMON.OP.LOG) {
-            var log = logBuffer.join("\n");
-            sendResponse({log: log});
-
-        } else if (request.op === COMMON.OP.BLOCK) {
-            if (request.state === COMMON.OPCTRL.NEW) {
-                var blockid;
-                if (request.args.blockid === undefined) {
-                    blockid = request.args.block;
-                } else {
-                    blockid = request.args.blockid;
-                }
-                var blockidList = [];
-                var i;
-                for (i = 0; i < request.args.block_count; i++) {
-                    blockidList.push(blockid);
-                }
-                blockBattle = new cmdManager.CmdBlockBattle(blockidList, function () {
-                    blockBattle = null;
-                    chrome.runtime.sendMessage({
-                        "op": COMMON.OP.BLOCK,
-                        "state": COMMON.OPCTRL.END
-                    }, function (response) {});
+            if (request.ctrl === COMMON.OP_CTRL.RUN) {
+                dystopia = new cmdManager.CmdDystopia(request.args.dystopia, request.args.dystopiaMode, function () {
+                    dystopia = null;
                 });
-            } else if (request.state === COMMON.OPCTRL.PAUSE) {
+            } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
+                dystopia.cmd.state = COMMON.CMD_STATUS.END;
+                dystopia = null;
+            }
+        } else if (request.op === COMMON.OP.BLOCK) {
+            if (request.ctrl === COMMON.OP_CTRL.PAUSE) {
                 if (blockBattle !== null) {
-                    blockBattle.cmd.state = "PAUSE";
+                    blockBattle.cmd.state = COMMON.CMD_STATUS.PAUSE;
                 }
-            } else if (request.state === COMMON.OPCTRL.RESUME) {
+            } else if (request.ctrl === COMMON.OP_CTRL.RUN) {
                 if (blockBattle !== null) {
-                    blockBattle.cmd.state = "RUN";
+                    blockBattle.cmd.state = COMMON.CMD_STATUS.RUN;
+                } else {
+                    var blockid;
+                    if (request.args.blockid === undefined || request.args.blockid === "") {
+                        blockid = request.args.map;
+                    } else {
+                        blockid = request.args.blockid;
+                    }
+                    var blockidList = [];
+                    var i;
+                    for (i = 0; i < request.args.block_count; i++) {
+                        blockidList.push(blockid);
+                    }
+                    blockBattle = new cmdManager.CmdBlockBattle(blockidList, function () {
+                        blockBattle = null;
+                    });
                 }
-            } else if (request.state === COMMON.OPCTRL.ABORT) {
+            } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
                 if (blockBattle !== null) {
-                    blockBattle.cmd.state = "END";
+                    blockBattle.cmd.state = COMMON.CMD_STATUS.END;
+                    blockBattle = null;
                 }
             }
 
-        } else if (request.op === COMMON.OP.BLOCKBATTLECOUNTER) {
-            if (blockBattle !== null) {
-                sendResponse({msg: blockBattle.counterStr});
-            } else {
-                sendResponse({msg: ""});
-            }
+        } else if (request.op === COMMON.OP.CONTENTS_DATA) {
+            sendResponse(buildContentsData());
         }
     });
 }());

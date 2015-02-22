@@ -51,7 +51,7 @@ body {
 
 
 .form {
-    padding: 10px 30px 10px;
+    padding: 10px 20px 10px;
 }
 
 .control {
@@ -61,3 +61,8 @@ body {
 .status {
     border-bottom: 1px #000 solid;
 }
+
+.settings-editor {
+    border: 1px solid black;
+}
+

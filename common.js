@@ -4,26 +4,33 @@ COMMON.OP = {
     MAP: "map",
     DYSTOPIA: "dystopia",
     ALLDYSTOPIA: "allDystopia",
-    LOGINBONUSSTATUS: "loginBonusStatus",
     GET: "get",
     SET: "set",
     LOG: "log",
     BLOCK: "block",
     SUSPEND: "suspend",
-    END: "end"
+    END: "end",
+    CONTENTS_DATA: "contents_data"
 };
 
-COMMON.OPCTRL = {
-    NEW: "new",
+COMMON.CMD_STATUS = {
+    RUN: "RUN",
+    PAUSE: "PAUSE",
+    END: "END"
+};
+
+COMMON.OP_CTRL = {
+    RUN: "run",
     PAUSE: "pause",
-    RESUME: "resume",
-    ABORT: "abort",
-    END: "end"
+    ABORT: "abort"
 };
 
 COMMON.STORAGE = "storage";
+COMMON.INTERVAL = {
+    CONTENTS_DATA: 100,
+    SETTING: 100
+};
 COMMON.LOG = {
-    MAX: 100,
     RELOAD: 100
 };
 

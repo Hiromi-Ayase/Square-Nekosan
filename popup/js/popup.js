@@ -1,8 +1,8 @@
 /*jslint vars: true */
-/*global angular, $, chrome, console, COMMON*/
+/*global angular, $, chrome, console, COMMON, CodeMirror, document*/
 (function () {
     "use strict";
-    var app = angular.module("SquareNekosan", ["ui.bootstrap", "ngResource"]),
+    var app = angular.module("SquareNekosan", ["ui.bootstrap", "ngResource", "ui.codemirror"]),
         data = {},
         storage = {};
 
@@ -29,59 +29,95 @@
         };
     }]);
 
-    app.controller("MainController", ["$scope", "$interval", "$resource", function ($scope, $interval, $resource) {
+    app.controller("MainController", ["$scope", "$interval", "$resource", "$timeout", function ($scope, $interval, $resource, $timeout) {
         $scope.COMMON = COMMON;
-        $scope.config = $resource("/popup/data/config.json").query();
+        $scope.config = $resource("/popup/data/form.json").query();
         $scope.args = {};
-        $scope.state = {};
-        $scope.send = function (btn, op) {
+        $scope.send = function (ctrl, op) {
             chrome.tabs.sendMessage(data.tabId, {
                 "op": op,
-                "button": btn,
+                "ctrl": ctrl,
                 "args": $scope.args[op]
             }, function (response) {});
-            $scope.state = btn;
         };
 
-
-        $interval(function () {
-            chrome.tabs.sendMessage(data.tabId, {
-                "op": COMMON.OP.LOG
-            }, function (response) {
-                $scope.log = response.log;
-            });
-        }, COMMON.LOG.RELOAD);
-
-        $interval(function () {
-            chrome.tabs.sendMessage(data.tabId, {
-                "op": COMMON.OP.LOGINBONUSSTATUS
-            }, function (response) {
-                $scope.loginBonusStatus = response.msg;
-            });
-        }, COMMON.LOG.RELOAD);
-
-        $interval(function () {
-            chrome.tabs.sendMessage(data.tabId, {
-                "op": COMMON.OP.BLOCKBATTLECOUNTER
-            }, function (response) {
-                $scope.blockBattleCounter = response.msg;
-            });
-        }, COMMON.LOG.RELOAD);
-
-
-        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-            if (request.op === COMMON.OP.BLOCK) {
-                if (request.state === COMMON.OPCTRL.END) {
-                    $scope.state[COMMON.OP.BLOCK] = 'stop';
-                }
+        $scope.btnClass = function (ctrl, op) {
+            if ($scope.contentsData === undefined) {
+                return { disabled: true };
             }
+            var s = $scope.contentsData[op].state;
+            if (ctrl === COMMON.OP_CTRL.RUN) {
+                return { disabled: s === COMMON.CMD_STATUS.RUN };
+            } else if (ctrl === COMMON.OP_CTRL.PAUSE) {
+                return { disabled: s === COMMON.CMD_STATUS.PAUSE || s === COMMON.CMD_STATUS.END };
+            } else if (ctrl === COMMON.OP_CTRL.ABORT) {
+                return { disabled: s === COMMON.CMD_STATUS.END };
+            }
+        };
+
+        var cmSetting;
+        $scope.settingEditor = {
+            lineNumbers: true,
+            indentWithTabs: true,
+            matchBrackets: true,
+            autoCloseBrackets: true,
+            mode: 'application/ld+json',
+            onLoad : function (cm) {
+                cmSetting = cm;
+                cm.on("change", function (e) {
+                    try {
+                        JSON.parse(cm.getValue());
+                        $scope.settingsStatus = "OK";
+                    } catch (e1) {
+                        $scope.settingsStatus = "JSON Error";
+                    }
+                });
+            }
+        };
+/*
+        var flash = function (message) {
+            $scope.flash = message;
+            $timeout(function () {
+                $scope.flash = undefined;
+            }, 1000);
+        };
+        $scope.flashbox = function () {
+            return { hiddenElement: $scope.flash === undefined };
+        };
+*/
+        $scope.settingAction = function (mode) {
+            if (mode === "save") {
+                var jsonString = cmSetting.getValue();
+                try {
+                    storage = JSON.parse(jsonString);
+                } catch (e2) {
+                    return;
+                }
+                chrome.runtime.sendMessage({
+                    "op": COMMON.OP.SET,
+                    "storage": jsonString
+                });
+                $scope.settingsStatus = "Saved!";
+            } else if (mode === "restore") {
+                cmSetting.setValue(storage);
+            }
+        };
+
+        $interval(function () {
+            chrome.tabs.sendMessage(data.tabId, {
+                "op": COMMON.OP.CONTENTS_DATA
+            }, function (response) {
+                $scope.contentsData = response;
+            });
+        }, COMMON.INTERVAL.CONTENTS_DATA);
+
+
+        chrome.runtime.sendMessage({
+            "op": COMMON.OP.GET
+        }, function (response) {
+            data = response.data;
+            storage = response.storage;
+            $scope.setting = storage;
         });
     }]);
-
-    chrome.runtime.sendMessage({
-        "op": COMMON.OP.GET
-    }, function (response) {
-        data = response.data;
-        storage = response.storage;
-    });
 }());
