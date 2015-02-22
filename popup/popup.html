@@ -60,13 +60,15 @@
                     </select>
                     <label for="block-specified">or ブロックID指定</label>
                     <input id="block-specified" type="text" ng-model="args.blockid" />
-                    <label for="block-count">回る回数</label>
+                    <label for="block-count">回数</label>
                     <input id="block-count" type="number" min=1 ng-model="args.block_count" />
-                    <button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.BLOCK)">巡回</button>
-                    <!--
-                    <button type="button" class="btn btn-xs" ng-class="btnClass('block')" ng-click="clickPlay('block')"><span class="glyphicon" ng-class="iconClass('block')"></span></button>
-                    <button type="button" class="btn btn-xs" ng-class="btnClass2('block')" ng-click="clickStop('block')"><span class="glyphicon glyphicon-stop"></span></button>
-                    -->
+                    <!--<button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.BLOCK)">巡回</button>-->
+
+
+                    <button type="button" class="btn btn-xs" ng-class="btnClass(COMMON.OP.BLOCK)" ng-click="clickPlay(COMMON.OP.BLOCK)"><span class="glyphicon" ng-class="iconClass(COMMON.OP.BLOCK)"></span></button>
+                    <button type="button" class="btn btn-xs" ng-class="btnClass2(COMMON.OP.BLOCK)" ng-click="clickStop(COMMON.OP.BLOCK)"><span class="glyphicon glyphicon-stop"></span></button>
+
+                    <span>{{blockBattleCounter}}</span>
                                <!--<button type="button" class="btn btn-xs dropdown-toggle" ng-class="btnClass('block')" dropdown-toggle>
                             <span class="caret"></span>
                         </button>

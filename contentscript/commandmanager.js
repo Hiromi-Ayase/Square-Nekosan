@@ -57,6 +57,9 @@ var cmdManager = {};
         var i = 0;
         for (i = 0; i < cmdList.length; i++) {
             if (cmdList[i].cmd.state === "END") {
+                if (!cmdList[i].cmd.endHandler) {
+                    cmdList[i].cmd.endHandler();
+                }
                 cmdList.splice(i, 1);
                 i--;
             }
@@ -69,8 +72,13 @@ var cmdManager = {};
                 return a.cmd.time - b.cmd.time;
             });
             var now = new Date();
-            if (cmdList[0].cmd.time < now) {
-                var task = cmdList[0].cmd;
+            for (i = 0; i < cmdList.length; i++) {
+                if (cmdList[i].cmd.time < now && cmdList[i].cmd.state === "RUN") {
+                    break;
+                }
+            }
+            if (i < cmdList.length) {
+                var task = cmdList[i].cmd;
                 task.func(task.param)
                     .then(function (result) {
                         task.funcState = "OK";
@@ -80,7 +88,7 @@ var cmdManager = {};
                         task.result = result;
                     })
                     .always(function () {
-                        cmdList[0].setNextTask();
+                        cmdList[i].setNextTask();
                         defer.resolve();
                     });
             } else {
@@ -105,7 +113,7 @@ var cmdManager = {};
     };
 
     /* 共通のコマンドオブジェクト */
-    function Command(name) {
+    function Command(name, handler) {
         this.name = name;
         this.state = "RUN"; // RUN, PAUSE, ABORT, END
 
@@ -114,6 +122,8 @@ var cmdManager = {};
         this.param = null;
         this.result = null;
         this.funcState = null;
+
+        this.endHandler = handler;
     }
 
     Command.prototype.reset = function () {
@@ -125,12 +135,12 @@ var cmdManager = {};
     };
 
     /* Command : 指定されたマップの初めから順にすべてのマスで手動戦闘する */
-    cmdManager.CmdMapBattle = function (mapid) {
+    cmdManager.CmdMapBattle = function (mapid, handler) {
         this.mapid = mapid;
         this.blockidList = null;
         this.battleCount = 0;
 
-        this.cmd = new Command("CmdMapBattle");
+        this.cmd = new Command("CmdMapBattle", handler);
         this.setNextTask();
         cmdList.push(this);
     };
@@ -175,11 +185,12 @@ var cmdManager = {};
     };
 
     /* Command : 指定された1つ以上のマスで手動戦闘する */
-    cmdManager.CmdBlockBattle = function (blockidList) {
+    cmdManager.CmdBlockBattle = function (blockidList, handler) {
         this.blockidList = blockidList;
-        this.battleCount = 0;
+        this.battleCount = blockidList.length;
+        this.counterStr = "";
 
-        this.cmd = new Command("CmdBlockBattle");
+        this.cmd = new Command("CmdBlockBattle", handler);
         this.setNextTask();
         cmdList.push(this);
     };
@@ -200,6 +211,7 @@ var cmdManager = {};
             cmd.reset();
 
             if (blockid) {
+                this.counterStr = (this.battleCount - (this.blockidList).length) + "回目/" + this.battleCount + "回中";
                 cmd.time = now;
                 cmd.func = task.Battle;
                 cmd.param = {
@@ -212,13 +224,13 @@ var cmdManager = {};
     };
 
     /* Command : 入場可能な魔界戦マップすべてで手動戦闘する（攻略済みがあってもOK） */
-    cmdManager.CmdAllDystopia = function () {
+    cmdManager.CmdAllDystopia = function (handler) {
         this.mapno = 0;     // DystopiaMapListのうち何番目のマップか
         this.rank = 0;      // 0:Heaven, 1:Hell
         this.blockidList = null;
         this.battleCount = 0;
 
-        this.cmd = new Command("CmdAllDystopia");
+        this.cmd = new Command("CmdAllDystopia", handler);
         this.setNextTask();
         cmdList.push(this);
     };
@@ -289,13 +301,13 @@ var cmdManager = {};
     };
 
     /* Command : 指定された魔界戦マップ・ランクで手動戦闘する */
-    cmdManager.CmdDystopia = function (mapid, rank) {
+    cmdManager.CmdDystopia = function (mapid, rank, handler) {
         this.mapid = mapid;
         this.rank = rank;      // 0:Heaven, 1:Hell
         this.blockidList = null;
         this.battleCount = 0;
 
-        this.cmd = new Command("CmdDystopia");
+        this.cmd = new Command("CmdDystopia", handler);
         this.setNextTask();
         cmdList.push(this);
     };
@@ -347,10 +359,10 @@ var cmdManager = {};
 
     /* Command : ログインボーナスを獲得する */
     /* スクリプト開始時にトリガーされる */
-    cmdManager.CmdLoginBonus = function () {
+    cmdManager.CmdLoginBonus = function (handler) {
         this.statusMsg = "";
 
-        this.cmd = new Command("CmdLoginBonus");
+        this.cmd = new Command("CmdLoginBonus", handler);
 
         // ログインボーナス獲得までの残り時間を取得しタスクをセットする
         var now = new Date();

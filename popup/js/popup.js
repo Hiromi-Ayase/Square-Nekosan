@@ -40,25 +40,41 @@
         // state : pause -> btn : play, stop
         // state : stop  -> btn : play
         $scope.state = {};
-        $scope.state.block = 'stop';
-        $scope.clickPlay = function (cmd) {
-            if ($scope.state[cmd] === 'play') {
-                $scope.state[cmd] = 'pause';
-            } else if ($scope.state[cmd] === 'pause') {
-                $scope.state[cmd] = 'play';
-            } else if ($scope.state[cmd] === 'stop') {
-                $scope.state[cmd] = 'play';
+        $scope.state[COMMON.OP.BLOCK] = 'stop';
+        $scope.clickPlay = function (op) {
+            if ($scope.state[op] === 'play') {
+                $scope.state[op] = 'pause';
+                chrome.tabs.sendMessage(data.tabId, {
+                    "op": op,
+                    "state": COMMON.OPCTRL.PAUSE
+                }, function (response) {});
+            } else if ($scope.state[op] === 'pause') {
+                $scope.state[op] = 'play';
+                chrome.tabs.sendMessage(data.tabId, {
+                    "op": op,
+                    "state": COMMON.OPCTRL.RESUME
+                }, function (response) {});
+            } else if ($scope.state[op] === 'stop') {
+                $scope.state[op] = 'play';
+                chrome.tabs.sendMessage(data.tabId, {
+                    "op": op,
+                    "state": COMMON.OPCTRL.NEW,
+                    "args": $scope.args
+                }, function (response) {});
             }
         };
-
-        $scope.clickStop = function (cmd) {
-            $scope.state[cmd] = 'stop';
+        $scope.clickStop = function (op) {
+            $scope.state[op] = 'stop';
+            chrome.tabs.sendMessage(data.tabId, {
+                "op": op,
+                "state": COMMON.OPCTRL.ABORT
+            }, function (response) {});
         };
 
-        $scope.iconClass = function (cmd) {
+        $scope.iconClass = function (op) {
             return {
-                'glyphicon-play': $scope.state[cmd] !== 'play',
-                'glyphicon-pause': $scope.state[cmd] === 'play'
+                'glyphicon-play': $scope.state[op] !== 'play',
+                'glyphicon-pause': $scope.state[op] === 'play'
             };
         };
 
@@ -68,13 +84,11 @@
                 'btn-primary': $scope.state[cmd] === 'play'
             };
         };
-
-        $scope.btnClass2 = function (cmd) {
+        $scope.btnClass2 = function (op) {
             return {
-                'hidden-element': $scope.state[cmd] === 'stop'
+                'hidden-element': $scope.state[op] === 'stop'
             };
         };
-
 
 
         $interval(function () {
@@ -92,6 +106,23 @@
                 $scope.loginBonusStatus = response.msg;
             });
         }, COMMON.LOG.RELOAD);
+
+        $interval(function () {
+            chrome.tabs.sendMessage(data.tabId, {
+                "op": COMMON.OP.BLOCKBATTLECOUNTER
+            }, function (response) {
+                $scope.blockBattleCounter = response.msg;
+            });
+        }, COMMON.LOG.RELOAD);
+
+
+        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+            if (request.op === COMMON.OP.BLOCK) {
+                if (request.state === COMMON.OPCTRL.END) {
+                    $scope.state[COMMON.OP.BLOCK] = 'stop';
+                }
+            }
+        });
     }]);
 
     chrome.runtime.sendMessage({
