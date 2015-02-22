@@ -27,8 +27,9 @@ var g_lvupCharaId = 0;
 var g_lvupCharaList = [];
 
 /* --- サドンボス --- */
-var IS_CHECK_SUDDEN = 0; // 戦闘終了時にサドンボスをチェックするか
-var g_suddenList = [];
+var IS_CHECK_SUDDEN = 1; // 戦闘終了時にサドンボスをチェックするか
+var g_isBattleSudden = 0; // 戦闘終了後にサドンボスが出たか
+var g_suddenList = [];  // {id : this.id, mine : 1}    mine=1なら自分が遭遇者
 
 
 /* --- マップID --- */
@@ -400,6 +401,7 @@ var task = {};
                     // サドン
                     //warning_boss(parseInt(data.eid,10),data.name);
                     log("サドンボスが出ました！");
+                    g_isBattleSudden = 1;
                 } else if (data !== -1) {
                     // 勝敗
                     // data.winner:"16394"(自分) or "0"(敵(通常マップ・ゼクスタワーは確認済み))
@@ -551,9 +553,239 @@ var task = {};
     };
     */
 
+        /* 出現しているサドンボスの中から攻撃対象のものを取得 */
+    /* 攻撃対象：HPが70％以下かつ0以上、または自分が遭遇者 */
+    var getSuddenList = function () {
+        console.log("[Enter]getSuddenList");
+        var defer = $.Deferred();
+
+        if (!(g_isBattleSudden && IS_CHECK_SUDDEN)) {
+            defer.resolve();
+            return;
+        }
+
+        // 自分のプレイヤ名を取得
+        var $iframe = $('#main');
+        var ifrmDoc = $iframe[0].contentWindow.document;
+        var myname = $("#name", ifrmDoc).text();
+        if (!myname) {
+            log("自分の名前の取得に失敗");
+            defer.reject();
+            return;
+        }
+
+        g_suddenList = [];
+
+        $.ajax({
+            url: "guild_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: ({
+                op: "guild_sudden_list"
+            }),
+            success: function (res) {
+                $.each(res.sudden_data, function () {
+                    if (this.clear === 1) {
+                        console.log(this.name + "(id=" + this.id + ") : 撃破済みです");
+                    } else if (this.hp <= 0) {
+                        console.log(this.name + "(id=" + this.id + ") : HPが0です");
+                    } else if (this.discoverer === myname) {
+                        g_suddenList.push({id : this.id, mine : 1});
+                        console.log(this.name + "(id=" + this.id + ") : 遭遇者が自分なので攻撃対象です");
+                    } else if (this.hp / this.max_hp < 0.70) {
+                        g_suddenList.push({id : this.id, mine : 0});
+                        console.log(this.name + "(id=" + this.id + ") : HPが70%以下なので攻撃対象です");
+                    } else {
+                        console.log(this.name + "(id=" + this.id + ") : 攻撃対象ではありません");
+                    }
+                });
+                defer.resolve();   // goto suddenAllAttack
+            },
+            error: function () {
+                log("サドンボス情報取得に失敗");
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
+    };
+
+    /* サドンボスの叩かれ具合を取得（(30%以上削られているか)、すでに自分がなぐっていないか） */
+    var isAttackedSudden = function (suddenData) {
+        console.log("[Enter]isAttackedSudden");
+        var defer = $.Deferred();
+
+        // 自分のプレイヤ名を取得
+        var $iframe = $('#main');
+        var ifrmDoc = $iframe[0].contentWindow.document;
+        var myname = $("#name", ifrmDoc).text();
+        if (!myname) {
+            log("自分の名前の取得に失敗");
+            defer.reject();
+            return;
+        }
+
+        log("---- sudden id = " + suddenData.id);
+
+        $.ajax({
+            url: "guild_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: ({
+                op: "sudden_dalist",
+                id: suddenData.id
+            }),
+            success: function (res) {
+                $.each(res.list, function () {
+                    if (this.name === myname && this.damage !== "0") {
+                        console.log("攻撃済み");
+                        defer.resolve(); // 自分がすでに叩いていた
+                        return false;
+                    }
+                });
+                if (defer.state() !== "resolved") {
+                    defer.resolve(suddenData);
+                }
+            },
+            error: function () {
+                log("サドンボス攻撃済みプレイヤ取得に失敗");
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
+    };
+
+    var getAvailableCharaSudden = function (suddenData) {
+        console.log("[Enter]getAvailableCharaSudden");
+        var defer = $.Deferred();
+
+        if (!suddenData) {
+            defer.resolve();
+            return;
+        }
+
+        $.ajax({
+            url: "remain_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: ({
+                op: "get_sudden_data",
+                id: suddenData.id
+            }),
+            success: function (res) {
+                // 殴れるキャラのリストが返される（はず）
+                $.each(res.merc, function () {
+                    var lv = parseInt(this.lv, 10);
+                    // 自分のサドンはLV1以外のキャラで、他人のサドンはLV1のキャラで殴る
+                    if ((lv === 1 && suddenData.mine === 0) || (lv > 1 && suddenData.mine === 1)) {
+                        console.log(this.name + " ☆" + this.rarity + " (id=" + this.id + ")で殴ります");
+                        defer.resolve(suddenData, this.id);
+                        return false;
+                    }
+                });
+                if (defer.state() !== "resolved") {
+                    log("殴れるキャラがいません");
+                    defer.resolve();
+                }
+            },
+            error: function () {
+                log("サドンボス情報取得に失敗");
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
+    };
+
+    var attackSudden = function (suddenData, charaid) {
+        console.log("[Enter]attackSudden");
+        var defer = $.Deferred();
+
+        if (!suddenData || !charaid) {
+            defer.resolve();
+            return;
+        }
+
+        var charaList = [];
+        charaList.push(parseInt(charaid, 10));
+        charaList.push(0);
+        charaList.push(0);
+
+        $.ajax({
+            url: "remain_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: ({
+                op: "sudden_challenge",
+                target: suddenData.id,
+                cid: charaList
+            }),
+            success: function (res) {
+                console.log("サドンボス攻撃に成功"); // 失敗時の応答不明（無効なidでも送ってみる？）
+                defer.resolve();
+            },
+            error: function () {
+                log("サドンボス攻撃に失敗");
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
+    };
+
+    var suddenProcess = function (suddenData) {
+        console.log("[Enter]suddenProcess");
+        var defer = $.Deferred();
+
+        isAttackedSudden(suddenData)
+            .then(getAvailableCharaSudden)
+            .then(attackSudden)
+            .then(function () {
+                console.log("suddenProcess成功");
+                defer.resolve();
+            }, function () {
+                log("suddenProcess失敗");
+                defer.reject();
+            });
+
+        return defer.promise();
+    };
+
+    var suddenAllAttack = function () {
+        console.log("[Enter]suddenAllAttack");
+        var defer = $.Deferred();
+
+        if (!(g_isBattleSudden && IS_CHECK_SUDDEN)) {
+            defer.resolve();
+            return;
+        }
+
+        var list = g_suddenList;
+        var suddenData = list.shift();
+        if (!suddenData) {
+            console.log("出現中のサドンボスがこれ以上いません");
+            defer.reject();
+            return;
+        }
+
+        suddenProcess(suddenData)
+            .then(suddenAllAttack)
+            .then(defer.resolve, function () {
+                log("Failed suddenAllAttack");
+                defer.reject();
+            });
+
+        return defer.promise();
+    };
+
     /* パーティーに加入しているキャラのうち、レベルアップフラグが立っているキャラのリストを取得 */
     var getLvupCharaInParty = function () {
-        log("[Enter]getLvupCharaInParty");
+        console.log("[Enter]getLvupCharaInParty");
         var defer = $.Deferred();
 
         if (!(g_isLvup && IS_AUTO_LVUP)) {
@@ -589,7 +821,7 @@ var task = {};
     
     /* レベルアップ確定 */
     var fixLvup = function () {
-        log("[Enter]fixLvup");
+        console.log("[Enter]fixLvup");
         var defer = $.Deferred();
 
         $.ajax({
@@ -621,7 +853,7 @@ var task = {};
     
     /* 指定キャラのレベルアップ開始 */
     var startLvup = function (target_parameter) {
-        log("[Enter]startLvup");
+        console.log("[Enter]startLvup");
         var defer = $.Deferred();
 
         $.ajax({
@@ -667,7 +899,7 @@ var task = {};
 
     /* 指定キャラのレベルアップダイス振り直し */
     var retryLvup = function () {
-        log("[Enter]retryLvup");
+        console.log("[Enter]retryLvup");
         var defer = $.Deferred();
 
         $.ajax({
@@ -711,7 +943,7 @@ var task = {};
     };
 
     var lvupProcess = function (charaid) {
-        log("[Enter]lvupProcess");
+        console.log("[Enter]lvupProcess");
         var defer = $.Deferred();
 
         g_lvupCharaId = charaid;
@@ -841,7 +1073,7 @@ var task = {};
 
     /*** 魔界戦入場可能マップか判定し、マップ内の全マスのIDを取得 ***/
     task.GetDystopiaMap = function (param) {
-        log("[[TaskStart]]GetDystopiaMap");
+        console.log("[[TaskStart]]GetDystopiaMap");
         var defer = $.Deferred();
 
         isAvailableDystopia(param.mapid, param.rank)
@@ -859,7 +1091,7 @@ var task = {};
 
     /*** マップ内の全マスのIDを取得 ***/
     task.GetBlockid = function (param) {
-        log("[[TaskStart]]GetBlockid");
+        console.log("[[TaskStart]]GetBlockid");
         var defer = $.Deferred();
 
         var blockidList = [];
@@ -896,12 +1128,13 @@ var task = {};
 
     /*** 戦闘 ***/
     task.Battle = function (blockid) {
-        log("[[TaskStart]]Battle");
+        console.log("[[TaskStart]]Battle");
         var defer = $.Deferred();
 
         var isBattleSuccess = 0;
 
         g_isLvup = 0;
+        g_isBattleSudden = 0;
 
         battleGetMaxParty(blockid)
             .then(battleGetParty)
@@ -916,8 +1149,10 @@ var task = {};
                 isBattleSuccess = 0;
                 updateCQ();
             })
-            //.then(getSuddenList)
-            //.then(suddenAllAttack)
+
+            .then(getSuddenList)
+            .then(suddenAllAttack)
+
             .then(getLvupCharaInParty)
             .then(lvupAllPTChara)
             .then(function () {
@@ -983,226 +1218,6 @@ var task = {};
         return defer.promise();
     };
 */
-    
-    /* 出現しているサドンボスの中から攻撃対象のものを取得 */
-    /* 攻撃対象：HPが70％以下かつ0以上、または自分が遭遇者 */
-    var getSuddenList = function () {
-        console.log("Enter getSuddenList");
-        var defer = $.Deferred();
-
-        // 自分のプレイヤ名を取得
-        var $iframe = $('#main');
-        var ifrmDoc = $iframe[0].contentWindow.document;
-        var myname = $("#name", ifrmDoc).text();
-        if (!myname) {
-            log("自分の名前の取得に失敗");
-            defer.reject();
-            return;
-        }
-
-        var g_suddenList = [];
-
-        $.ajax({
-            url: "guild_.php",
-            type: "POST",
-            cache: false,
-            dataType: "json",
-            data: ({
-                op: "guild_sudden_list"
-            }),
-            success: function (res) {
-                $.each(res.sudden_data, function () {
-                    if (this.hp <= 0) {
-                        log(this.name + "(id=" + this.id + ") : HPが0です");
-                    } else if (this.hp / this.max_hp < 0.70) {
-                        g_suddenList.push(this.id);
-                        log(this.name + "(id=" + this.id + ") : HPが70%以下なので攻撃対象です");
-                    } else if (this.discoverer === myname) {
-                        g_suddenList.push(this.id);
-                        log(this.name + "(id=" + this.id + ") : 遭遇者が自分なので攻撃対象です");
-                    } else {
-                        log(this.name + "(id=" + this.id + ") : 攻撃対象ではありません");
-                    }
-                });
-                defer.resolve();   // goto suddenAllAttack
-            },
-            error: function () {
-                log("サドンボス情報取得に失敗");
-                defer.reject();
-            }
-        });
-
-        return defer.promise();
-    };
-
-    /* サドンボスの叩かれ具合を取得（(30%以上削られているか)、すでに自分がなぐっていないか） */
-    var isAttackedSudden = function (suddenid) {
-        console.log("Enter isAttackedSudden");
-        var defer = $.Deferred();
-
-        // 自分のプレイヤ名を取得
-        var $iframe = $('#main');
-        var ifrmDoc = $iframe[0].contentWindow.document;
-        var myname = $("#name", ifrmDoc).text();
-        if (!myname) {
-            log("自分の名前の取得に失敗");
-            defer.reject();
-            return;
-        }
-
-        log("---- sudden id = " + suddenid);
-
-        $.ajax({
-            url: "guild_.php",
-            type: "POST",
-            cache: false,
-            dataType: "json",
-            data: ({
-                op: "sudden_dalist",
-                id: suddenid
-            }),
-            success: function (res) {
-                $.each(res.list, function () {
-                    if (this.name === myname) {
-                        log("攻撃済み");
-                        defer.resolve(); // 自分がすでに叩いていた
-                        return false;
-                    }
-                });
-                if (defer.state() !== "resolved") {
-                    defer.resolve(suddenid);
-                }
-            },
-            error: function () {
-                log("サドンボス攻撃済みプレイヤ取得に失敗");
-                defer.reject();
-            }
-        });
-
-        return defer.promise();
-    };
-
-    var getAvailableCharaSudden = function (suddenid) {
-        log("Enter getAvailableCharaSudden");
-        var defer = $.Deferred();
-
-        if (!suddenid) {
-            defer.resolve();
-            return;
-        }
-
-        $.ajax({
-            url: "remain_.php",
-            type: "POST",
-            cache: false,
-            dataType: "json",
-            data: ({
-                op: "get_sudden_data",
-                id: suddenid
-            }),
-            success: function (res) {
-                // 殴れるキャラのリストが返される（はず）
-                $.each(res.merc, function () {
-                    if (this.lv === 1) {
-                        log(this.name + " ☆" + this.rarity + " (id=" + this.id + ")で殴ります");
-                        defer.resolve(suddenid, this.id);
-                        return false;
-                    }
-                });
-                if (defer.state() !== "resolved") {
-                    log("殴れるキャラがいません");
-                    defer.resolve();
-                }
-            },
-            error: function () {
-                log("サドンボス情報取得に失敗");
-                defer.reject();
-            }
-        });
-
-        return defer.promise();
-    };
-
-    var attackSudden = function (suddenid, charaid) {
-        log("Enter attackSudden");
-        var defer = $.Deferred();
-
-        if (!suddenid || !charaid) {
-            defer.resolve();
-            return;
-        }
-
-        var charaList = [];
-        charaList.push(parseInt(charaid, 10));
-        charaList.push(0);
-        charaList.push(0);
-
-        $.ajax({
-            url: "remain_.php",
-            type: "POST",
-            cache: false,
-            dataType: "json",
-            data: ({
-                op: "sudden_challenge",
-                target: suddenid,
-                cid: charaList
-            }),
-            success: function (res) {
-                log("サドンボス攻撃に成功"); // 失敗時の応答不明（無効なidでも送ってみる？）
-                defer.resolve();
-            },
-            error: function () {
-                log("サドンボス攻撃に失敗");
-                defer.reject();
-            }
-        });
-
-        return defer.promise();
-    };
-
-    var suddenProcess = function (suddenid) {
-        log("[Enter]suddenProcess");
-        var defer = $.Deferred();
-
-        isAttackedSudden(suddenid)
-            .then(getAvailableCharaSudden)
-            .then(attackSudden)
-            .then(function () {
-                log("suddenProcess成功");
-                defer.resolve();
-            }, function () {
-                log("suddenProcess失敗");
-                defer.reject();
-            });
-
-        return defer.promise();
-    };
-
-    var suddenAllAttack = function () {
-        log("[Enter]suddenAllAttack");
-        var defer = $.Deferred();
-
-        var list = g_suddenList;
-        var suddenid = list.shift();
-        if (!suddenid) {
-            log("出現中のサドンボスがこれ以上いません");
-            defer.reject();
-            return;
-        }
-
-        suddenProcess(suddenid)
-            .then(suddenAllAttack)
-            .then(defer.resolve, function () {
-                log("Failed suddenAllAttack");
-                defer.reject();
-            });
-
-        return defer.promise();
-    };
-
-
-
-    
 
     /* ログインボーナスを獲得 */
     task.getLoginBonus = function () {

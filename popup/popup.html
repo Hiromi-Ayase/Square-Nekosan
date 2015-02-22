@@ -31,6 +31,7 @@
 
     <div class="main" ng-controller="MainController">
         <tabset>
+<<<<<<< HEAD
             <tab ng-repeat="c in config">
                 <tab-heading>{{c.title}}</tab-heading>
                 <div class="container form">
@@ -46,6 +47,60 @@
                                 Status: {{status[c.name]}}
                             </p>
                         </div>
+=======
+            <tab heading="遺跡">
+                <div class="contents">
+                    <select ng-model="args.map" ng-options="m.value as m.name + '(' + (m.value + args.level) + ')' for m in config.map">
+                    </select>
+                    <select ng-model="args.level" ng-options="lv.value as lv.name for lv in config.level">
+                    </select>
+                    <button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.MAP)"><span class="glyphicon glyphicon-play"></span></button>
+                </div>
+                </select>
+            </tab>
+
+            <tab heading="魔界戦">
+                <div class="contents">
+                    <select ng-model="args.dystopia" ng-options="m.value as m.name + '(' + m.value + ')' for m in config.dystopia">
+                    </select>
+                    <select ng-model="args.dystopiaMode" ng-options="lv.value as lv.name for lv in config.dystopiaMode">
+                    </select>
+                    <button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.DYSTOPIA)">巡回</button>
+                </div>
+                <div class="contents">
+                    <button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.ALLDYSTOPIA)">全て巡回</button>
+                </div>
+            </tab>
+
+            <tab heading="マス指定">
+                <div class="contents">
+                    <select ng-model="args.block" ng-options="m.value as m.name + '(' + m.value + ')' for m in config.block">
+                    </select>
+                    <label for="block-specified">or ブロックID指定</label>
+                    <input id="block-specified" type="text" ng-model="args.blockid" />
+                    <label for="block-count">回数</label>
+                    <input id="block-count" type="number" min=1 ng-model="args.block_count" />
+                    <!--<button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.BLOCK)">巡回</button>-->
+
+
+                    <button type="button" class="btn btn-xs" ng-class="btnClass(COMMON.OP.BLOCK)" ng-click="clickPlay(COMMON.OP.BLOCK)"><span class="glyphicon" ng-class="iconClass(COMMON.OP.BLOCK)"></span></button>
+                    <button type="button" class="btn btn-xs" ng-class="btnClass2(COMMON.OP.BLOCK)" ng-click="clickStop(COMMON.OP.BLOCK)"><span class="glyphicon glyphicon-stop"></span></button>
+
+                    <span>{{blockBattleCounter}}</span>
+                               <!--<button type="button" class="btn btn-xs dropdown-toggle" ng-class="btnClass('block')" dropdown-toggle>
+                            <span class="caret"></span>
+                        </button>
+
+                        <ul class="dropdown-menu" role="menu">
+                            <li><a href="#" ng-click="changeState('block', 'play')">巡回</a>
+                            </li>
+                            <li><a href="#" ng-click="changeState('block', 'pause')">一時停止</a>
+                            </li>
+                            <li class="divider"></li>
+                            <li><a href="#" ng-click="changeState('block', 'stop')">中断</a>
+                            </li>
+                        </ul>-->
+>>>>>>> origin/master
 
                         <div class="col-xs-6 text-right">
                             <button ng-repeat="b in c.button" class="btn btn-xs {{b.class}}" ng-class="btnClass(b.name, c.name)" ng-click="send(b.name, c.name)"><span class="glyphicon {{b.icon}}">{{b.title}}</button>

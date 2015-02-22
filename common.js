@@ -13,6 +13,14 @@ COMMON.OP = {
     END: "end"
 };
 
+COMMON.OPCTRL = {
+    NEW: "new",
+    PAUSE: "pause",
+    RESUME: "resume",
+    ABORT: "abort",
+    END: "end"
+};
+
 COMMON.STORAGE = "storage";
 COMMON.LOG = {
     MAX: 100,

@@ -29,7 +29,6 @@
         };
     }]);
 
-
     app.controller("MainController", ["$scope", "$interval", "$resource", function ($scope, $interval, $resource) {
         $scope.COMMON = COMMON;
         $scope.config = $resource("/popup/data/config.json").query();
@@ -44,22 +43,6 @@
             $scope.state = btn;
         };
 
-        $scope.state = "stop";
-        $scope.btnClass = function (btn, op) {
-            if (btn === 'play') {
-                return {
-                    "disabled": $scope.state === "play"
-                };
-            } else if (btn === 'pause') {
-                return {
-                    "disabled": $scope.state === "stop" || $scope.state === "pause"
-                };
-            } else if (btn === 'stop') {
-                return {
-                    "disabled": $scope.state === "stop"
-                };
-            }
-        };
 
         $interval(function () {
             chrome.tabs.sendMessage(data.tabId, {
@@ -76,6 +59,23 @@
                 $scope.loginBonusStatus = response.msg;
             });
         }, COMMON.LOG.RELOAD);
+
+        $interval(function () {
+            chrome.tabs.sendMessage(data.tabId, {
+                "op": COMMON.OP.BLOCKBATTLECOUNTER
+            }, function (response) {
+                $scope.blockBattleCounter = response.msg;
+            });
+        }, COMMON.LOG.RELOAD);
+
+
+        chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+            if (request.op === COMMON.OP.BLOCK) {
+                if (request.state === COMMON.OPCTRL.END) {
+                    $scope.state[COMMON.OP.BLOCK] = 'stop';
+                }
+            }
+        });
     }]);
 
     chrome.runtime.sendMessage({
