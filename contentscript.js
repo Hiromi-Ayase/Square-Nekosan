@@ -1164,6 +1164,7 @@ var task = {};
                 }
             }, function () {
                 defer.reject();
+                log("Failed Battle task");
             });
 
         return defer.promise();

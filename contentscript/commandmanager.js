@@ -57,7 +57,7 @@ var cmdManager = {};
         var i = 0;
         for (i = 0; i < cmdList.length; i++) {
             if (cmdList[i].cmd.state === "END") {
-                if (!cmdList[i].cmd.endHandler) {
+                if (cmdList[i].cmd.endHandler) {
                     cmdList[i].cmd.endHandler();
                 }
                 cmdList.splice(i, 1);
@@ -201,7 +201,7 @@ var cmdManager = {};
 
         if (cmd.state === "END") {
             return;
-        } else if (this.funcState === "NG") {
+        } else if (cmd.funcState === "NG") {
             cmd.state = "END";
             return;
         }
