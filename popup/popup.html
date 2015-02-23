@@ -10,12 +10,19 @@
     <link rel="shortcut icon" href="">
 
     <script src="js/angular.min.js"></script>
+    <script src="js/angular-resource.min.js"></script>
     <script src="js/ui-bootstrap-tpls-0.12.0.min.js"></script>
+    <script src="js/codemirror.js"></script>
+    <script src="js/javascript.js"></script>
+    <script src="js/matchbrackets.js"></script>
+    <script src="js/comment.js"></script>
+    <script src="js/ui-codemirror.js"></script>
     <script src="../common.js"></script>
     <script src="js/popup.js"></script>
 
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <link rel="stylesheet" href="css/bootstrap-theme.min.css">
+    <link rel="stylesheet" href="css/codemirror.css">
     <link rel="stylesheet" href="css/popup.css">
 </head>
 
@@ -30,71 +37,65 @@
 
     <div class="main" ng-controller="MainController">
         <tabset>
-            <tab heading="遺跡">
-                <div class="contents">
-                    <select ng-model="args.map" ng-options="m.value as m.name + '(' + (m.value + args.level) + ')' for m in config.map">
-                    </select>
-                    <select ng-model="args.level" ng-options="lv.value as lv.name for lv in config.level">
-                    </select>
-                    <button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.MAP)"><span class="glyphicon glyphicon-play"></span></button>
-                </div>
-                </select>
-            </tab>
-
-            <tab heading="魔界戦">
-                <div class="contents">
-                    <select ng-model="args.dystopia" ng-options="m.value as m.name + '(' + m.value + ')' for m in config.dystopia">
-                    </select>
-                    <select ng-model="args.dystopiaMode" ng-options="lv.value as lv.name for lv in config.dystopiaMode">
-                    </select>
-                    <button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.DYSTOPIA)">巡回</button>
-                </div>
-                <div class="contents">
-                    <button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.ALLDYSTOPIA)">全て巡回</button>
-                </div>
-            </tab>
-
-            <tab heading="マス指定">
-                <div class="contents">
-                    <select ng-model="args.block" ng-options="m.value as m.name + '(' + m.value + ')' for m in config.block">
-                    </select>
-                    <label for="block-specified">or ブロックID指定</label>
-                    <input id="block-specified" type="text" ng-model="args.blockid" />
-                    <label for="block-count">回数</label>
-                    <input id="block-count" type="number" min=1 ng-model="args.block_count" />
-                    <!--<button class="btn btn-xs btn-primary" ng-click="send(COMMON.OP.BLOCK)">巡回</button>-->
-
-
-                    <button type="button" class="btn btn-xs" ng-class="btnClass(COMMON.OP.BLOCK)" ng-click="clickPlay(COMMON.OP.BLOCK)"><span class="glyphicon" ng-class="iconClass(COMMON.OP.BLOCK)"></span></button>
-                    <button type="button" class="btn btn-xs" ng-class="btnClass2(COMMON.OP.BLOCK)" ng-click="clickStop(COMMON.OP.BLOCK)"><span class="glyphicon glyphicon-stop"></span></button>
-
-                    <span>{{blockBattleCounter}}</span>
-                               <!--<button type="button" class="btn btn-xs dropdown-toggle" ng-class="btnClass('block')" dropdown-toggle>
-                            <span class="caret"></span>
-                        </button>
-
-                        <ul class="dropdown-menu" role="menu">
-                            <li><a href="#" ng-click="changeState('block', 'play')">巡回</a>
-                            </li>
-                            <li><a href="#" ng-click="changeState('block', 'pause')">一時停止</a>
-                            </li>
-                            <li class="divider"></li>
-                            <li><a href="#" ng-click="changeState('block', 'stop')">中断</a>
-                            </li>
-                        </ul>-->
-
+            <tab ng-repeat="c in config">
+                <tab-heading>{{c.title}}</tab-heading>
+                <div class="container form">
+                    <div class="row">
+                        <div ng-repeat="f in c.form">
+                            <div class="col-xs-{{f.column}} form-element">
+                                <label>{{f.title}}:</label>
+                                <ng-form></ng-form>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row control">
+                        <div class="col-xs-12">
+                            <p class="status">
+                                Status: {{contentsData[c.name].statusText}}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 text-right">
+                            <button ng-repeat="b in c.ctrl" class="btn btn-xs {{b.class}}" ng-class="btnClass(b.name, c.name)" ng-click="send(b.name, c.name)"><span class="glyphicon {{b.icon}}">{{b.title}}</button>
+                        </div>
+                    </div>
                 </div>
             </tab>
 
             <tab>
-               <tab-heading>
-                   <i class="glyphicon glyphicon-wrench"></i>
-               </tab-heading>
+                <tab-heading>
+                    <i class="glyphicon glyphicon-wrench"></i>
+                </tab-heading>
                 <div class="contents">
-                    <label>
-                        <input type="checkbox"> サドンボスを叩く
-                    </label>
-                    <p>{{loginBonusStatus}}</p>
+
+                    <div class="row">
+                        <div class="col-xs-12" >
+                           <div class="settings-editor">
+                                <textarea ui-codemirror="settingEditor" ng-model="setting">
+                                </textarea>
+                           </div>
+                        </div>
+                    </div>
+                    <div class="row control">
+                        <div class="col-xs-12">
+                            <p class="status">
+                                Status: {{settingsStatus}}
+                            </p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-12 text-right">
+                            <button class="btn btn-primary btn-xs" ng-click="settingAction('save')">保存</button>
+                            <button class="btn btn-xs" ng-click="settingAction('restore')">キャンセル</button>
+                        </div>
+                    </div>
+                    <div class="row control">
+                        <div class="col-xs-12">
+                            <p class="status">Etc: {{contentsData.loginBonus}}</p>
+                        </div>
+                    </div>
+
                 </div>
                 </select>
             </tab>
@@ -102,9 +103,9 @@
         </tabset>
         <div class="container">
             <label for="log">Log:</label>
-            <textarea id="log" class="form-control" ng-model="log" wrap="off"></textarea>
+            <textarea id="log" class="form-control" ng-model="contentsData.log" wrap="off"></textarea>
         </div>
-        </div>
+    </div>
 </body>
 
 </html>

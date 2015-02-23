@@ -56,7 +56,8 @@ var cmdManager = {};
         // 終了済みのコマンドをリストから削除する
         var i = 0;
         for (i = 0; i < cmdList.length; i++) {
-            if (cmdList[i].cmd.state === "END") {
+
+            if (cmdList[i].cmd.state === COMMON.CMD_STATUS.END) {
                 if (cmdList[i].cmd.endHandler) {
                     cmdList[i].cmd.endHandler();
                 }
@@ -73,7 +74,7 @@ var cmdManager = {};
             });
             var now = new Date();
             for (i = 0; i < cmdList.length; i++) {
-                if (cmdList[i].cmd.time < now && cmdList[i].cmd.state === "RUN") {
+                if (cmdList[i].cmd.time < now && cmdList[i].cmd.state === COMMON.CMD_STATUS.RUN) {
                     break;
                 }
             }
@@ -115,7 +116,7 @@ var cmdManager = {};
     /* 共通のコマンドオブジェクト */
     function Command(name, handler) {
         this.name = name;
-        this.state = "RUN"; // RUN, PAUSE, ABORT, END
+        this.state = COMMON.CMD_STATUS.RUN; // RUN, PAUSE, ABORT, END
 
         this.time = null;
         this.func = null;
@@ -149,10 +150,10 @@ var cmdManager = {};
         var now = new Date();
         var cmd = this.cmd;
 
-        if (cmd.state === "END") {
+        if (cmd.state === COMMON.CMD_STATUS.END) {
             return;
         } else if (cmd.funcState === "NG") {
-            cmd.state = "END";
+            cmd.state = COMMON.CMD_STATUS.END;
             return;
         }
 
@@ -179,7 +180,7 @@ var cmdManager = {};
                     blockid: blockid
                 };
             } else {
-                cmd.state = "END";
+                cmd.state = COMMON.CMD_STATUS.END;
             }
         }
     };
@@ -199,10 +200,10 @@ var cmdManager = {};
         var now = new Date();
         var cmd = this.cmd;
 
-        if (cmd.state === "END") {
+        if (cmd.state === COMMON.CMD_STATUS.END) {
             return;
         } else if (cmd.funcState === "NG") {
-            cmd.state = "END";
+            cmd.state = COMMON.CMD_STATUS.END;
             return;
         }
 
@@ -218,7 +219,7 @@ var cmdManager = {};
                     blockid: blockid
                 };
             } else {
-                cmd.state = "END";
+                cmd.state = COMMON.CMD_STATUS.END;
             }
         }
     };
@@ -239,10 +240,10 @@ var cmdManager = {};
         var now = new Date();
         var cmd = this.cmd;
 
-        if (cmd.state === "END") {
+        if (cmd.state === COMMON.CMD_STATUS.END) {
             return;
         } else if (cmd.funcState === "NG") {
-            cmd.state = "END";
+            cmd.state = COMMON.CMD_STATUS.END;
             return;
         }
 
@@ -294,7 +295,7 @@ var cmdManager = {};
                         rank: this.rank
                     };
                 } else {
-                    cmd.state = "END";
+                    cmd.state = COMMON.CMD_STATUS.END;
                 }
             }
         }
@@ -316,10 +317,10 @@ var cmdManager = {};
         var now = new Date();
         var cmd = this.cmd;
 
-        if (cmd.state === "END") {
+        if (cmd.state === COMMON.CMD_STATUS.END) {
             return;
         } else if (cmd.funcState === "NG") {
-            cmd.state = "END";
+            cmd.state = COMMON.CMD_STATUS.END;
             return;
         }
 
@@ -352,7 +353,7 @@ var cmdManager = {};
                     blockid: blockid
                 };
             } else {
-                cmd.state = "END";
+                cmd.state = COMMON.CMD_STATUS.END;
             }
         }
     };
@@ -424,7 +425,7 @@ var cmdManager = {};
         var targetTime = now;   // 次回ログインボーナス獲得時刻 (本来の予定時刻+5分)
         cmd.time = null;
 
-        if (cmd.state === "END") {
+        if (cmd.state === COMMON.CMD_STATUS.END) {
             this.statusMsg = "次のログインボーナス獲得予定時刻: " + "停止中";
             return;
         } else if (cmd.funcState === "NG") {

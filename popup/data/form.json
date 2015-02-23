@@ -1,0 +1,116 @@
+[
+    {
+        "name": "map",
+        "title": "マップ",
+        "form": [
+            {
+                "type": "select",
+                "name": "map",
+                "title": "マップ",
+                "column": 7,
+                "values": [
+                    { "name": "フィグルの森", "value": 1000 },
+                    { "name": "デガート遺跡", "value": 2000 },
+                    { "name": "アミルレイク", "value": 3000 },
+                    { "name": "ゴーズセント", "value": 4000 },
+                    { "name": "ベルサイド", "value": 5000 },
+                    { "name": "シュタイン城", "value": 6000 },
+                    { "name": "バールロック", "value": 7000 },
+                    { "name": "ジュールズベルグ", "value": 8000 },
+                    { "name": "クレインタワー", "value": 9000 },
+                    { "name": "エリアーデ聖堂", "value": 10000 },
+                    { "name": "イベント", "value": 26005 }
+                ]
+            },
+            {
+                "type": "select",
+                "name": "level",
+                "title": "レベル",
+                "column": 5,
+                "values": [
+                    { "name": "Normal", "value": 1 },
+                    { "name": "Hard", "value": 2 },
+                    { "name": "Master", "value": 3 },
+                    { "name": "God", "value": 4 }
+                ]
+            }
+        ],
+        "ctrl": [
+            { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+            { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+        ]
+    },
+    {
+        "name": "dystopia",
+        "title": "魔界戦",
+        "op": "DYSTOPIA",
+        "form": [
+            {
+                "type": "select",
+                "name": "dystopia",
+                "title": "魔界戦",
+                "column": 7,
+                "values": [
+                    { "name": "フィグルの森", "value": 91001 },
+                    { "name": "デガート遺跡", "value": 92001 },
+                    { "name": "アミルレイク", "value": 93001 },
+                    { "name": "ゴーズセント", "value": 94001 },
+                    { "name": "ベルサイド", "value": 95001 },
+                    { "name": "シュタイン城", "value": 96001 },
+                    { "name": "バールロック", "value": 97001 },
+                    { "name": "ジュールズベルグ", "value": 98001 },
+                    { "name": "クレインタワー", "value": 99001 },
+                    { "name": "エリアーデ聖堂", "value": 100001 }
+                ]
+            },
+            {
+                "type": "select",
+                "name": "dystopiaMode",
+                "title": "レベル",
+                "column": 5,
+                "values": [
+                    { "name": "Heaven", "value": 0 },
+                    { "name": "Hell", "value": 1 }
+                ]
+            }
+        ],
+        "ctrl": [
+            { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+            { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+        ]
+    },
+    {
+        "name": "block",
+        "title": "マス指定",
+        "form": [
+            {
+                "type": "select",
+                "name": "map",
+                "title": "マップ名",
+                "column": 12,
+                "values": [
+                    { "name": "フィグルの森の最初", "value": 1001 }
+                ]
+            },
+            {
+                "type": "text",
+                "name": "blockid",
+                "title": "ID指定",
+                "init": "",
+                "column": 6
+            },
+            {
+                "type": "number",
+                "name": "block_count",
+                "title": "回数",
+                "init": 1,
+                "column": 6
+            }
+        ],
+        "ctrl": [
+            { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+            { "name": "pause", "title": "中断", "icon": "glyphicon-pause", "class": "btn-primary" },
+            { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+        ]
+    }
+]

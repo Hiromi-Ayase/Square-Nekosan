@@ -1275,10 +1275,6 @@ $(function () {
     var timer;
     log("Start script");
 
-    var loginBonus = null;
-    setTimeout(function () {
-        loginBonus = new cmdManager.CmdLoginBonus();
-    }, 5000);
 
     cmdManager.pollTask();
     var watch = function () {
@@ -1357,7 +1353,7 @@ $(function () {
         //popTaskQueue();
     };
     timer = setInterval(watch, 1000);
-
+/*
     chrome.runtime.onMessage.addListener(
         function (request, sender, sendResponse) {
             if (request.op === COMMON.OP.LOGINBONUSSTATUS) {

@@ -35,3 +35,34 @@ body {
 #block-specified {
     width: 70px
 }
+
+.form-element {
+    margin-top: 2px;
+    margin-bottom: 2px;
+}
+
+.form-element select {
+    width: 100%;
+}
+
+.form-element input {
+    width: 100%;
+}
+
+
+.form {
+    padding: 10px 20px 10px;
+}
+
+.control {
+    margin-top: 20px;
+}
+
+.status {
+    border-bottom: 1px #000 solid;
+}
+
+.settings-editor {
+    border: 1px solid black;
+}
+
