@@ -7,7 +7,7 @@
                 "type": "select",
                 "name": "map",
                 "title": "マップ",
-                "column": 7,
+                "column": 4,
                 "values": [
                     { "name": "フィグルの森", "value": 1000 },
                     { "name": "デガート遺跡", "value": 2000 },
@@ -26,13 +26,20 @@
                 "type": "select",
                 "name": "level",
                 "title": "レベル",
-                "column": 5,
+                "column": 4,
                 "values": [
                     { "name": "Normal", "value": 1 },
                     { "name": "Hard", "value": 2 },
                     { "name": "Master", "value": 3 },
                     { "name": "God", "value": 4 }
                 ]
+            },
+            {
+                "type": "text",
+                "name": "mapid",
+                "title": "ID指定",
+                "init": "",
+                "column": 4
             }
         ],
         "ctrl": [

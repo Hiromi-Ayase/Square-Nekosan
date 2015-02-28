@@ -86,6 +86,9 @@ console.log = function (message) {
 
         if (request.op === COMMON.OP.MAP) {
             var mapid = request.args.map + request.args.level;
+            if (request.args.mapid) {
+                mapid = request.args.mapid;
+            }
 
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
                 mapBattle = new cmdManager.CmdMapBattle(mapid, function () {
