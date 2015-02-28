@@ -56,7 +56,6 @@ var cmdManager = {};
         // 終了済みのコマンドをリストから削除する
         var i = 0;
         for (i = 0; i < cmdList.length; i++) {
-
             if (cmdList[i].cmd.state === COMMON.CMD_STATUS.END) {
                 if (cmdList[i].cmd.endHandler) {
                     cmdList[i].cmd.endHandler();
@@ -365,56 +364,25 @@ var cmdManager = {};
 
         this.cmd = new Command("CmdLoginBonus", handler);
 
-        // ログインボーナス獲得までの残り時間を取得しタスクをセットする
-        var now = new Date();
-        var targetTime = now;   // 次回ログインボーナス獲得時刻 (本来の予定時刻+5分)
-
+        // ログインボーナス獲得までの残り時間を取得する
         var $iframe = $('#main');
         var ifrmDoc = $iframe[0].contentWindow.document;
-
         var timeStr = $("#logintime", ifrmDoc).text();
-        if (timeStr === "00:00:00") {
-            targetTime = now;
-
-        // エラーで取得できなかった場合と判別できない気がする
-        } else if (timeStr  === "") {
+        if (timeStr === "") {
             console.log("ログインボーナス完了済み");
-            // targetTimeを次の3時にセット
-            if (now.getHours() >= 3) {
-                targetTime.setDate(now.getDate() + 1);
-            }
-            targetTime.setHours(3);
-            targetTime.setMinutes(5);
-            targetTime.setSeconds(0);
+            this.cmd.result = {
+                isNext: false,
+                time: null
+            };
         } else {
-            var timeArray = timeStr.split(":");
-            if (timeArray.length !== 3) {
-                log("ログインボーナス時間取得に失敗");
-                // 10分後にリトライ
-                targetTime.setMinutes(now.getMinutes() + 10);
-            } else {
-                var h = parseInt(timeArray[0], 10);
-                var m = parseInt(timeArray[1], 10);
-                var s = parseInt(timeArray[2], 10);
-
-                targetTime.setHours(now.getHours() + h);
-                targetTime.setMinutes(now.getMinutes() + m + 5);    // 余裕を持って5分後に
-                targetTime.setSeconds(now.getSeconds() + s);
-
-                // ログインボーナス獲得時刻が3時を過ぎていたら、targetTimeを3時にする
-                // # ログインボーナス獲得までの時間は最大2ｈなのでこの判定でいけるはず
-                if (now.getHours() < 3 && targetTime.getHours() >= 3) {
-                    targetTime.setHours(3);
-                    targetTime.setMinutes(5);
-                    targetTime.setSeconds(0);
-                }
-            }
+            this.cmd.result = {
+                isNext: true,
+                time: timeStr
+            };
         }
+        this.cmd.funcState = "OK";
 
-        this.cmd.time = targetTime;
-        this.cmd.func = task.getLoginBonus;
-        this.statusMsg = "次のログインボーナス獲得予定時刻: " + COMMON.DATESTR(targetTime);
-
+        this.setNextTask();
         cmdList.push(this);
     };
 
@@ -422,39 +390,15 @@ var cmdManager = {};
         var now = new Date();
         var cmd = this.cmd;
 
-        var targetTime = now;   // 次回ログインボーナス獲得時刻 (本来の予定時刻+5分)
+        var targetTime = now;   // 次回ログインボーナス獲得時刻 (本来の予定時刻+2分)
         cmd.time = null;
 
         if (cmd.state === COMMON.CMD_STATUS.END) {
             this.statusMsg = "次のログインボーナス獲得予定時刻: " + "停止中";
             return;
         } else if (cmd.funcState === "NG") {
-
-            if (cmd.result === undefined) {
-                // 通信失敗or謎のエラー
-                // 10分後にリトライ
-                targetTime.setMinutes(now.getMinutes() + 10);
-            } else if (cmd.result === -1) {
-                // 日付をまたいだ
-                // どうしよう・・・
-                targetTime.setMinutes(now.getMinutes() + 10);
-            } else if (cmd.result === -2) {
-                // 獲得可能時間前
-                // 10分後にリトライ
-                targetTime.setMinutes(now.getMinutes() + 10);
-            } else if (cmd.result === -3) {
-                // ローグインボーナス終了
-                // 次の3時
-                if (now.getHours() >= 3) {
-                    targetTime.setDate(now.getDate() + 1);
-                }
-                targetTime.setHours(3);
-                targetTime.setMinutes(5);
-                targetTime.setSeconds(0);
-            } else {
-                // 10分後にリトライ
-                targetTime.setMinutes(now.getMinutes() + 10);
-            }
+            // 10分後にリトライ
+            targetTime.setMinutes(now.getMinutes() + 10);
         }
 
         if (cmd.funcState === "OK" && cmd.result.isNext === true) {
@@ -470,14 +414,14 @@ var cmdManager = {};
                 var s = parseInt(timeArray[2], 10);
 
                 targetTime.setHours(now.getHours() + h);
-                targetTime.setMinutes(now.getMinutes() + m + 5);    // 余裕を持って5分後に
+                targetTime.setMinutes(now.getMinutes() + m + 2);    // 余裕を持って2分後に
                 targetTime.setSeconds(now.getSeconds() + s);
 
                 // ログインボーナス獲得時刻が3時を過ぎていたら、targetTimeを3時にする
                 // # ログインボーナス獲得までの時間は最大2ｈなのでこの判定でいけるはず
                 if (now.getHours() < 3 && targetTime.getHours() >= 3) {
                     targetTime.setHours(3);
-                    targetTime.setMinutes(5);
+                    targetTime.setMinutes(2);
                     targetTime.setSeconds(0);
                 }
             }
@@ -486,7 +430,7 @@ var cmdManager = {};
                 targetTime.setDate(now.getDate() + 1);
             }
             targetTime.setHours(3);
-            targetTime.setMinutes(5);
+            targetTime.setMinutes(2);
             targetTime.setSeconds(0);
         }
 
@@ -494,5 +438,34 @@ var cmdManager = {};
         cmd.time = targetTime;
         cmd.func = task.getLoginBonus;
         this.statusMsg = "次のログインボーナス獲得予定時刻: " + COMMON.DATESTR(targetTime);
+    };
+
+
+    /* Command : テスト用 */
+    cmdManager.CmdTest = function (testData, handler) {
+        this.cmd = new Command("CmdTest", handler);
+        this.setNextTask();
+        //cmdList.push(this);
+    };
+
+    cmdManager.CmdTest.prototype.setNextTask = function () {
+        var now = new Date();
+        var cmd = this.cmd;
+
+        if (cmd.state === COMMON.CMD_STATUS.END) {
+            return;
+        } else if (cmd.funcState === "NG") {
+            cmd.state = COMMON.CMD_STATUS.END;
+            return;
+        }
+
+        if (cmd.func === null) {
+            var $iframe = $('#main');
+            var ifrmDoc = $iframe[0].contentWindow.document;
+            $("#merc_title", ifrmDoc).click();
+        } else {
+            cmd.state = COMMON.CMD_STATUS.END;
+        }
+        //cmdList.push(this);
     };
 }());

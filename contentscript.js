@@ -1227,7 +1227,6 @@ var task = {};
 
         var $iframe = $('#main');
         var ifrmDoc = $iframe[0].contentWindow.document;
-        var loginTime = $("#logintime", ifrmDoc).text();    // ログインボーナス獲得までの残り時間
 
         // ログインボーナス獲得までの残り時間の表示が更新されないので、チェックしない
         $.ajax({
@@ -1239,23 +1238,40 @@ var task = {};
                 op: "login_reward"
             }),
             success: function (res) {
-                // 1:成功, 2:成功（その日のプレゼントは終わり）
-                if (parseInt(res.result, 10) === 1 || parseInt(res.result, 10) === 2) {
+                // 1:成功
+                var result = parseInt(res.result, 10);
+                if (result === 1) {
                     log("ログインボーナス " + res.msg);
-                    var isNext;
-                    if (parseInt(res.result, 10) === 1) {
-                        isNext = true;
-                    } else {
-                        isNext = false;
-                    }
                     defer.resolve({
-                        isNext: isNext,
+                        isNext: true,
                         time: res.time
                     });
+                // 2:成功（その日のプレゼントは終わり
+                } else if (result === 2) {
+                    log("ログインボーナス " + res.msg);
+                    defer.resolve({
+                        isNext: false,
+                        time: null
+                    });
+                // -1:日付をまたいだ
+                } else if (result === -1) {
+                    log("ログインボーナス獲得エラー(" + result + ")");
+                    $("#merc_title", ifrmDoc).click();
+                    setTimeout(defer.reject, 5000);
+                // -2:獲得可能時間前の場合
+                } else if (result === -2) {
+                    log("ログインボーナス獲得エラー(" + result + ")");
+                    defer.reject();
+                // -3:ログインボーナス終了済み
+                } else if (result === -3) {
+                    log("ログインボーナス獲得エラー(" + result + ")");
+                    defer.resolve({
+                        isNext: false,
+                        time: null
+                    });
+                    defer.resolve();
                 } else {
-                    // -1:日付をまたいだ時に帰ってきた、例えばmercenary_.php,op:loadを送ってみて回避？
-                    // -2:獲得可能時間前の場合
-                    log("ログインボーナス獲得エラー(" + parseInt(res.result, 10) + ")");
+                    log("ログインボーナス獲得エラー(" + result + ")");
                     defer.reject();
                 }
             },
@@ -1361,7 +1377,7 @@ $(function () {
             }
         }
     );
-    /*
+
         chrome.runtime.sendMessage({
             "op": "get",
             "key": "interval"
@@ -1369,5 +1385,5 @@ $(function () {
             var interval = response.value;
             timer = setInterval(watch, interval * 1000);
         });
-    */
+*/
 });

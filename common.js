@@ -10,7 +10,8 @@ COMMON.OP = {
     BLOCK: "block",
     SUSPEND: "suspend",
     END: "end",
-    CONTENTS_DATA: "contents_data"
+    CONTENTS_DATA: "contents_data",
+    TEST: "test"
 };
 
 COMMON.CMD_STATUS = {

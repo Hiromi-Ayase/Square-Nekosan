@@ -112,5 +112,22 @@
             { "name": "pause", "title": "中断", "icon": "glyphicon-pause", "class": "btn-primary" },
             { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
         ]
+    },
+    {
+        "name": "test",
+        "title": "テスト用",
+        "form": [
+            {
+                "type": "text",
+                "name": "test",
+                "title": "テスト用",
+                "init": "",
+                "column": 6
+            }
+        ],
+        "ctrl": [
+            { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+            { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+        ]
     }
 ]

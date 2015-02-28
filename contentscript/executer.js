@@ -27,6 +27,7 @@ console.log = function (message) {
     var allDystopia = null;
     var dystopia = null;
     var loginBonus = null;
+    var test = null;
 
     var setting = null;
     var data = null;
@@ -50,6 +51,13 @@ console.log = function (message) {
             dystopia: dystopia !== null ? {
                 statusText: "実行中！",
                 state: dystopia.cmd.state
+            } : {
+                state: COMMON.CMD_STATUS.END,
+                statusText: "いぐー"
+            },
+            test: test !== null ? {
+                statusText: "実行中！",
+                state: test.cmd.state
             } : {
                 state: COMMON.CMD_STATUS.END,
                 statusText: "いぐー"
@@ -133,6 +141,16 @@ console.log = function (message) {
 
         } else if (request.op === COMMON.OP.CONTENTS_DATA) {
             sendResponse(buildContentsData());
+
+        } else if (request.op === COMMON.OP.TEST) {
+            if (request.ctrl === COMMON.OP_CTRL.RUN) {
+                dystopia = new cmdManager.CmdTest(request.args.testData, function () {
+                    test = null;
+                });
+            } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
+                test.cmd.state = COMMON.CMD_STATUS.END;
+                test = null;
+            }
         }
     });
 }());
