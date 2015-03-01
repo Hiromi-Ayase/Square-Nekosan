@@ -20,6 +20,11 @@ COMMON.CMD_STATUS = {
     END: "END"
 };
 
+COMMON.CMD_RESULT = {
+    OK: "OK",
+    NG: "NG"
+};
+
 COMMON.OP_CTRL = {
     RUN: "run",
     PAUSE: "pause",

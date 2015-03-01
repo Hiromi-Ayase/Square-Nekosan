@@ -42,6 +42,24 @@
                 "column": 6
             },
             {
+                "type": "number",
+                "name": "map_count",
+                "title": "回数",
+                "init": 1,
+                "column": 6
+            },
+            {
+                "type": "select",
+                "name": "isFirst",
+                "title": "どこから",
+                "init": "",
+                "column": 6,
+                "values": [
+                    { "name": "はじめから", "value": true },
+                    { "name": "つづきから", "value": false }
+                ]
+            },
+            {
                 "type": "range",
                 "name": "time",
                 "title": "戦闘時間（秒）",

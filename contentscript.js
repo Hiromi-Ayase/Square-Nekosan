@@ -691,18 +691,23 @@ var task = {};
                 id: suddenData.id
             }),
             success: function (res) {
-                // 殴れるキャラのリストが返される（はず）
-                $.each(res.merc, function () {
-                    var lv = parseInt(this.lv, 10);
-                    // 自分のサドンはLV1以外のキャラで、他人のサドンはLV1のキャラで殴る
-                    if ((lv === 1 && suddenData.mine === 0) || (lv > 1 && suddenData.mine === 1)) {
-                        console.log(this.name + " ☆" + this.rarity + " (id=" + this.id + ")で殴ります");
-                        defer.resolve(suddenData, this.id);
-                        return false;
+                if (res.result === 1) {
+                    // 殴れるキャラのリストが返される（はず）
+                    $.each(res.merc, function () {
+                        var lv = parseInt(this.lv, 10);
+                        // 自分のサドンはLV1以外のキャラで、他人のサドンはLV1のキャラで殴る
+                        if ((lv === 1 && suddenData.mine === 0) || (lv > 1 && suddenData.mine === 1)) {
+                            console.log(this.name + " ☆" + this.rarity + " (id=" + this.id + ")で殴ります");
+                            defer.resolve(suddenData, this.id);
+                            return false;
+                        }
+                    });
+                    if (defer.state() !== "resolved") {
+                        log("殴れるキャラがいません");
+                        defer.resolve();
                     }
-                });
-                if (defer.state() !== "resolved") {
-                    log("殴れるキャラがいません");
+                } else {
+                    log("殴ろうとしたら倒されていました（たぶん）(result=" + res.result + ")");
                     defer.resolve();
                 }
             },
@@ -1146,6 +1151,81 @@ var task = {};
                 defer.resolve({
                     blockidList: blockidList
                 });
+            },
+            error: function () {
+                log("マップ情報取得に失敗");
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
+    };
+
+    /*** 指定されたマップ、マスの次のマスのIDを取得 ***/
+    // mapid, blockid, isFirst(マップの最初のマスが取得対象か)
+    // blockidとisFirstを同時に指定しないこと（blockidを優先）
+    task.GetNextBlockid = function (param) {
+        console.log("[[TaskStart]]GetNextBlockid");
+        var defer = $.Deferred();
+
+        var blockidList = [];
+        if (!param.mapid) {
+            defer.resolve();
+            return;
+        }
+
+        $.ajax({
+            url: "remain_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: ({
+                op: "remain_rank_data",
+                rrank: param.mapid
+            }),
+            success: function (res) {
+                var isEnd = false;
+                var lastBlockid = res.remain[res.remain.length - 1].id;
+                var nextBlockid;
+
+                if (param.blockid) {
+                    nextBlockid = ++param.blockid;
+                    if (nextBlockid > lastBlockid) {
+                        nextBlockid = res.remain[0].id;
+                        isEnd = true;   // マップを一周した
+                    }
+                } else if (param.isFirst) {
+                    nextBlockid = res.remain[0].id;
+                    if (res.remain[0].cable === 0) {
+                        nextBlockid = res.target_level;
+                        // nextBlockidがマップ外かどうかのチェックはしない（最初のマスがセットできない状態なので）
+                    }
+                } else if (!param.isFirst) {
+                    nextBlockid = res.target_level;
+                    if (nextBlockid > lastBlockid) {
+                        nextBlockid = res.remain[0].id;
+                    }
+                }
+
+                var i;
+                for (i = 0; i < res.remain.length; i++) {
+                    if (parseInt(res.remain[i].id, 10) === parseInt(nextBlockid, 10)) {
+                        if (res.remain[i].cable === 0) {
+                            log(res.remain[i].name + "[" + res.remain[i].id + "]に行くことができません");
+                            defer.reject();
+                        } else {
+                            defer.resolve({
+                                blockid: nextBlockid,
+                                isEnd: isEnd
+                            });
+                        }
+                        break;
+                    }
+                    if (i === res.remain.length - 1) {
+                        log("blockid=" + nextBlockid + "がmapid=" + param.mapid + "に存在しません");
+                        defer.reject();
+                    }
+                }
             },
             error: function () {
                 log("マップ情報取得に失敗");

@@ -92,16 +92,19 @@ console.log = function (message) {
             }
 
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
-                mapBattle = new cmdManager.CmdMapBattle(mapid, function () {
+                battleConfig = {};
+                battleConfig.mapid = mapid;
+                battleConfig.count = request.args.map_count;
+                battleConfig.isFirst = request.args.isFirst;
+                battleConfig.minTime = request.args.time.min;
+                battleConfig.maxTime = request.args.time.max;
+                mapBattle = new cmdManager.CmdMapBattle(battleConfig, function () {
                     mapBattle = null;
                 });
             } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
                 mapBattle.cmd.state = COMMON.CMD_STATUS.END;
                 mapBattle = null;
             }
-
-        } else if (request.op === COMMON.OP.ALLDYSTOPIA) {
-            allDystopia = new cmdManager.CmdAllDystopia();
 
         } else if (request.op === COMMON.OP.DYSTOPIA) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
@@ -160,9 +163,6 @@ console.log = function (message) {
                 }
             }
 
-        } else if (request.op === COMMON.OP.CONTENTS_DATA) {
-            sendResponse(buildContentsData());
-
         } else if (request.op === COMMON.OP.TEST) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
                 dystopia = new cmdManager.CmdTest(request.args.testData, function () {
@@ -172,6 +172,9 @@ console.log = function (message) {
                 test.cmd.state = COMMON.CMD_STATUS.END;
                 test = null;
             }
+
+        } else if (request.op === COMMON.OP.CONTENTS_DATA) {
+            sendResponse(buildContentsData());
         }
     });
 }());

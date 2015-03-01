@@ -81,10 +81,10 @@ var cmdManager = {};
                 var task = cmdList[i].cmd;
                 task.func(task.param)
                     .then(function (result) {
-                        task.funcState = "OK";
+                        task.funcState = COMMON.CMD_RESULT.OK;
                         task.result = result;
                     }, function (result) {
-                        task.funcState = "NG";
+                        task.funcState = COMMON.CMD_RESULT.NG;
                         task.result = result;
                     })
                     .always(function () {
@@ -135,10 +135,15 @@ var cmdManager = {};
     };
 
     /* Command : 指定されたマップの初めから順にすべてのマスで手動戦闘する */
-    cmdManager.CmdMapBattle = function (mapid, handler) {
-        this.mapid = mapid;
-        this.blockidList = null;
-        this.battleCount = 0;
+    cmdManager.CmdMapBattle = function (battleConfig, handler) {
+        this.mapid = battleConfig.mapid;
+        this.battleCount = battleConfig.count;
+        this.isFirst = battleConfig.isFirst;
+        this.minTime = battleConfig.minTime;
+        this.maxTime = battleConfig.maxTime;
+
+        this.blockid = null;
+        //this.blockidList = null;
 
         this.cmd = new Command("CmdMapBattle", handler);
         this.setNextTask();
@@ -151,7 +156,7 @@ var cmdManager = {};
 
         if (cmd.state === COMMON.CMD_STATUS.END) {
             return;
-        } else if (cmd.funcState === "NG") {
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
             cmd.state = COMMON.CMD_STATUS.END;
             return;
         }
@@ -160,27 +165,46 @@ var cmdManager = {};
             cmd.reset();
 
             cmd.time = now;
-            cmd.func = task.GetBlockid;
+            cmd.func = task.GetNextBlockid;
             cmd.param = {
-                mapid: this.mapid
+                mapid: this.mapid,
+                blockid: null,
+                isFirst: this.isFirst
             };
 
-        } else if (cmd.func === task.GetBlockid || cmd.func === task.Battle) {
-            if (cmd.func === task.GetBlockid) {
-                this.blockidList = cmd.result.blockidList;
-            }
-            var blockid = (this.blockidList).shift();
-            cmd.reset();
+        } else if (cmd.func === task.GetNextBlockid) {
+            if (cmd.result.blockid) {
+                if (cmd.result.isEnd) {
+                    this.battleCount--;
+                }
+                if (this.battleCount <= 0) {
+                    cmd.state = COMMON.CMD_STATUS.END;
+                } else {
+                    this.blockid = cmd.result.blockid;
 
-            if (blockid) {
-                cmd.time = now;
-                cmd.func = task.Battle;
-                cmd.param = {
-                    blockid: blockid
-                };
+                    cmd.reset();
+                    cmd.time = now;
+                    cmd.func = task.Battle;
+                    cmd.param = {
+                        blockid: this.blockid,
+                        minTime: this.minTime,
+                        maxTime: this.maxTime
+                    };
+                }
             } else {
                 cmd.state = COMMON.CMD_STATUS.END;
             }
+
+        } else if (cmd.func === task.Battle) {
+            cmd.reset();
+
+            cmd.time = now;
+            cmd.func = task.GetNextBlockid;
+            cmd.param = {
+                mapid: this.mapid,
+                blockid: this.blockid,
+                isFirst: null
+            };
         }
     };
 
@@ -203,7 +227,7 @@ var cmdManager = {};
 
         if (cmd.state === COMMON.CMD_STATUS.END) {
             return;
-        } else if (cmd.funcState === "NG") {
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
             cmd.state = COMMON.CMD_STATUS.END;
             return;
         }
@@ -246,7 +270,7 @@ var cmdManager = {};
 
         if (cmd.state === COMMON.CMD_STATUS.END) {
             return;
-        } else if (cmd.funcState === "NG") {
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
             cmd.state = COMMON.CMD_STATUS.END;
             return;
         }
@@ -323,7 +347,7 @@ var cmdManager = {};
 
         if (cmd.state === COMMON.CMD_STATUS.END) {
             return;
-        } else if (cmd.funcState === "NG") {
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
             cmd.state = COMMON.CMD_STATUS.END;
             return;
         }
@@ -385,7 +409,7 @@ var cmdManager = {};
                 time: timeStr
             };
         }
-        this.cmd.funcState = "OK";
+        this.cmd.funcState = COMMON.CMD_RESULT.OK;
 
         this.setNextTask();
         cmdList.push(this);
@@ -401,12 +425,12 @@ var cmdManager = {};
         if (cmd.state === COMMON.CMD_STATUS.END) {
             this.statusMsg = "次のログインボーナス獲得予定時刻: " + "停止中";
             return;
-        } else if (cmd.funcState === "NG") {
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
             // 10分後にリトライ
             targetTime.setMinutes(now.getMinutes() + 10);
         }
 
-        if (cmd.funcState === "OK" && cmd.result.isNext === true) {
+        if (cmd.funcState === COMMON.CMD_RESULT.OK && cmd.result.isNext === true) {
             var timeStr = cmd.result.time;
             var timeArray = timeStr.split(":");
             if (timeArray.length !== 3) {
@@ -430,7 +454,7 @@ var cmdManager = {};
                     targetTime.setSeconds(0);
                 }
             }
-        } else if (cmd.funcState === "OK" && cmd.result.isNext === false) {
+        } else if (cmd.funcState === COMMON.CMD_RESULT.OK && cmd.result.isNext === false) {
             if (now.getHours() >= 3) {
                 targetTime.setDate(now.getDate() + 1);
             }
@@ -459,7 +483,7 @@ var cmdManager = {};
 
         if (cmd.state === COMMON.CMD_STATUS.END) {
             return;
-        } else if (cmd.funcState === "NG") {
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
             cmd.state = COMMON.CMD_STATUS.END;
             return;
         }
