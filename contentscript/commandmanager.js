@@ -229,7 +229,7 @@ var cmdManager = {};
     };
 
     /* Command : 入場可能な魔界戦マップすべてで手動戦闘する（攻略済みがあってもOK） */
-    cmdManager.CmdAllDystopia = function (handler) {
+    cmdManager.CmdAllDystopia = function (battleConfig, handler) {
         this.mapno = 0;     // DystopiaMapListのうち何番目のマップか
         this.rank = 0;      // 0:Heaven, 1:Hell
         this.blockidList = null;
@@ -306,9 +306,9 @@ var cmdManager = {};
     };
 
     /* Command : 指定された魔界戦マップ・ランクで手動戦闘する */
-    cmdManager.CmdDystopia = function (mapid, rank, handler) {
-        this.mapid = mapid;
-        this.rank = rank;      // 0:Heaven, 1:Hell
+    cmdManager.CmdDystopia = function (battleConfig, handler) {
+        this.mapid = battleConfig.mapid;
+        this.rank = battleConfig.rank;      // 0:Heaven, 1:Hell
         this.blockidList = null;
         this.battleCount = 0;
 

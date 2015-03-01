@@ -7,7 +7,7 @@
                 "type": "select",
                 "name": "map",
                 "title": "マップ",
-                "column": 4,
+                "column": 7,
                 "values": [
                     { "name": "フィグルの森", "value": 1000 },
                     { "name": "デガート遺跡", "value": 2000 },
@@ -26,7 +26,7 @@
                 "type": "select",
                 "name": "level",
                 "title": "レベル",
-                "column": 4,
+                "column": 5,
                 "values": [
                     { "name": "Normal", "value": 1 },
                     { "name": "Hard", "value": 2 },
@@ -39,7 +39,15 @@
                 "name": "mapid",
                 "title": "ID指定",
                 "init": "",
-                "column": 4
+                "column": 6
+            },
+            {
+                "type": "range",
+                "name": "time",
+                "title": "戦闘時間（秒）",
+                "column": 6,
+                "initmin": 0,
+                "initmax": 0
             }
         ],
         "ctrl": [
@@ -79,6 +87,14 @@
                     { "name": "Heaven", "value": 0 },
                     { "name": "Hell", "value": 1 }
                 ]
+            },
+            {
+                "type": "range",
+                "name": "time",
+                "title": "戦闘時間（秒）",
+                "column": 6,
+                "initmin": 0,
+                "initmax": 0
             }
         ],
         "ctrl": [

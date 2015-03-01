@@ -83,6 +83,7 @@ console.log = function (message) {
     });
 
     chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+        var battleConfig = {};
 
         if (request.op === COMMON.OP.MAP) {
             var mapid = request.args.map + request.args.level;
@@ -104,12 +105,19 @@ console.log = function (message) {
 
         } else if (request.op === COMMON.OP.DYSTOPIA) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
+                battleConfig = {};
                 if (request.args.dystopia === 0) {
-                    dystopia = new cmdManager.CmdAllDystopia(request.args.dystopia, request.args.dystopiaMode, function () {
+                    battleConfig.minTime = request.args.time.min;
+                    battleConfig.maxTime = request.args.time.max;
+                    dystopia = new cmdManager.CmdAllDystopia(battleConfig, function () {
                         dystopia = null;
                     });
                 } else {
-                    dystopia = new cmdManager.CmdDystopia(request.args.dystopia, request.args.dystopiaMode, function () {
+                    battleConfig.mapid = request.args.dystopia;
+                    battleConfig.rank = request.args.dystopiaMode;
+                    battleConfig.minTime = request.args.time.min;
+                    battleConfig.maxTime = request.args.time.max;
+                    dystopia = new cmdManager.CmdDystopia(battleConfig, function () {
                         dystopia = null;
                     });
                 }
@@ -137,7 +145,7 @@ console.log = function (message) {
                     for (i = 0; i < request.args.block_count; i++) {
                         blockidList.push(blockid);
                     }
-                    var battleConfig = {};
+                    battleConfig = {};
                     battleConfig.blockidList = blockidList;
                     battleConfig.minTime = request.args.time.min;
                     battleConfig.maxTime = request.args.time.max;
