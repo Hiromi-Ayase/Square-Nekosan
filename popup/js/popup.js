@@ -14,17 +14,23 @@
             var html;
             var n = scope.c.name + "." + scope.f.name;
             if (scope.f.type === "select") {
-                html = '<select ng-model="args.' + n + '" ng-options="m.value as m.name + \' (\' + m.value + \')\' for m in f.values" />';
+                html = '<select class="ng-model-box" ng-model="args.' + n + '" ng-options="m.value as m.name + \' (\' + m.value + \')\' for m in f.values" />';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.values[0].value;
             } else if (scope.f.type === "text") {
-                html = '<input type="text" ng-model="args.' + n + '" />';
+                html = '<input class="ng-model-box" type="text" ng-model="args.' + n + '" />';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
             } else if (scope.f.type === "number") {
-                html = '<input type="number" ng-model="args.' + n + '" />';
+                html = '<input class="ng-model-box" type="number" ng-model="args.' + n + '" />';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
+            } else if (scope.f.type === "range") {
+                html = '<div class="ng-model-box"><input type="text" class="col-xs-5" ng-model="args.' + n + '.min" /><div class="col-xs-2 range-mark">～</div><input type="text" class="col-xs-5" ng-model="args.' + n + '.max" /></div>';
+                element.append($compile(html)(scope));
+                scope.args[scope.c.name][scope.f.name] = {};
+                scope.args[scope.c.name][scope.f.name].min = scope.f.initmin;
+                scope.args[scope.c.name][scope.f.name].max = scope.f.initmax;
             }
         };
     }]);

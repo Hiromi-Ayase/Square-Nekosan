@@ -104,9 +104,15 @@ console.log = function (message) {
 
         } else if (request.op === COMMON.OP.DYSTOPIA) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
-                dystopia = new cmdManager.CmdDystopia(request.args.dystopia, request.args.dystopiaMode, function () {
-                    dystopia = null;
-                });
+                if (request.args.dystopia === 0) {
+                    dystopia = new cmdManager.CmdAllDystopia(request.args.dystopia, request.args.dystopiaMode, function () {
+                        dystopia = null;
+                    });
+                } else {
+                    dystopia = new cmdManager.CmdDystopia(request.args.dystopia, request.args.dystopiaMode, function () {
+                        dystopia = null;
+                    });
+                }
             } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
                 dystopia.cmd.state = COMMON.CMD_STATUS.END;
                 dystopia = null;
@@ -131,7 +137,11 @@ console.log = function (message) {
                     for (i = 0; i < request.args.block_count; i++) {
                         blockidList.push(blockid);
                     }
-                    blockBattle = new cmdManager.CmdBlockBattle(blockidList, function () {
+                    var battleConfig = {};
+                    battleConfig.blockidList = blockidList;
+                    battleConfig.minTime = request.args.time.min;
+                    battleConfig.maxTime = request.args.time.max;
+                    blockBattle = new cmdManager.CmdBlockBattle(battleConfig, function () {
                         blockBattle = null;
                     });
                 }

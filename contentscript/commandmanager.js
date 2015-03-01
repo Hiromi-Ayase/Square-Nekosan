@@ -185,10 +185,12 @@ var cmdManager = {};
     };
 
     /* Command : 指定された1つ以上のマスで手動戦闘する */
-    cmdManager.CmdBlockBattle = function (blockidList, handler) {
-        this.blockidList = blockidList;
-        this.battleCount = blockidList.length;
+    cmdManager.CmdBlockBattle = function (battleConfig, handler) {
+        this.blockidList = battleConfig.blockidList;
+        this.battleCount = battleConfig.blockidList.length;
         this.counterStr = "";
+        this.minTime = battleConfig.minTime;
+        this.maxTime = battleConfig.maxTime;
 
         this.cmd = new Command("CmdBlockBattle", handler);
         this.setNextTask();
@@ -214,9 +216,12 @@ var cmdManager = {};
                 this.counterStr = (this.battleCount - (this.blockidList).length) + "回目/" + this.battleCount + "回中";
                 cmd.time = now;
                 cmd.func = task.Battle;
-                cmd.param = {
-                    blockid: blockid
+                var battleData = {
+                    blockid: blockid,
+                    minTime: this.minTime,
+                    maxTime: this.maxTime
                 };
+                cmd.param = battleData;
             } else {
                 cmd.state = COMMON.CMD_STATUS.END;
             }

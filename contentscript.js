@@ -6,20 +6,6 @@
     v1.7はだめー
 */
 
-// ログインプレゼント
-// POST updateinfo_.php op:"login_reward"
-// Response {
-// msg: "獲得アイテム：リーチェボックス X3"
-// next: "7★魂珠の欠片"
-// result: 1
-// time: "1:30:00"
-// }
-
-/* --- 戦闘用変数 --- */
-var g_mapid = 0;
-var g_blockid = 0;
-var g_blockidList = [];
-
 /* --- キャラのレベルアップ --- */
 var IS_AUTO_LVUP = 0; // 自動でLVUPするか
 var g_isLvup = 0;
@@ -28,9 +14,9 @@ var g_lvupCharaList = [];
 
 /* --- サドンボス --- */
 var IS_CHECK_SUDDEN = 1; // 戦闘終了時にサドンボスをチェックするか
+var IS_BEAT_SUDDEN = 1; // 自分が遭遇したサドンボスを30％以上削るか（キャラに余裕がある場合使用推奨）
 var g_isBattleSudden = 0; // 戦闘終了後にサドンボスが出たか
 var g_suddenList = [];  // {id : this.id, mine : 1}    mine=1なら自分が遭遇者
-
 
 /* --- マップID --- */
 var DystopiaMapList = [91001, 92001, 93001, 94001, 95001,
@@ -49,7 +35,7 @@ var task = {};
     'use strict';
     /* 指定マスの最大パーティ数を取得する */
     // param = { blockid }
-    var battleGetMaxParty = function (param) {
+    var battleGetMaxParty = function (battleData) {
         console.log("[Enter]battleGetMaxParty");
         var defer = $.Deferred();
 
@@ -60,7 +46,7 @@ var task = {};
             dataType: "json",
             data: ({
                 op: "get_monster_data",
-                level: param.blockid,
+                level: battleData.blockid,
                 mload: 1
             }),
             success: function (res) {
@@ -68,12 +54,12 @@ var task = {};
                     log("最大攻略可能パーティ数取得に失敗");
                     defer.reject();
                 } else {
-                    var maxPartyNum = parseInt(res.max_party_num, 10);
+                    battleData.maxPartyNum = parseInt(res.max_party_num, 10);
 
-                    log("---- " + res.stagename + "[" + param.blockid + "]");
+                    log("---- " + res.stagename + "[" + battleData.blockid + "]");
 
-                    console.log("最大攻略可能パーティ数 ：" + maxPartyNum);
-                    defer.resolve(param.blockid, maxPartyNum); // goto battleGetParty
+                    console.log("最大攻略可能パーティ数 ：" + battleData.maxPartyNum);
+                    defer.resolve(battleData); // goto battleGetParty
                 }
             },
             error: function () {
@@ -87,7 +73,7 @@ var task = {};
 
 
     /* 現在のパーティ情報(キャラid)を取得する */
-    var battleGetParty = function (blockid, maxPartyNum) {
+    var battleGetParty = function (battleData) {
         console.log("[Enter]battleGetParty");
         var defer = $.Deferred();
 
@@ -104,10 +90,10 @@ var task = {};
             //    save: saveNo      // 1-5
             //}),
             success: function (res) {
-                var partyData = [];
-                var i = 0;
-                for (i = 0; i < maxPartyNum; i++) {
-                    partyData[i] = [];
+                battleData.partyData = [];
+                var i = 0, j = 0;
+                for (i = 0; i < battleData.maxPartyNum; i++) {
+                    battleData.partyData[i] = [];
                 }
 
                 console.log("パーティ情報：");
@@ -118,18 +104,19 @@ var task = {};
                         var partyNo = (chara.party.split("-")[0]) - 1;
                         var partyMemberNo = (chara.party.split("-")[1]) - 1;
 
-                        if (partyNo < maxPartyNum) {
-                            partyData[partyNo][partyMemberNo] = chara.id;
+                        if (partyNo < battleData.maxPartyNum) {
+                            battleData.partyData[partyNo][partyMemberNo] = chara.id;
                             console.log("    " + chara.name + " [" + chara.party + "]");
+                            j++;
                         }
                     }
                 }
 
-                if (partyData.length === 0) {
+                if (j === 0) {
                     log("パーティ無し");
                     defer.reject();
                 } else {
-                    defer.resolve(blockid, partyData); // goto battlePrepare
+                    defer.resolve(battleData); // goto battlePrepare
                 }
             },
             error: function () {
@@ -148,7 +135,7 @@ var task = {};
     };
 
     /* 戦闘準備 */
-    var battlePrepare = function (blockid, partyData) {
+    var battlePrepare = function (battleData) {
         console.log("[Enter]battlePrepare");
         var defer = $.Deferred();
 
@@ -159,8 +146,8 @@ var task = {};
             dataType: "json",
             data: ({
                 op: "battle_prepare",
-                party: partyData,
-                target_level: blockid,
+                party: battleData.partyData,
+                target_level: battleData.blockid,
                 old_kick: 0,
                 auto_battle: 0,
                 assist_set: 0,
@@ -181,7 +168,7 @@ var task = {};
 
                         } else if (nResult === "success") {
                             console.log("手動戦闘準備に成功");
-                            defer.resolve(blockid); // goto battleStart
+                            defer.resolve(battleData); // goto battleStart
                         }
                     } else {
                         log("戦闘準備エラー[" + res.result + "]");
@@ -310,7 +297,7 @@ var task = {};
     };
 
     /* 手動戦闘開始 */
-    var battleStart = function (blockid) {
+    var battleStart = function (battleData) {
         console.log("[Enter]battleStart");
         var defer = $.Deferred();
 
@@ -320,16 +307,16 @@ var task = {};
             cache: false,
             //dataType: "json",
             data: ({
-                id: "#remain" + blockid,
+                id: "#remain" + battleData.blockid,
                 op: "BATTLE"
             }),
             success: function (res) {
-                var result_txt = createBattleResult(res);
-                if (result_txt.pteam_txt === "" || result_txt.eteam_txt === "") {
+                battleData.result_txt = createBattleResult(res);
+                if (battleData.result_txt.pteam_txt === "" || battleData.result_txt.eteam_txt === "") {
                     log("手動戦闘開始に失敗[戦闘結果データ生成に失敗]");
                     defer.reject(["power"]); // goto updateCQ
                 } else {
-                    defer.resolve(blockid, result_txt); // goto battleSendResult
+                    defer.resolve(battleData); // goto battleSendResult
                 }
             },
             error: function () {
@@ -343,42 +330,65 @@ var task = {};
 
     /* 戦闘結果送信 */
     // result_txt = {pteam_txt, eteam_txt}
-    var battleSendResult = function (blockid, result_txt) {
+    var battleSendResult = function (battleData) {
         console.log("[Enter]battleSendResult");
         var defer = $.Deferred();
 
-        if (result_txt.pteam_txt === "" || result_txt.eteam_txt === "") {
+        if (battleData.result_txt.pteam_txt === "" || battleData.result_txt.eteam_txt === "") {
             return;
         }
 
-        // ターン数、経過時間
-        var turn = Math.floor(Math.random() * 7);
-        var sec = Math.floor(Math.random() * 60);
+        // ターン数、戦闘時間
+        var turn = 1 + Math.floor(Math.random() * 7);
+        var time = 0;   // 実際の戦闘時間(秒) (戦闘結果送るまでの待機時間)
+        var sec = 0;    // 送信時間(秒)
+        var min = 0;    // 送信時間(分)
+        if (battleData.minTime !== null && battleData.maxTime !== null && battleData.maxTime > battleData.minTime) {
+            if (battleData.maxTime > 1800) {
+                battleData.maxTime = 1800;  // 最大30分とする
+            }
+            if (battleData.minTime < 0) {
+                battleData.minTime = 0;
+            }
+            time = battleData.minTime + Math.floor(Math.random() * (battleData.maxTime - battleData.minTime));
+            sec = time % 60;
+            if (time >= 60) {
+                min = Math.floor((time - sec) / 60);
+            }
+            console.log(min + ":" + sec + "後に戦闘結果を送信");
+        } else {
+            sec = 1 + Math.floor(Math.random() * 58);
+        }
         if (sec < 10) {
             sec = "0" + sec;
         }
+        if (min < 10) {
+            min = "0" + min;
+        }
 
-        // 開放されてないマップIDを指定するとエラー(array=[{"result":"no_remain"}])
-        $.ajax({
-            url: "flash_trans_xml_.php",
-            type: "POST",
-            cache: false,
-            //dataType: "json",
-            data: ({
-                op: "BATTLE_RESULT",
-                eteam: result_txt.eteam_txt,
-                remain: blockid + "/" + turn + "/00:00:" + sec,
-                pteam: result_txt.pteam_txt
-            }),
-            success: function (data) {
-                console.log("手動戦闘結果送信に成功");
-                defer.resolve(); // goto battleGetReport
-            },
-            error: function (data) {
-                log("手動戦闘結果送信に失敗");
-                defer.reject(); // goto updateCQ
-            }
-        });
+        setTimeout(function () {
+            // 開放されてないマップIDを指定するとエラー(array=[{"result":"no_remain"}])
+            $.ajax({
+                url: "flash_trans_xml_.php",
+                type: "POST",
+                cache: false,
+                //dataType: "json",
+                data: ({
+                    op: "BATTLE_RESULT",
+                    eteam: battleData.result_txt.eteam_txt,
+                    remain: battleData.blockid + "/" + turn + "/00:" + min + ":" + sec,
+                    pteam: battleData.result_txt.pteam_txt
+                }),
+                success: function (data) {
+                    console.log("手動戦闘結果送信に成功");
+                    defer.resolve(); // goto battleGetReport
+                },
+                error: function (data) {
+                    log("手動戦闘結果送信に失敗");
+                    defer.reject(); // goto updateCQ
+                }
+            });
+        }, time * 1000);
 
         return defer.promise();
     };
@@ -641,7 +651,11 @@ var task = {};
                 $.each(res.list, function () {
                     if (this.name === myname && this.damage !== "0") {
                         console.log("攻撃済み");
-                        defer.resolve(); // 自分がすでに叩いていた
+                        if (suddenData.mine === 1 && this.rate < 30.0) {
+                            suddenData.mydamage = parseInt(this.damage, 10);
+                        } else {
+                            defer.resolve(); // 自分がすでに叩いていた
+                        }
                         return false;
                     }
                 });
@@ -727,6 +741,22 @@ var task = {};
             }),
             success: function (res) {
                 console.log("サドンボス攻撃に成功"); // 失敗時の応答不明（無効なidでも送ってみる？）
+                // 遭遇者が自分の場合、30％以上殴る
+                if (suddenData.mine === 1 && IS_BEAT_SUDDEN === 1 && res.left_hp > 0) {
+                    suddenData.mydamage += res.battle.merc[0].total + res.battle.merc[1].total + res.battle.merc[2].total;
+                    if (suddenData.mydamage / res.battle.max <= 0.30) {
+                        console.log(this.name + "(id=" + this.id + ") : ダメージが30%以下なのでまた殴ります");
+
+                        $.each(res.merc_list, function () {
+                            if (parseInt(this.lv, 10) > 1) {
+                                console.log(this.name + " ☆" + this.rarity + " (id=" + this.id + ")で殴ります");
+                                attackSudden(suddenData, this.id);
+                                return false;
+                            }
+                        });
+                    }
+                }
+
                 defer.resolve();
             },
             error: function () {
@@ -1127,7 +1157,7 @@ var task = {};
     };
 
     /*** 戦闘 ***/
-    task.Battle = function (blockid) {
+    task.Battle = function (battleData) {
         console.log("[[TaskStart]]Battle");
         var defer = $.Deferred();
 
@@ -1136,7 +1166,7 @@ var task = {};
         g_isLvup = 0;
         g_isBattleSudden = 0;
 
-        battleGetMaxParty(blockid)
+        battleGetMaxParty(battleData)
             .then(battleGetParty)
             .then(battlePrepare)
             .then(battleStart)

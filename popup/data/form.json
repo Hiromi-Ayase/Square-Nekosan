@@ -50,7 +50,6 @@
     {
         "name": "dystopia",
         "title": "魔界戦",
-        "op": "DYSTOPIA",
         "form": [
             {
                 "type": "select",
@@ -58,6 +57,7 @@
                 "title": "魔界戦",
                 "column": 7,
                 "values": [
+                    { "name": "ぜんぶ", "value": 0 },
                     { "name": "フィグルの森", "value": 91001 },
                     { "name": "デガート遺跡", "value": 92001 },
                     { "name": "アミルレイク", "value": 93001 },
@@ -112,6 +112,14 @@
                 "title": "回数",
                 "init": 1,
                 "column": 6
+            },
+            {
+                "type": "range",
+                "name": "time",
+                "title": "戦闘時間（秒）",
+                "column": 6,
+                "initmin": 0,
+                "initmax": 0
             }
         ],
         "ctrl": [
