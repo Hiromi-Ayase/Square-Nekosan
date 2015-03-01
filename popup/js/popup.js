@@ -131,7 +131,7 @@
             "op": COMMON.OP.GET
         }, function (response) {
             data = response.data;
-            storage = JSON.parse(response.storage);
+            storage = JSON.parse(response.storage) || {};
             cmSetting.setValue(JSON.stringify(storage, null, 4));
             if (storage.args !== undefined) {
                 $scope.args = storage.args;
