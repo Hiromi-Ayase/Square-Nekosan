@@ -40,6 +40,9 @@
         $scope.config = $resource("/popup/data/form.json").query();
         $scope.args = {};
         $scope.send = function (ctrl, op) {
+            storage.args = $scope.args;
+            storage.config = $scope.config;
+            $scope.saveSetting();
             chrome.tabs.sendMessage(data.tabId, {
                 "op": op,
                 "ctrl": ctrl,
@@ -91,6 +94,15 @@
             return { hiddenElement: $scope.flash === undefined };
         };
 */
+        $scope.saveSetting = function () {
+            var jsonString =  JSON.stringify(storage, null, 4);
+            chrome.runtime.sendMessage({
+                "op": COMMON.OP.SET,
+                "storage": jsonString
+            });
+            cmSetting.setValue(jsonString);
+        };
+
         $scope.settingAction = function (mode) {
             if (mode === "save") {
                 var jsonString = cmSetting.getValue();
@@ -99,13 +111,10 @@
                 } catch (e2) {
                     return;
                 }
-                chrome.runtime.sendMessage({
-                    "op": COMMON.OP.SET,
-                    "storage": jsonString
-                });
+                $scope.saveSetting();
                 $scope.settingsStatus = "Saved!";
             } else if (mode === "restore") {
-                cmSetting.setValue(storage);
+                cmSetting.setValue(JSON.stringify(storage, null, 4));
             }
         };
 
@@ -122,8 +131,14 @@
             "op": COMMON.OP.GET
         }, function (response) {
             data = response.data;
-            storage = response.storage;
-            $scope.setting = storage;
+            storage = JSON.parse(response.storage);
+            cmSetting.setValue(JSON.stringify(storage, null, 4));
+            if (storage.args !== undefined) {
+                $scope.args = storage.args;
+            }
+            if (storage.config !== undefined) {
+                $scope.config = storage.config;
+            }
         });
     }]);
 }());
