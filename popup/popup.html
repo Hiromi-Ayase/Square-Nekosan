@@ -37,7 +37,7 @@
 
     <div class="main" ng-controller="MainController">
         <tabset>
-            <tab ng-repeat="c in config">
+            <tab ng-repeat="c in config" active="c.active">
                 <tab-heading>{{c.title}}</tab-heading>
                 <div class="container form">
                     <div class="row">
@@ -72,7 +72,7 @@
                     <div class="row">
                         <div class="col-xs-12" >
                            <div class="settings-editor">
-                                <textarea ui-codemirror="settingEditor" ng-model="setting">
+                                <textarea ui-codemirror="settingEditor">
                                 </textarea>
                            </div>
                         </div>

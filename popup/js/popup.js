@@ -41,6 +41,7 @@
         $scope.args = {};
         $scope.send = function (ctrl, op) {
             storage.args = $scope.args;
+            storage.config = $scope.config;
             $scope.saveSetting();
             chrome.tabs.sendMessage(data.tabId, {
                 "op": op,
@@ -134,6 +135,9 @@
             cmSetting.setValue(JSON.stringify(storage, null, 4));
             if (storage.args !== undefined) {
                 $scope.args = storage.args;
+            }
+            if (storage.config !== undefined) {
+                $scope.config = storage.config;
             }
         });
     }]);
