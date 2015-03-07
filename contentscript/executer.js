@@ -96,8 +96,7 @@ console.log = function (message) {
                 battleConfig.mapid = mapid;
                 battleConfig.count = request.args.map_count;
                 battleConfig.isFirst = request.args.isFirst;
-                battleConfig.minTime = request.args.time.min;
-                battleConfig.maxTime = request.args.time.max;
+                battleConfig.time = request.args.time;
                 mapBattle = new cmdManager.CmdMapBattle(battleConfig, function () {
                     mapBattle = null;
                 });
@@ -110,16 +109,14 @@ console.log = function (message) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
                 battleConfig = {};
                 if (request.args.dystopia === 0) {
-                    battleConfig.minTime = request.args.time.min;
-                    battleConfig.maxTime = request.args.time.max;
+                    battleConfig.time = request.args.time;
                     dystopia = new cmdManager.CmdAllDystopia(battleConfig, function () {
                         dystopia = null;
                     });
                 } else {
                     battleConfig.mapid = request.args.dystopia;
                     battleConfig.rank = request.args.dystopiaMode;
-                    battleConfig.minTime = request.args.time.min;
-                    battleConfig.maxTime = request.args.time.max;
+                    battleConfig.time = request.args.time;
                     dystopia = new cmdManager.CmdDystopia(battleConfig, function () {
                         dystopia = null;
                     });
@@ -150,8 +147,7 @@ console.log = function (message) {
                     }
                     battleConfig = {};
                     battleConfig.blockidList = blockidList;
-                    battleConfig.minTime = request.args.time.min;
-                    battleConfig.maxTime = request.args.time.max;
+                    battleConfig.time = request.args.time;
                     blockBattle = new cmdManager.CmdBlockBattle(battleConfig, function () {
                         blockBattle = null;
                     });

@@ -90,10 +90,10 @@ var task = {};
             //    save: saveNo      // 1-5
             //}),
             success: function (res) {
-                battleData.partyData = [];
+                var party = [];
                 var i = 0, j = 0;
-                for (i = 0; i < battleData.maxPartyNum; i++) {
-                    battleData.partyData[i] = [];
+                for (i = 0; i < 9; i++) {
+                    party[i] = [];
                 }
 
                 console.log("パーティ情報：");
@@ -104,11 +104,9 @@ var task = {};
                         var partyNo = (chara.party.split("-")[0]) - 1;
                         var partyMemberNo = (chara.party.split("-")[1]) - 1;
 
-                        if (partyNo < battleData.maxPartyNum) {
-                            battleData.partyData[partyNo][partyMemberNo] = chara.id;
-                            console.log("    " + chara.name + " [" + chara.party + "]");
-                            j++;
-                        }
+                        party[partyNo][partyMemberNo] = chara.id;
+                        console.log("    " + chara.name + " [" + chara.party + "]");
+                        j++;
                     }
                 }
 
@@ -116,6 +114,16 @@ var task = {};
                     log("パーティ無し");
                     defer.reject();
                 } else {
+                    battleData.partyData = [];
+                    for (i = 0; i < 9; i++) {
+                        if (party[i].length > 0) {
+                            battleData.partyData.push(party[i]);
+                            j++;
+                            if (battleData.partyData.length >= battleData.maxPartyNum) {
+                                break;
+                            }
+                        }
+                    }
                     defer.resolve(battleData); // goto battlePrepare
                 }
             },
@@ -343,14 +351,14 @@ var task = {};
         var time = 0;   // 実際の戦闘時間(秒) (戦闘結果送るまでの待機時間)
         var sec = 0;    // 送信時間(秒)
         var min = 0;    // 送信時間(分)
-        if (battleData.minTime !== null && battleData.maxTime !== null && battleData.maxTime > battleData.minTime) {
-            if (battleData.maxTime > 1800) {
-                battleData.maxTime = 1800;  // 最大30分とする
+        if (battleData.time.min !== null && battleData.time.max !== null && battleData.time.max > battleData.time.min) {
+            if (battleData.time.max > 1800) {
+                battleData.time.max = 1800;  // 最大30分とする
             }
-            if (battleData.minTime < 0) {
-                battleData.minTime = 0;
+            if (battleData.time.min < 0) {
+                battleData.time.min = 0;
             }
-            time = battleData.minTime + Math.floor(Math.random() * (battleData.maxTime - battleData.minTime));
+            time = battleData.time.min + Math.floor(Math.random() * (battleData.time.max - battleData.time.min));
             sec = time % 60;
             if (time >= 60) {
                 min = Math.floor((time - sec) / 60);
@@ -649,11 +657,12 @@ var task = {};
             }),
             success: function (res) {
                 $.each(res.list, function () {
-                    if (this.name === myname && this.damage !== "0") {
-                        console.log("攻撃済み");
+                    if (this.name === myname) {
                         if (suddenData.mine === 1 && this.rate < 30.0) {
+                            console.log("自分のサドン(ダメージ" +  this.rate + "%)");
                             suddenData.mydamage = parseInt(this.damage, 10);
                         } else {
+                            console.log("攻撃済み");
                             defer.resolve(); // 自分がすでに叩いていた
                         }
                         return false;
@@ -746,9 +755,10 @@ var task = {};
             }),
             success: function (res) {
                 console.log("サドンボス攻撃に成功"); // 失敗時の応答不明（無効なidでも送ってみる？）
-                // 遭遇者が自分の場合、30％以上殴る
-                if (suddenData.mine === 1 && IS_BEAT_SUDDEN === 1 && res.left_hp > 0) {
-                    suddenData.mydamage += res.battle.merc[0].total + res.battle.merc[1].total + res.battle.merc[2].total;
+                // 遭遇者が自分の場合、30％以上殴る(殴るキャラは1人ずつ)
+                if (suddenData.mine === 1 && IS_BEAT_SUDDEN === 1 && res.battle.left_hp > 0) {
+                    // キャラが1人の場合、res.battle.merc[1 or 2].total=undefined で、これを加算するとNaNになるので注意
+                    suddenData.mydamage += res.battle.merc[0].total;
                     if (suddenData.mydamage / res.battle.max <= 0.30) {
                         console.log(this.name + "(id=" + this.id + ") : ダメージが30%以下なのでまた殴ります");
 
@@ -761,7 +771,6 @@ var task = {};
                         });
                     }
                 }
-
                 defer.resolve();
             },
             error: function () {
@@ -1184,6 +1193,11 @@ var task = {};
                 rrank: param.mapid
             }),
             success: function (res) {
+                if (!res.remain) {
+                    log("マップが存在しません（きっと）");
+                    defer.reject();
+                    return;
+                }
                 var isEnd = false;
                 var lastBlockid = res.remain[res.remain.length - 1].id;
                 var nextBlockid;
@@ -1393,6 +1407,86 @@ var task = {};
 
         return defer.promise();
     };
+
+    /* 都市のリストと各都市のデータを取得 */
+    var getTownData = function () {
+        console.log("[Enter]getTownData");
+        var defer = $.Deferred();
+        var townIdList = [];
+        var townsData = {};
+        $.ajax({
+            url: "flash_trans_xml_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: ({
+                op: "town_list"
+            }),
+            success: function (res) {
+                var i = 0;
+                for (i = 0; i < res.self.length; i++) {
+                    townIdList[i] = res.self[i].id;
+                }
+            },
+            error: function () {
+                log("町の取得に失敗");
+                defer.reject();
+                return;
+            }
+        });
+
+        $.each(townIdList, function () {
+            $.ajax({
+                url: "flash_trans_xml_.php?town=" + this,
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({
+                    op: "READ"
+                }),
+                success: function (res) {
+                    var json_data = null;
+                    try {
+                        json_data = $.parseJSON(res.slice(res.indexOf("["), res.indexOf("&op")));
+                    } catch (e) {}
+                    if (json_data === null) {
+                        log("都市データパース失敗");
+                        defer.reject();
+                        return false;
+                    } else {
+                        townsData[this] = json_data;
+                    }
+                },
+                error: function () {
+                    log("都市データの取得に失敗");
+                    defer.reject();
+                }
+            });
+        });
+
+        return defer.promise();
+    };
+
+    /* 一番レベルの高い変換器(400)がある都市のIDを取得 */
+    var getTownConverter = function (townsData) {
+        //townsData = { id: towndata, id: towndata, ... }
+        var townId;
+        var converterLv = 0;
+
+        $.each(townsData, function (id, townData) {
+            $.each(townData[1], function () {
+                if (this.building > 400 && this.building < 500) {
+                    if (converterLv < parseInt(this.lv, 10)) {
+                        converterLv = parseInt(this.lv, 10);
+                        townId = id;
+                    }
+                }
+            });
+        });
+
+        console.log("変喚器は" + townId + "を使います");
+    };
+
 }());
 
 $(function () {

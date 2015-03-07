@@ -64,8 +64,11 @@ body {
     border: 1px solid black;
 }
 
+.range-box {
+    padding: 0px;
+}
+
 .range-mark {
-    text-align: center;
     line-height: 26px;
     padding: 0px;
 }

@@ -26,7 +26,7 @@
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
             } else if (scope.f.type === "range") {
-                html = '<div class="ng-model-box"><input type="text" class="col-xs-5" ng-model="args.' + n + '.min" /><div class="col-xs-2 range-mark">～</div><input type="text" class="col-xs-5" ng-model="args.' + n + '.max" /></div>';
+                html = '<div class="ng-model-box"><input type="number" class="col-xs-5 range-box" ng-model="args.' + n + '.min" /><div class="col-xs-2 range-mark">～</div><input type="number" class="col-xs-5 range-box" ng-model="args.' + n + '.max" /></div>';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = {};
                 scope.args[scope.c.name][scope.f.name].min = scope.f.initmin;

@@ -124,6 +124,9 @@ var cmdManager = {};
         this.funcState = null;
 
         this.endHandler = handler;
+
+        var now = new Date();
+        this.time = now;
     }
 
     Command.prototype.reset = function () {
@@ -132,6 +135,9 @@ var cmdManager = {};
         this.param = null;
         this.result = null;
         this.funcState = null;
+
+        var now = new Date();
+        this.time = now;
     };
 
     /* Command : 指定されたマップの初めから順にすべてのマスで手動戦闘する */
@@ -139,8 +145,7 @@ var cmdManager = {};
         this.mapid = battleConfig.mapid;
         this.battleCount = battleConfig.count;
         this.isFirst = battleConfig.isFirst;
-        this.minTime = battleConfig.minTime;
-        this.maxTime = battleConfig.maxTime;
+        this.time = battleConfig.time;
 
         this.blockid = null;
         //this.blockidList = null;
@@ -187,8 +192,7 @@ var cmdManager = {};
                     cmd.func = task.Battle;
                     cmd.param = {
                         blockid: this.blockid,
-                        minTime: this.minTime,
-                        maxTime: this.maxTime
+                        time: this.time
                     };
                 }
             } else {
@@ -213,8 +217,7 @@ var cmdManager = {};
         this.blockidList = battleConfig.blockidList;
         this.battleCount = battleConfig.blockidList.length;
         this.counterStr = "";
-        this.minTime = battleConfig.minTime;
-        this.maxTime = battleConfig.maxTime;
+        this.time = battleConfig.time;
 
         this.cmd = new Command("CmdBlockBattle", handler);
         this.setNextTask();
@@ -242,8 +245,7 @@ var cmdManager = {};
                 cmd.func = task.Battle;
                 var battleData = {
                     blockid: blockid,
-                    minTime: this.minTime,
-                    maxTime: this.maxTime
+                    time: this.time
                 };
                 cmd.param = battleData;
             } else {
@@ -258,6 +260,7 @@ var cmdManager = {};
         this.rank = 0;      // 0:Heaven, 1:Hell
         this.blockidList = null;
         this.battleCount = 0;
+        this.time = battleConfig.time;
 
         this.cmd = new Command("CmdAllDystopia", handler);
         this.setNextTask();
@@ -293,15 +296,19 @@ var cmdManager = {};
             cmd.reset();
 
             if (blockid) {
+                var battleTime = this.time;
                 // Hellは攻略に時間をかける
                 if (this.rank === 1) {
-                    cmd.time = now.setMinutes(now.getMinutes() + 5);
-                } else {
-                    cmd.time = now;
+                    battleTime = {
+                        min: 180,
+                        max: 240
+                    };
                 }
+                cmd.time = now;
                 cmd.func = task.Battle;
                 cmd.param = {
-                    blockid: blockid
+                    blockid: blockid,
+                    time: battleTime
                 };
             } else {
                 this.mapno++;
@@ -335,6 +342,7 @@ var cmdManager = {};
         this.rank = battleConfig.rank;      // 0:Heaven, 1:Hell
         this.blockidList = null;
         this.battleCount = 0;
+        this.time = battleConfig.time;
 
         this.cmd = new Command("CmdDystopia", handler);
         this.setNextTask();
@@ -370,15 +378,19 @@ var cmdManager = {};
             cmd.reset();
 
             if (blockid) {
+                var battleTime = this.time;
                 // Hellは攻略に時間をかける
                 if (this.rank === 1) {
-                    cmd.time = now.setMinutes(now.getMinutes() + COMMON.HELLWAIT);
-                } else {
-                    cmd.time = now;
+                    battleTime = {
+                        min: 180,
+                        max: 300
+                    };
                 }
+                cmd.time = now;
                 cmd.func = task.Battle;
                 cmd.param = {
-                    blockid: blockid
+                    blockid: blockid,
+                    time: battleTime
                 };
             } else {
                 cmd.state = COMMON.CMD_STATUS.END;
