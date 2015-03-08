@@ -1409,11 +1409,11 @@ var task = {};
     };
 
     /* 都市のリストと各都市のデータを取得 */
-    var getTownData = function () {
-        console.log("[Enter]getTownData");
+    var getTownList = function () {
+        console.log("[Enter]getTownList");
         var defer = $.Deferred();
         var townIdList = [];
-        var townsData = {};
+
         $.ajax({
             url: "flash_trans_xml_.php",
             type: "POST",
@@ -1427,57 +1427,110 @@ var task = {};
                 for (i = 0; i < res.self.length; i++) {
                     townIdList[i] = res.self[i].id;
                 }
+
+                defer.resolve(townIdList);
             },
             error: function () {
-                log("町の取得に失敗");
+                log("都市のリスト取得に失敗");
                 defer.reject();
-                return;
+                //return;
             }
         });
 
-        $.each(townIdList, function () {
-            $.ajax({
-                url: "flash_trans_xml_.php?town=" + this,
-                type: "POST",
-                cache: false,
-                dataType: "json",
-                data: ({
-                    op: "READ"
-                }),
-                success: function (res) {
-                    var json_data = null;
-                    try {
-                        json_data = $.parseJSON(res.slice(res.indexOf("["), res.indexOf("&op")));
-                    } catch (e) {}
-                    if (json_data === null) {
-                        log("都市データパース失敗");
-                        defer.reject();
-                        return false;
-                    } else {
-                        townsData[this] = json_data;
+        return defer.promise();
+    };
+
+    var getTownsData = function (townIdList) {
+        console.log("[Enter]getTownsData");
+        var defer = $.Deferred();
+        defer.resolve();
+        var townsData = {};
+
+        $.each(townIdList, function (i, townId) {
+            defer = defer.then(function () {
+                return $.ajax({
+                    url: "town.php?town=" + townId,
+                    type: "GET",
+                    //cache: false,
+                    //dataType: "json",
+                    success: function (res) {
+                    },
+                    error: function () {
+                        log("都市データの取得(town.php)に失敗");
                     }
-                },
-                error: function () {
-                    log("都市データの取得に失敗");
-                    defer.reject();
-                }
+                });
+
+            }).then(function () {
+                return $.ajax({
+                    url: "flash_trans_xml_.php?town=" + townId,
+                    type: "POST",
+                    cache: false,
+                    //dataType: "json",
+                    data: ({
+                        op: "AREA"
+                    }),
+                    success: function (res) {
+                    },
+                    error: function () {
+                        log("都市データの取得(AREA)に失敗");
+                    }
+                });
+
+            }).then(function () {
+                return $.ajax({
+                    url: "flash_trans_xml_.php?town=" + townId,
+                    type: "POST",
+                    cache: false,
+                    //dataType: "json",
+                    data: ({
+                        op: "READ"
+                    }),
+                    success: function (res) {
+                        var json_data = null;
+                        try {
+                            json_data = $.parseJSON(res.slice(res.indexOf("["), res.indexOf("&op")));
+                        } catch (e) {}
+                        if (json_data === null) {
+                            log("都市データパース失敗");
+                            return false;
+                        } else {
+                            townsData[townId] = json_data;
+                            //console.log(townsData[townId]);
+                        }
+                    },
+                    error: function () {
+                        log("都市データの取得(READ)に失敗");
+                    }
+                });
             });
+        });
+
+        defer = defer.then(function () {
+            var defer2 = $.Deferred();
+
+            if (townsData.length === 0) {
+                defer2.reject();
+            } else {
+                defer2.resolve(townsData);
+            }
+
+            return defer2.promise();
         });
 
         return defer.promise();
     };
 
     /* 一番レベルの高い変換器(400)がある都市のIDを取得 */
-    var getTownConverter = function (townsData) {
+    var getTownTransducer = function (townsData) {
         //townsData = { id: towndata, id: towndata, ... }
         var townId;
-        var converterLv = 0;
+        var transducerLv = 0;
 
         $.each(townsData, function (id, townData) {
             $.each(townData[1], function () {
                 if (this.building > 400 && this.building < 500) {
-                    if (converterLv < parseInt(this.lv, 10)) {
-                        converterLv = parseInt(this.lv, 10);
+                    if (transducerLv < parseInt(this.lv, 10)) {
+                        transducerLv = parseInt(this.lv, 10);
                         townId = id;
                     }
                 }
@@ -1487,6 +1540,28 @@ var task = {};
         console.log("変喚器は" + townId + "を使います");
     };
 
+    /*** 蒼変換 ***/
+    task.TransduceStone = function () {
+        console.log("[[TaskStart]]TransduceStone");
+        var defer = $.Deferred();
+
+        getTownList()
+            .then(getTownsData)
+            .then(getTownTransducer);
+            /*.then(function () {
+                if (isBattleSuccess) {
+                    defer.resolve();
+                } else {
+                    defer.reject();
+                    log("Failed Battle task");
+                }
+            }, function () {
+                defer.reject();
+                log("Failed Battle task");
+            });*/
+
+        return defer.promise();
+    };
 }());
 
 $(function () {

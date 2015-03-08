@@ -481,12 +481,22 @@ var cmdManager = {};
         this.statusMsg = "次のログインボーナス獲得予定時刻: " + COMMON.DATESTR(targetTime);
     };
 
+    /* Command : 蒼変換 */
+    cmdManager.ConfigTransStone = function (testData, handler) {
+        this.cmd = new Command("ConfigTransStone", handler);
+        this.setNextTask();
+        cmdList.push(this);
+    };
+
+    cmdManager.ConfigTransStone.prototype.setNextTask = function () {
+
+    };
 
     /* Command : テスト用 */
     cmdManager.CmdTest = function (testData, handler) {
         this.cmd = new Command("CmdTest", handler);
         this.setNextTask();
-        //cmdList.push(this);
+        cmdList.push(this);
     };
 
     cmdManager.CmdTest.prototype.setNextTask = function () {
@@ -501,12 +511,18 @@ var cmdManager = {};
         }
 
         if (cmd.func === null) {
-            var $iframe = $('#main');
-            var ifrmDoc = $iframe[0].contentWindow.document;
-            $("#merc_title", ifrmDoc).click();
+            cmd.reset();
+
+            cmd.time = now;
+            cmd.func = task.TransduceStone;
+            cmd.param = {
+            };
+
+            //var $iframe = $('#main');
+            //var ifrmDoc = $iframe[0].contentWindow.document;
+            //$("#merc_title", ifrmDoc).click();
         } else {
             cmd.state = COMMON.CMD_STATUS.END;
         }
-        //cmdList.push(this);
     };
 }());

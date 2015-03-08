@@ -178,5 +178,29 @@
             { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
             { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
         ]
+    },
+    {
+        "name": "transduction",
+        "title": "変換",
+        "form": [
+            {
+                "type": "number",
+                "name": "ratio",
+                "title": "Resource Translation Ratio(%)",
+                "init": 70,
+                "column": 6
+            },
+            {
+                "type": "number",
+                "name": "threshold",
+                "title": "Resource Translation Threshold(%)",
+                "init": 10,
+                "column": 6
+            }
+        ],
+        "ctrl": [
+            { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+            { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+        ]
     }
 ]

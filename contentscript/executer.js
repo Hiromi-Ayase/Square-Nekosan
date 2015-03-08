@@ -159,9 +159,17 @@ console.log = function (message) {
                 }
             }
 
+        /*} else if (request.op === COMMON.OP.TRANS) {
+
+            if (request.ctrl === COMMON.OP_CTRL.ON) {
+                trans = new cmdManager.ConfigTransStone(request.args.ratio, request.args.threshold);
+            } else if (request.ctrl === COMMON.OP_CTRL.OFF) {
+                trans.cmd.state = COMMON.CMD_STATUS.OFF;
+            }*/
+
         } else if (request.op === COMMON.OP.TEST) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
-                dystopia = new cmdManager.CmdTest(request.args.testData, function () {
+                test = new cmdManager.CmdTest(request.args.testData, function () {
                     test = null;
                 });
             } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
