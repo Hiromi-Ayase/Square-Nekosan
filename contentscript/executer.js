@@ -1,11 +1,13 @@
 /*jslint vars: true, plusplus: true*/
-/*global console, chrome, COMMON, g_cmdList, cmdManager, window, $*/
+/*global console, chrome, COMMON, g_cmdList, cmdManager, cfgManager, window, $*/
 var debugConsole = console;
 var logBuffer = [];
 
 function log(message) {
     'use strict';
-    logBuffer.unshift("[" + COMMON.DATESTR() + "] " + message);
+    var dateStr = COMMON.DATESTR();
+    dateStr = dateStr.slice(dateStr.indexOf(" ") + 1, dateStr.indexOf("."));
+    logBuffer.unshift("[" + dateStr + "] " + message);
     if (logBuffer.length > COMMON.LOG.MAX) {
         logBuffer.splice(COMMON.LOG.MAX);
     }
@@ -27,6 +29,7 @@ console.log = function (message) {
     var allDystopia = null;
     var dystopia = null;
     var loginBonus = null;
+    var trans = false;
     var test = null;
 
     var setting = null;
@@ -55,6 +58,13 @@ console.log = function (message) {
                 state: COMMON.CMD_STATUS.END,
                 statusText: "いぐー"
             },
+            trans: trans !== false ? {
+                statusText: "実行中！",
+                state: COMMON.CMD_STATUS.ON
+            } : {
+                state: COMMON.CMD_STATUS.OFF,
+                statusText: "いぐー"
+            },
             test: test !== null ? {
                 statusText: "実行中！",
                 state: test.cmd.state
@@ -72,12 +82,16 @@ console.log = function (message) {
             loginBonus = new cmdManager.CmdLoginBonus();
         }, 5000);
 
+        cfgManager.InitTrans();
+
         window.setInterval(function () {
             chrome.runtime.sendMessage({
                 "op": "get"
             }, function (response) {
                 setting = JSON.parse(response.storage);
                 data = response.data;
+
+                cfgManager.Set(setting);
             });
         }, COMMON.INTERVAL.SETTING);
     });
@@ -159,13 +173,19 @@ console.log = function (message) {
                 }
             }
 
-        /*} else if (request.op === COMMON.OP.TRANS) {
-
+        } else if (request.op === COMMON.OP.TRANS) {
             if (request.ctrl === COMMON.OP_CTRL.ON) {
-                trans = new cmdManager.ConfigTransStone(request.args.ratio, request.args.threshold);
+                log("変換ON");
+                trans = true;
+                var transConfig = {};
+                transConfig.ratio = request.args.ratio;
+                transConfig.threshold = request.args.threshold;
+                cfgManager.Trans(true, transConfig);
             } else if (request.ctrl === COMMON.OP_CTRL.OFF) {
-                trans.cmd.state = COMMON.CMD_STATUS.OFF;
-            }*/
+                log("変換OFF");
+                trans = false;
+                cfgManager.Trans(false, null);
+            }
 
         } else if (request.op === COMMON.OP.TEST) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {

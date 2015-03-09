@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true*/
-/*global $, console, log, chrome, COMMON, task, DystopiaMapList,
+/*global $, console, log, chrome, COMMON, task, DystopiaMapList, TRANS,
 waitTime, executeTask*/
 
 /*
@@ -26,6 +26,7 @@ ReportQuest : 任務報告
 /* --- タスク管理用変数 --- */
 
 var cmdManager = {};
+var cfgManager = {};
 (function () {
     'use strict';
 
@@ -481,15 +482,27 @@ var cmdManager = {};
         this.statusMsg = "次のログインボーナス獲得予定時刻: " + COMMON.DATESTR(targetTime);
     };
 
-    /* Command : 蒼変換 */
-    cmdManager.ConfigTransStone = function (testData, handler) {
-        this.cmd = new Command("ConfigTransStone", handler);
-        this.setNextTask();
-        cmdList.push(this);
+    cfgManager.Set = function (setting) {
+        TRANS.ENABLE = setting.args.trans;
+        if (setting.args.trans.ratio) {
+            TRANS.RATIO = setting.args.trans.ratio;
+        }
+        if (setting.args.trans.threshold) {
+            TRANS.THRESHOLD = setting.args.trans.threshold;
+        }
     };
 
-    cmdManager.ConfigTransStone.prototype.setNextTask = function () {
+    /* Config : 蒼変換 */
+    cfgManager.InitTrans = function () {
+        task.GetTownTransducer();
+    };
 
+    cfgManager.Trans = function (isEnable, transConfig) {
+        TRANS.ENABLE = isEnable;
+        if (transConfig) {
+            TRANS.RATIO = transConfig.ratio;
+            TRANS.THRESHOLD = transConfig.threshold;
+        }
     };
 
     /* Command : テスト用 */

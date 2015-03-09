@@ -8,6 +8,7 @@ COMMON.OP = {
     SET: "set",
     LOG: "log",
     BLOCK: "block",
+    TRANS: "trans",
     SUSPEND: "suspend",
     END: "end",
     CONTENTS_DATA: "contents_data",
@@ -17,7 +18,9 @@ COMMON.OP = {
 COMMON.CMD_STATUS = {
     RUN: "RUN",
     PAUSE: "PAUSE",
-    END: "END"
+    END: "END",
+    ON: "on",
+    OFF: "off"
 };
 
 COMMON.CMD_RESULT = {
@@ -28,7 +31,9 @@ COMMON.CMD_RESULT = {
 COMMON.OP_CTRL = {
     RUN: "run",
     PAUSE: "pause",
-    ABORT: "abort"
+    ABORT: "abort",
+    ON: "on",
+    OFF: "off"
 };
 
 COMMON.STORAGE = "storage";

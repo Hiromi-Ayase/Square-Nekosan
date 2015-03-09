@@ -180,7 +180,7 @@
         ]
     },
     {
-        "name": "transduction",
+        "name": "trans",
         "title": "変換",
         "form": [
             {
@@ -199,8 +199,8 @@
             }
         ],
         "ctrl": [
-            { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
-            { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+            { "name": "on", "title": "ON", "class": "btn-primary" },
+            { "name": "off", "title": "OFF", "class": "btn-danger" }
         ]
     }
 ]

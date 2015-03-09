@@ -18,6 +18,13 @@ var IS_BEAT_SUDDEN = 1; // 自分が遭遇したサドンボスを30％以上削
 var g_isBattleSudden = 0; // 戦闘終了後にサドンボスが出たか
 var g_suddenList = [];  // {id : this.id, mine : 1}    mine=1なら自分が遭遇者
 
+/* --- 蒼変換 --- */
+var TRANS = {};
+TRANS.ENABLE = false;
+TRANS.RATIO = 0;
+TRANS.THRESHOLD = 1;
+TRANS.TOWNID = null;
+
 /* --- マップID --- */
 var DystopiaMapList = [91001, 92001, 93001, 94001, 95001,
                        96001, 97001, 99001, 100001];
@@ -463,84 +470,145 @@ var task = {};
         return defer.promise();
     };
 
+    /*** 蒼変換 ***/
+    task.TransduceStone = function (current_stone, limit_stone) {
+        console.log("[[TaskStart]]TransduceStone");
+        var defer = $.Deferred().resolve();
+
+        if (TRANS.ENABLE && current_stone < limit_stone * TRANS.THRESHOLD) {
+            defer = defer.then(function () {
+                var defer2 = $.Deferred();
+                $.ajax({
+                    url: "town.php?town=" + TRANS.TOWNID,
+                    type: "GET",
+                    //cache: false,
+                    //dataType: "json",
+                    success: function (res) {
+                        defer2.resolve(current_stone, limit_stone);
+                    },
+                    error: function () {
+                        log("都市データの取得(town.php)に失敗");
+                        defer2.reject();
+                    }
+                });
+                return defer2.promise();
+
+            }).then(function () {
+                var defer2 = $.Deferred();
+                var trans_stone = parseInt(limit_stone * TRANS.RATIO, 10);
+                $.ajax({
+                    url: "flash_trans_xml_.php?town=" + TRANS.TOWNID,
+                    type: "POST",
+                    cache: false,
+                    //dataType: "json",
+                    data: ({ op: "TRANS", source: trans_stone, type: "5" }),
+                    success: function (res) {
+                        var json_data;
+                        try {
+                            json_data = $.parseJSON(res.replace("op=TRANS&array=", ""));
+                        } catch (e) {}
+                        if (json_data.result === null || json_data.result !== 1) {
+                            log("魔晶石変換失敗");
+                            defer2.reject();
+                        } else {
+                            log(json_data.alert);
+                            defer2.resolve();
+                        }
+                    },
+                    error: function () {
+                        log("魔晶石変換失敗");
+                        defer2.reject();
+                    }
+                });
+                return defer2.promise();
+            });
+        }
+        return defer.promise();
+    };
+
     /* 表示情報取得更新(func.js updateCQ()) */
     var updateCQ = function (val) {
         console.log("[Enter]updateCQ");
-        var defer = $.Deferred();
+        var defer = $.Deferred().resolve();
 
         if (!val) {
             val = ["res", "char"];
         }
 
-        $.ajax({
-            url: "updateinfo_.php",
-            dataType: "json",
-            type: "POST",
-            cache: false,
-            data: ({
-                op: "update",
-                args: val
-            }),
-            success: function (data) {
-                var $iframe = $('#main');
-                var ifrmDoc = $iframe[0].contentWindow.document;
+        defer = defer.then(function () {
+            var defer2 = $.Deferred();
+            $.ajax({
+                url: "updateinfo_.php",
+                dataType: "json",
+                type: "POST",
+                cache: false,
+                data: ({
+                    op: "update",
+                    args: val
+                }),
+                success: function (data) {
+                    var $iframe = $('#main');
+                    var ifrmDoc = $iframe[0].contentWindow.document;
 
-                var res = data ? data.res : 0;
-                var prod = data ? data.prod : 0; // 魔晶石産出量?
-                var info = data ? data.info : 0; // 管理官情報
-                var point = data ? data.point : 0; // スターズ
-                var gold = data ? data.gold : 0; // ダイム
-                var power = data ? data.power : 0; // 蒼水晶
-                var ecoin = data ? data.ecoin : 0; // バルスタ
-                var bpoint = data ? data.bpoint : 0; // VIPポイント
+                    var res = data ? data.res : 0;
+                    var prod = data ? data.prod : 0; // 魔晶石産出量?
+                    var info = data ? data.info : 0; // 管理官情報
+                    var point = data ? data.point : 0; // スターズ
+                    var gold = data ? data.gold : 0; // ダイム
+                    var power = data ? data.power : 0; // 蒼水晶
+                    var ecoin = data ? data.ecoin : 0; // バルスタ
+                    var bpoint = data ? data.bpoint : 0; // VIPポイント
 
-                /* 資源量の表示更新 */
-                if (res) {
-                    var stone_res = res.stone;
-                    var gold_res = res.gold;
-                    var power_res = res.power;
-                    var res_limit = res.limit;
-                    var stone_mall = Math.floor(prod.stone * prod.mstone / 100);
-                    var stone_prod = parseInt(prod.stone, 10) + parseInt(stone_mall, 10);
+                    /* 資源量の表示更新 */
+                    if (res) {
+                        var stone_res = res.stone;
+                        var gold_res = res.gold;
+                        var power_res = res.power;
+                        var res_limit = res.limit;
+                        var stone_mall = Math.floor(prod.stone * prod.mstone / 100);
+                        var stone_prod = parseInt(prod.stone, 10) + parseInt(stone_mall, 10);
 
-                    $("#stone", ifrmDoc).attr("prod", parseInt(prod.stone, 10) + parseInt(stone_mall, 10));
-                    $("#stone", ifrmDoc).attr("limit", parseInt(res.limit, 10));
-                    $("#stone", ifrmDoc).html(res.stone);
-                    $("#gold", ifrmDoc).html(res.gold);
-                    $("#power", ifrmDoc).html(res.power);
+                        $("#stone", ifrmDoc).attr("prod", parseInt(prod.stone, 10) + parseInt(stone_mall, 10));
+                        $("#stone", ifrmDoc).attr("limit", parseInt(res.limit, 10));
+                        $("#stone", ifrmDoc).html(res.stone);
+                        $("#gold", ifrmDoc).html(res.gold);
+                        $("#power", ifrmDoc).html(res.power);
 
-                    if (stone_res >= res_limit) {
-                        $("#stone", ifrmDoc).css("color", "red");
-                    } else if (Math.ceil(stone_res / res_limit * 100) >= 90) {
-                        $("#stone", ifrmDoc).css("color", "orange");
-                    } else if (Math.ceil(stone_res / res_limit * 100) < 90) {
-                        $("#stone", ifrmDoc).css("color", "#ffd495");
+                        if (stone_res >= res_limit) {
+                            $("#stone", ifrmDoc).css("color", "red");
+                        } else if (Math.ceil(stone_res / res_limit * 100) >= 90) {
+                            $("#stone", ifrmDoc).css("color", "orange");
+                        } else if (Math.ceil(stone_res / res_limit * 100) < 90) {
+                            $("#stone", ifrmDoc).css("color", "#ffd495");
+                        }
+                        $("#stone", ifrmDoc).html(res.stone);
+                        //%s：産出量　%s/時間（基本%s+%s増加) 上限：%s
+                        //魔晶石
+                        var title_str = "魔晶石" + "：産出量　" + stone_prod +
+                            "/時間（基本" + parseInt(stone_prod - stone_mall, 10) + "+" + stone_mall + "増加) 上限：" + res.limit;
+                        $("#stone_view").attr("title", title_str);
                     }
-                    $("#stone", ifrmDoc).html(res.stone);
-                    //%s：産出量　%s/時間（基本%s+%s増加) 上限：%s
-                    //魔晶石
-                    var title_str = "魔晶石" + "：産出量　" + stone_prod +
-                        "/時間（基本" + parseInt(stone_prod - stone_mall, 10) + "+" + stone_mall + "増加) 上限：" + res.limit;
-                    $("#stone_view").attr("title", title_str);
-                }
-                /* 管理官情報の表示更新 */
-                if (info) {
-                    $("#lv", ifrmDoc).html(info.lv); // 管理官Lv
-                    $("#exp_view", ifrmDoc).attr("title", info.exp + "%"); // 管理官経験値
-                    $("#presige", ifrmDoc).html(info.presige); // 成就値
-                    $("#honor", ifrmDoc).html(info.honor); // 名声
-                    //setPageInfo();        // 設定遊戲頁面資訊(リザルト画面のことかなぁ...?)
-                }
-                if (point) { $("#point", ifrmDoc).html(point.points); }
-                if (gold) { $("#gold", ifrmDoc).html(gold); }
-                if (power) { $("#power", ifrmDoc).html(power); }
-                if (ecoin) { $("#ecoin", ifrmDoc).html(ecoin); }
-                if (bpoint) { $("#bonus_num>span", ifrmDoc).html(bpoint); }
+                    /* 管理官情報の表示更新 */
+                    if (info) {
+                        $("#lv", ifrmDoc).html(info.lv); // 管理官Lv
+                        $("#exp_view", ifrmDoc).attr("title", info.exp + "%"); // 管理官経験値
+                        $("#presige", ifrmDoc).html(info.presige); // 成就値
+                        $("#honor", ifrmDoc).html(info.honor); // 名声
+                        //setPageInfo();        // 設定遊戲頁面資訊(リザルト画面のことかなぁ...?)
+                    }
+                    if (point) { $("#point", ifrmDoc).html(point.points); }
+                    if (gold) { $("#gold", ifrmDoc).html(gold); }
+                    if (power) { $("#power", ifrmDoc).html(power); }
+                    if (ecoin) { $("#ecoin", ifrmDoc).html(ecoin); }
+                    if (bpoint) { $("#bonus_num>span", ifrmDoc).html(bpoint); }
 
-                defer.resolve();
-            },
-            error: defer.reject
-        });
+                    defer2.resolve(res.stone, res.limit);
+                },
+                error: defer2.reject
+            });
+            return defer2.promise();
+
+        }).then(task.TransduceStonef);
 
         return defer.promise();
     };
@@ -571,7 +639,7 @@ var task = {};
     };
     */
 
-        /* 出現しているサドンボスの中から攻撃対象のものを取得 */
+    /* 出現しているサドンボスの中から攻撃対象のものを取得 */
     /* 攻撃対象：HPが70％以下かつ0以上、または自分が遭遇者 */
     var getSuddenList = function () {
         console.log("[Enter]getSuddenList");
@@ -1425,7 +1493,10 @@ var task = {};
             success: function (res) {
                 var i = 0;
                 for (i = 0; i < res.self.length; i++) {
-                    townIdList[i] = res.self[i].id;
+                    townIdList[i] = {
+                        id: res.self[i].id,
+                        name: res.self[i].name
+                    };
                 }
 
                 defer.resolve(townIdList);
@@ -1449,7 +1520,7 @@ var task = {};
         $.each(townIdList, function (i, townId) {
             defer = defer.then(function () {
                 return $.ajax({
-                    url: "town.php?town=" + townId,
+                    url: "town.php?town=" + townId.id,
                     type: "GET",
                     //cache: false,
                     //dataType: "json",
@@ -1462,7 +1533,7 @@ var task = {};
 
             }).then(function () {
                 return $.ajax({
-                    url: "flash_trans_xml_.php?town=" + townId,
+                    url: "flash_trans_xml_.php?town=" + townId.id,
                     type: "POST",
                     cache: false,
                     //dataType: "json",
@@ -1478,7 +1549,7 @@ var task = {};
 
             }).then(function () {
                 return $.ajax({
-                    url: "flash_trans_xml_.php?town=" + townId,
+                    url: "flash_trans_xml_.php?town=" + townId.id,
                     type: "POST",
                     cache: false,
                     //dataType: "json",
@@ -1494,7 +1565,7 @@ var task = {};
                             log("都市データパース失敗");
                             return false;
                         } else {
-                            townsData[townId] = json_data;
+                            townsData[townId.name] = json_data;
                             //console.log(townsData[townId]);
                         }
                     },
@@ -1507,13 +1578,11 @@ var task = {};
 
         defer = defer.then(function () {
             var defer2 = $.Deferred();
-
             if (townsData.length === 0) {
                 defer2.reject();
             } else {
                 defer2.resolve(townsData);
             }
-
             return defer2.promise();
         });
 
@@ -1523,42 +1592,51 @@ var task = {};
     /* 一番レベルの高い変換器(400)がある都市のIDを取得 */
     var getTownTransducer = function (townsData) {
         //townsData = { id: towndata, id: towndata, ... }
-        var townId;
+        var town;
         var transducerLv = 0;
 
-        $.each(townsData, function (id, townData) {
+        $.each(townsData, function (name, townData) {
             $.each(townData[1], function () {
                 if (this.building > 400 && this.building < 500) {
                     if (transducerLv < parseInt(this.lv, 10)) {
                         transducerLv = parseInt(this.lv, 10);
-                        townId = id;
+                        town = name;
                     }
                 }
             });
         });
-
-        console.log("変喚器は" + townId + "を使います");
+        if (town) {
+            console.log("変喚器は" + town + "を使います");
+            TRANS.TOWNID = townsData[name][0];
+        }
     };
 
-    /*** 蒼変換 ***/
-    task.TransduceStone = function () {
-        console.log("[[TaskStart]]TransduceStone");
+    /*** 魔晶石変換に使用する練成器（がある都市）を取得する ***/
+    task.GetTownTransducer = function () {
+        console.log("[[TaskStart]]GetTownTransducer");
         var defer = $.Deferred();
 
         getTownList()
             .then(getTownsData)
-            .then(getTownTransducer);
-            /*.then(function () {
-                if (isBattleSuccess) {
-                    defer.resolve();
-                } else {
-                    defer.reject();
-                    log("Failed Battle task");
+            .then(function (townsData) {
+                var townName;
+                var transducerLv = 0;
+                $.each(townsData, function (name, townData) {
+                    $.each(townData[1], function () {
+                        if (this.building > 400 && this.building < 500) {
+                            if (transducerLv < parseInt(this.lv, 10)) {
+                                transducerLv = parseInt(this.lv, 10);
+                                townName = name;
+                            }
+                        }
+                    });
+                });
+                if (townName) {
+                    console.log(townName + " の練成器を使います");
+                    TRANS.TOWNID = townsData[townName][0];
                 }
-            }, function () {
-                defer.reject();
-                log("Failed Battle task");
-            });*/
+                defer.resolve();
+            });
 
         return defer.promise();
     };

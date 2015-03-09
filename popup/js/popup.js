@@ -61,9 +61,22 @@
                 return { disabled: s === COMMON.CMD_STATUS.PAUSE || s === COMMON.CMD_STATUS.END };
             } else if (ctrl === COMMON.OP_CTRL.ABORT) {
                 return { disabled: s === COMMON.CMD_STATUS.END };
+            } else if (ctrl === COMMON.OP_CTRL.ON) {
+                return { disabled: s === COMMON.CMD_STATUS.ON };
+            } else if (ctrl === COMMON.OP_CTRL.OFF) {
+                return { disabled: s === COMMON.CMD_STATUS.OFF };
             }
         };
-
+/*
+        $scope.onChangeCheckbox = function () {
+            storage.args = $scope.args;
+            $scope.saveSetting();
+            chrome.tabs.sendMessage(data.tabId, {
+                "op": COMMON.OP.TRANS,
+                "ctrl": $scope.args.trans
+            }, function (response) {});
+        };
+*/
         var cmSetting;
         $scope.settingEditor = {
             lineNumbers: true,
