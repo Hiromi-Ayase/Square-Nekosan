@@ -20,9 +20,9 @@ var g_suddenList = [];  // {id : this.id, mine : 1}    mine=1なら自分が遭�
 
 /* --- 蒼変換 --- */
 var TRANS = {};
-TRANS.ENABLE = false;
-TRANS.RATIO = 0;
-TRANS.THRESHOLD = 1;
+TRANS.ENABLE = true;
+TRANS.RATIO = 0.1;
+TRANS.THRESHOLD = 0.7;
 TRANS.TOWNID = null;
 
 /* --- マップID --- */

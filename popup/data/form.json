@@ -202,5 +202,22 @@
             { "name": "on", "title": "ON", "class": "btn-primary" },
             { "name": "off", "title": "OFF", "class": "btn-danger" }
         ]
+    },
+    {
+        "name": "option",
+        "title": "オプション",
+        "form": [
+            {
+                "type": "flag",
+                "name": "trans",
+                "title": "魔晶石を変換する",
+                "column": 6,
+                "init": true
+            }
+        ],
+        "ctrl": [
+            { "name": "on", "title": "ON", "class": "btn-primary" },
+            { "name": "off", "title": "OFF", "class": "btn-danger" }
+        ]
     }
 ]

@@ -30,6 +30,7 @@ console.log = function (message) {
     var dystopia = null;
     var loginBonus = null;
     var trans = false;
+    var option = false;
     var test = null;
 
     var setting = null;
@@ -65,6 +66,13 @@ console.log = function (message) {
                 state: COMMON.CMD_STATUS.OFF,
                 statusText: "いぐー"
             },
+            option: option !== false ? {
+                statusText: "実行中！",
+                state: COMMON.CMD_STATUS.ON
+            } : {
+                state: COMMON.CMD_STATUS.OFF,
+                statusText: "いぐー"
+            },
             test: test !== null ? {
                 statusText: "実行中！",
                 state: test.cmd.state
@@ -90,8 +98,6 @@ console.log = function (message) {
             }, function (response) {
                 setting = JSON.parse(response.storage);
                 data = response.data;
-
-                cfgManager.Set(setting);
             });
         }, COMMON.INTERVAL.SETTING);
     });

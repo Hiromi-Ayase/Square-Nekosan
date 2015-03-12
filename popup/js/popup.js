@@ -31,6 +31,10 @@
                 scope.args[scope.c.name][scope.f.name] = {};
                 scope.args[scope.c.name][scope.f.name].min = scope.f.initmin;
                 scope.args[scope.c.name][scope.f.name].max = scope.f.initmax;
+            } else if (scope.f.type === "flag") {
+                html = '<div class="ng-model-box"><input class="flag-checkbox" type="checkbox" ng-model="args.' + n + '" ng-change="onChangeCheckbox()" /><span class="flag-mark">{{f.title}}</span></div>';
+                element.append($compile(html)(scope));
+                scope.args[scope.c.name][scope.f.name] = scope.f.init;
             }
         };
     }]);
@@ -51,7 +55,7 @@
         };
 
         $scope.btnClass = function (ctrl, op) {
-            if ($scope.contentsData === undefined) {
+            if ($scope.contentsData === undefined || $scope.contentsData[op] === undefined) {
                 return { disabled: true };
             }
             var s = $scope.contentsData[op].state;

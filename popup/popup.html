@@ -43,7 +43,8 @@
                     <div class="row">
                         <div ng-repeat="f in c.form">
                             <div class="col-xs-{{f.column}} form-element">
-                                <label>{{f.title}}:</label>
+                                <label ng-if="f.type!='flag'">{{f.title}}:</label>
+                                <label ng-if="f.type=='flag'"></label>
                                 <ng-form></ng-form>
                             </div>
                         </div>
