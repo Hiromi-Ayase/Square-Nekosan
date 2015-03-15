@@ -151,6 +151,8 @@ var cfgManager = {};
         this.blockid = null;
         //this.blockidList = null;
 
+        this.round = 0;
+
         this.cmd = new Command("CmdMapBattle", handler);
         this.setNextTask();
         cmdList.push(this);
@@ -187,13 +189,15 @@ var cfgManager = {};
                     cmd.state = COMMON.CMD_STATUS.END;
                 } else {
                     this.blockid = cmd.result.blockid;
+                    this.round++;
 
                     cmd.reset();
                     cmd.time = now;
                     cmd.func = task.Battle;
                     cmd.param = {
                         blockid: this.blockid,
-                        time: this.time
+                        time: this.time,
+                        round: this.round
                     };
                 }
             } else {
@@ -220,6 +224,8 @@ var cfgManager = {};
         this.counterStr = "";
         this.time = battleConfig.time;
 
+        this.round = 0;
+
         this.cmd = new Command("CmdBlockBattle", handler);
         this.setNextTask();
         cmdList.push(this);
@@ -241,12 +247,15 @@ var cfgManager = {};
             cmd.reset();
 
             if (blockid) {
-                this.counterStr = (this.battleCount - (this.blockidList).length) + "回目/" + this.battleCount + "回中";
+                this.round++;
+                this.counterStr = this.round + "回目/" + this.battleCount + "回中";
+
                 cmd.time = now;
                 cmd.func = task.Battle;
                 var battleData = {
                     blockid: blockid,
-                    time: this.time
+                    time: this.time,
+                    round: this.round
                 };
                 cmd.param = battleData;
             } else {
@@ -262,6 +271,8 @@ var cfgManager = {};
         this.blockidList = null;
         this.battleCount = 0;
         this.time = battleConfig.time;
+
+        this.round = 0;
 
         this.cmd = new Command("CmdAllDystopia", handler);
         this.setNextTask();
@@ -297,6 +308,7 @@ var cfgManager = {};
             cmd.reset();
 
             if (blockid) {
+                this.round++;
                 var battleTime = this.time;
                 // Hellは攻略に時間をかける
                 if (this.rank === 1) {
@@ -309,7 +321,8 @@ var cfgManager = {};
                 cmd.func = task.Battle;
                 cmd.param = {
                     blockid: blockid,
-                    time: battleTime
+                    time: battleTime,
+                    round: this.round
                 };
             } else {
                 this.mapno++;
@@ -345,6 +358,8 @@ var cfgManager = {};
         this.battleCount = 0;
         this.time = battleConfig.time;
 
+        this.round = 0;
+
         this.cmd = new Command("CmdDystopia", handler);
         this.setNextTask();
         cmdList.push(this);
@@ -379,6 +394,7 @@ var cfgManager = {};
             cmd.reset();
 
             if (blockid) {
+                this.round++;
                 var battleTime = this.time;
                 // Hellは攻略に時間をかける
                 if (this.rank === 1) {
@@ -402,7 +418,7 @@ var cfgManager = {};
     /* Command : 指定された☆以上のキャラを召喚する */
     cmdManager.CmdRecruit = function (recruitConfig, handler) {
         this.recruitConfig = recruitConfig;
-        //this.recruitCount = 0;
+        this.recruitCount = 0;
 
         this.cmd = new Command("CmdRecruit", handler);
         this.setNextTask();

@@ -671,9 +671,11 @@ var task = {};
                 op: "guild_sudden_list"
             }),
             success: function (res) {
+                var clearCount = 0;
                 $.each(res.sudden_data, function () {
                     if (this.clear === 1) {
                         console.log(this.name + "(id=" + this.id + ") : 撃破済みです");
+                        clearCount++;
                     } else if (this.hp <= 0) {
                         console.log(this.name + "(id=" + this.id + ") : HPが0です");
                     } else if (this.discoverer === myname) {
@@ -686,7 +688,22 @@ var task = {};
                         console.log(this.name + "(id=" + this.id + ") : 攻撃対象ではありません");
                     }
                 });
-                defer.resolve();   // goto suddenAllAttack
+
+                if (clearCount > 0) {
+                    $.ajax({
+                        url: "guild_.php",
+                        type: "POST",
+                        cache: false,
+                        dataType: "json",
+                        data: ({
+                            op: "sudden_all_reward"
+                        }),
+                        success: defer.resolve,
+                        error: defer.reject
+                    });
+                } else {
+                    defer.resolve();   // goto suddenAllAttack
+                }
             },
             error: function () {
                 log("サドンボス情報取得に失敗");
@@ -783,6 +800,9 @@ var task = {};
                         log("殴れるキャラがいません");
                         defer.resolve();
                     }
+                } else if (res.result === -3) {
+                    log("撃破済みサドンボスリストがいっぱいで殴れません");
+                    defer.resolve();
                 } else {
                     log("殴ろうとしたら倒されていました（たぶん）(result=" + res.result + ")");
                     defer.resolve();
@@ -1327,13 +1347,13 @@ var task = {};
 
     /*** 戦闘 ***/
     task.Battle = function (battleData) {
-        console.log("[[TaskStart]]Battle");
+        console.log("[[TaskStart]]Battle(" + battleData.round + ")");
         var defer = $.Deferred();
 
         var isBattleSuccess = 0;
 
         g_isLvup = 0;
-        g_isBattleSudden = 0;
+        g_isBattleSudden = battleData.round % 10 === 0 ? 1 : 0;
 
         battleGetMaxParty(battleData)
             .then(battleGetParty)
