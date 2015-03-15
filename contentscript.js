@@ -801,55 +801,62 @@ var task = {};
         console.log("[Enter]attackSudden");
         var defer = $.Deferred();
 
-        if (!suddenData || !charaid) {
-            defer.resolve();
-            return;
-        }
-
-        var charaList = [];
-        charaList.push(parseInt(charaid, 10));
-        charaList.push(0);
-        charaList.push(0);
-
-        $.ajax({
-            url: "remain_.php",
-            type: "POST",
-            cache: false,
-            dataType: "json",
-            data: ({
-                op: "sudden_challenge",
-                target: suddenData.id,
-                cid: charaList
-            }),
-            success: function (res) {
-                console.log("サドンボス攻撃に成功"); // 失敗時の応答不明（無効なidでも送ってみる？）
-                // 遭遇者が自分の場合、30％以上殴る(殴るキャラは1人ずつ)
-                if (suddenData.mine === 1 && IS_BEAT_SUDDEN === 1 && res.battle.left_hp > 0) {
-                    // キャラが1人の場合、res.battle.merc[1 or 2].total=undefined で、これを加算するとNaNになるので注意
-                    suddenData.mydamage += res.battle.merc[0].total;
-                    if (suddenData.mydamage / res.battle.max <= 0.30) {
-                        console.log(this.name + "(id=" + this.id + ") : ダメージが30%以下なのでまた殴ります");
-
-                        $.each(res.merc_list, function () {
-                            if (parseInt(this.lv, 10) > 1) {
-                                console.log(this.name + " ☆" + this.rarity + " (id=" + this.id + ")で殴ります");
-                                attackSudden(suddenData, this.id);
-                                return false;
-                            }
-                        });
-                    }
-                }
+        var attackSuddenInner = function (suddenData, charaid) {
+            if (!suddenData || !charaid) {
                 defer.resolve();
-            },
-            error: function () {
-                log("サドンボス攻撃に失敗");
-                defer.reject();
+                return;
             }
-        });
+
+            var charaList = [];
+            charaList.push(parseInt(charaid, 10));
+            charaList.push(0);
+            charaList.push(0);
+
+            $.ajax({
+                url: "remain_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({
+                    op: "sudden_challenge",
+                    target: suddenData.id,
+                    cid: charaList
+                }),
+                success: function (res) {
+                    console.log("サドンボス攻撃に成功"); // 失敗時の応答不明（無効なidでも送ってみる？）
+                    // 遭遇者が自分の場合、30％以上殴る(殴るキャラは1人ずつ)
+                    if (suddenData.mine === 1 && IS_BEAT_SUDDEN === 1 && res.battle.left_hp > 0) {
+                        // キャラが1人の場合、res.battle.merc[1 or 2].total=undefined で、これを加算するとNaNになるので注意
+                        suddenData.mydamage += res.battle.merc[0].total;
+                        if (suddenData.mydamage / res.battle.max <= 0.30) {
+                            console.log("ダメージが30%以下なのでまた殴ります");
+                            charaid = null;
+                            $.each(res.merc_list, function () {
+                                if (parseInt(this.lv, 10) > 1) {
+                                    console.log(this.name + " ☆" + this.rarity + " (id=" + this.id + ")で殴ります");
+                                    charaid = this.id;
+                                    return false;
+                                }
+                            });
+                            attackSuddenInner(suddenData, charaid);
+                            return;
+                        }
+                    }
+                    defer.resolve();
+                },
+                error: function () {
+                    log("サドンボス攻撃に失敗");
+                    defer.reject();
+                }
+            });
+        };
+
+        attackSuddenInner(suddenData, charaid);
 
         return defer.promise();
     };
 
+    /* suddenData (g_suddenList) : {id, mine(0/1), mydamage}*/
     var suddenProcess = function (suddenData) {
         console.log("[Enter]suddenProcess");
         var defer = $.Deferred();
@@ -1076,7 +1083,7 @@ var task = {};
     };
 
     var lvupAllPTChara = function () {
-        log("[Enter]lvupAllPTChara");
+        console.log("[Enter]lvupAllPTChara");
         var defer = $.Deferred();
 
         g_lvupCharaId = 0;
@@ -1336,10 +1343,10 @@ var task = {};
             .then(battleGetReport)
             .then(function () {
                 isBattleSuccess = 1;
-                updateCQ();
+                return updateCQ();
             }, function () {
                 isBattleSuccess = 0;
-                updateCQ();
+                return updateCQ();
             })
 
             .then(getSuddenList)
@@ -1725,6 +1732,7 @@ var task = {};
             return defer2.promise();
 
         }).always(updateCQ)
+
             .then(function () {
                 return $.Deferred().resolve(recruitConfig).promise();
             }, function () {
