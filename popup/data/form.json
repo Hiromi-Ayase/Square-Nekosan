@@ -163,6 +163,37 @@
         ]
     },
     {
+        "name": "recruit",
+        "title": "召喚",
+        "form": [
+            {
+                "type": "number",
+                "name": "rarity",
+                "title": "下限レア度☆",
+                "init": "7",
+                "column": 4
+            },
+            {
+                "type": "number",
+                "name": "maxnum",
+                "title": "必要数",
+                "init": "",
+                "column": 4
+            },
+            {
+                "type": "number",
+                "name": "count",
+                "title": "召喚試行回数",
+                "init": "",
+                "column": 4
+            }
+        ],
+        "ctrl": [
+            { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+            { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+        ]
+    },
+    {
         "name": "test",
         "title": "テスト用",
         "form": [

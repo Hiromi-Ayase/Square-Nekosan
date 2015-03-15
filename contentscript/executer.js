@@ -28,6 +28,7 @@ console.log = function (message) {
     var mapBattle = null;
     var allDystopia = null;
     var dystopia = null;
+    var recruit = null;
     var loginBonus = null;
     var trans = false;
     var option = false;
@@ -55,6 +56,13 @@ console.log = function (message) {
             dystopia: dystopia !== null ? {
                 statusText: "実行中！",
                 state: dystopia.cmd.state
+            } : {
+                state: COMMON.CMD_STATUS.END,
+                statusText: "いぐー"
+            },
+            recruit: recruit !== null ? {
+                statusText: "実行中！",
+                state: recruit.cmd.state
             } : {
                 state: COMMON.CMD_STATUS.END,
                 statusText: "いぐー"
@@ -104,6 +112,7 @@ console.log = function (message) {
 
     chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         var battleConfig = {};
+        var recruitConfig = {};
 
         if (request.op === COMMON.OP.MAP) {
             var mapid = request.args.map + request.args.level;
@@ -145,6 +154,21 @@ console.log = function (message) {
                 dystopia.cmd.state = COMMON.CMD_STATUS.END;
                 dystopia = null;
             }
+
+        } else if (request.op === COMMON.OP.RECRUIT) {
+            if (request.ctrl === COMMON.OP_CTRL.RUN) {
+                recruitConfig = {};
+                recruitConfig.rarity = request.args.rarity;
+                recruitConfig.maxnum = request.args.maxnum;
+                recruitConfig.count = request.args.count;
+                recruit = new cmdManager.CmdRecruit(recruitConfig, function () {
+                    recruit = null;
+                });
+            } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
+                recruit.cmd.state = COMMON.CMD_STATUS.END;
+                recruit = null;
+            }
+
         } else if (request.op === COMMON.OP.BLOCK) {
             if (request.ctrl === COMMON.OP_CTRL.PAUSE) {
                 if (blockBattle !== null) {

@@ -475,7 +475,7 @@ var task = {};
         console.log("[[TaskStart]]TransduceStone");
         var defer = $.Deferred().resolve();
 
-        if (TRANS.ENABLE && current_stone < limit_stone * TRANS.THRESHOLD) {
+        if (TRANS.ENABLE && current_stone > limit_stone * TRANS.THRESHOLD) {
             defer = defer.then(function () {
                 var defer2 = $.Deferred();
                 $.ajax({
@@ -507,11 +507,11 @@ var task = {};
                         try {
                             json_data = $.parseJSON(res.replace("op=TRANS&array=", ""));
                         } catch (e) {}
-                        if (json_data.result === null || json_data.result !== 1) {
+                        if (json_data[0].result === null || json_data[0].result !== 1) {
                             log("魔晶石変換失敗");
                             defer2.reject();
                         } else {
-                            log(json_data.alert);
+                            log(json_data[0].alert);
                             defer2.resolve();
                         }
                     },
@@ -608,7 +608,7 @@ var task = {};
             });
             return defer2.promise();
 
-        }).then(task.TransduceStonef);
+        }).then(task.TransduceStone);
 
         return defer.promise();
     };
@@ -1636,6 +1636,99 @@ var task = {};
                     TRANS.TOWNID = townsData[townName][0];
                 }
                 defer.resolve();
+            });
+
+        return defer.promise();
+    };
+
+    /*** 指定された☆以上のキャラを名声召喚する(指定☆以下のキャラは解雇する) ***/
+    task.Recruit = function (recruitConfig) {
+        console.log("[[TaskStart]]Recruit");
+        var defer = $.Deferred().resolve();
+
+        defer = defer.then(function () {
+            var defer2 = $.Deferred();
+            $.ajax({
+                url: "mercenary_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({
+                    op: "bar",
+                    rank: 2,
+                    ufree: 0
+                }),
+                success: function (res) {
+                    if (res.length === 2) {
+                        var rarity = parseInt(res[1].merc.rarity, 10);
+                        var charaid = res[1].merc.DBID;
+
+                        if (rarity !== null && charaid !== null) {
+                            recruitConfig.count--;
+                            log("☆" + rarity + res[1].merc.name + "を召喚");
+                            if (rarity < recruitConfig.rarity) {
+                                defer2.resolve(true, charaid);
+                            } else {
+                                recruitConfig.maxnum--;
+                                defer2.resolve(false, null);
+                            }
+
+                        } else {
+                            log("召喚キャラの☆、IDの取得に失敗");
+                            defer2.reject(["res", "char"]); // goto updateCQ
+                        }
+                    } else {
+                        log("召喚情報の取得に失敗");
+                        defer2.reject(["res", "char"]); // goto updateCQ
+                    }
+                },
+                error: function () {
+                    log("召喚に失敗");
+                    defer2.reject(["res", "char"]); // goto updateCQ
+                }
+            });
+
+            return defer2.promise();
+
+        }).then(function (fire, charaid) {
+            var defer2 = $.Deferred();
+            if (!fire) {
+                defer2.resolve();
+                return;
+            }
+
+            $.ajax({
+                url: "mercenary_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({
+                    op: "fire",
+                    ftype: 1,
+                    id: charaid
+                }),
+                success: function (res) {
+                    if (res.result === true) {
+                        log("解雇に成功");
+                        defer2.resolve(["res", "char"]); // goto updateCQ
+                    } else {
+                        log("解雇情報の取得に失敗");
+                        defer2.reject(["res", "char"]); // goto updateCQ
+                    }
+                },
+                error: function () {
+                    log("解雇に失敗");
+                    defer2.reject(["res", "char"]); // goto updateCQ
+                }
+            });
+
+            return defer2.promise();
+
+        }).always(updateCQ)
+            .then(function () {
+                return $.Deferred().resolve(recruitConfig).promise();
+            }, function () {
+                return $.Deferred().reject(recruitConfig).promise();
             });
 
         return defer.promise();

@@ -399,6 +399,42 @@ var cfgManager = {};
         }
     };
 
+    /* Command : 指定された☆以上のキャラを召喚する */
+    cmdManager.CmdRecruit = function (recruitConfig, handler) {
+        this.recruitConfig = recruitConfig;
+        //this.recruitCount = 0;
+
+        this.cmd = new Command("CmdRecruit", handler);
+        this.setNextTask();
+        cmdList.push(this);
+    };
+
+    cmdManager.CmdRecruit.prototype.setNextTask = function () {
+        var now = new Date();
+        var cmd = this.cmd;
+
+        if (cmd.state === COMMON.CMD_STATUS.END) {
+            return;
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
+            cmd.state = COMMON.CMD_STATUS.END;
+            return;
+        }
+
+        if (cmd.func === task.Recruit) {
+            this.recruitConfig = cmd.result;
+        }
+
+        if (this.recruitConfig.count <= 0 || this.recruitConfig.maxnum <= 0) {
+            cmd.state = COMMON.CMD_STATUS.END;
+            return;
+        }
+        cmd.reset();
+
+        cmd.time = now;
+        cmd.func = task.Recruit;
+        cmd.param = this.recruitConfig;
+    };
+
     /* Command : ログインボーナスを獲得する */
     /* スクリプト開始時にトリガーされる */
     cmdManager.CmdLoginBonus = function (handler) {
