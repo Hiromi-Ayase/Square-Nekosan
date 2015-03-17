@@ -132,6 +132,8 @@
                 $scope.settingsStatus = "Saved!";
             } else if (mode === "restore") {
                 cmSetting.setValue(JSON.stringify(storage, null, 4));
+            } else if (mode === "reset") {
+                cmSetting.setValue("{}");
             }
         };
 

@@ -1,0 +1,123 @@
+//戦闘系コマンド開始時にCmdBattleBuffのインスタンスの存在確認をする
+//なければ、Cmdを実行する
+//CmdBattleBuffがバフ付け、バフ残り時間の管理する
+//バフ付けをした後、バフが切れるタイミングにバフ付けタスクをセットする
+//タスク実行タイミングで戦闘系コマンドが実行中でなければ(コマンドリストになければ)、バフ付けをせず、CmdBattleBuffを終了する
+
+
+remain_.php
+
+op:battle_tech
+
+tech: [0, 0, 0, 0, 0, {lock: 1}, {lock: 1}, {lock: 1}]
+    0: 0
+    1: 0
+    2: 0
+    3: 0
+    4: 0
+    5: {lock: 1}
+    6: {lock: 1}
+    7: {lock: 1}
+trans: {stone: {rate: 115, tid: "20856"}, power: {rate: 50, tid: "20856"}}
+    power: {rate: 50, tid: "20856"} // 赤→蒼はこっち
+        rate: 50
+        tid: "20856"
+    stone: {rate: 115, tid: "20856"}
+        rate: 115
+        tid: "20856"
+
+/// 発動中のバフの情報
+0: {id: "416", name: "遺跡研究Lv16", description: "遺跡攻略時の獲得資源量が15.6%増加", type: "62",…}
+    description: "遺跡攻略時の獲得資源量が15.6%増加"
+    endtime: "2015-03-18 03:38"
+    id: "416"
+    name: "遺跡研究Lv16"
+    type: "62"
+1: {id: "509", name: "探索装置研究Lv9", description: "遺跡攻略時の宝物獲得確率が4.2%増加", type: "63",…}
+    description: "遺跡攻略時の宝物獲得確率が4.2%増加"
+    endtime: "2015-03-18 03:38"
+    id: "509"
+    name: "探索装置研究Lv9"
+    type: "63"
+2: {id: "608", name: "高重変換装置Lv8", description: "変換効率が3.7%上昇", type: "1", endtime: "2015-03-18 03:38"}
+    description: "変換効率が3.7%上昇"
+    endtime: "2015-03-18 03:38"
+    id: "608"
+    name: "高重変換装置Lv8"
+    type: "1"
+
+
+//使用バフリストの取得
+remain_.php
+
+op:battle_tech_list
+nt:1 or 2 // 1はストライカ能力向上、遺跡攻略 2は高重変換装置、探検など
+
+//nt:1の場合
+res.list[13]
+    bid: "815"
+    bindex: "1076"
+    description: "遺跡攻略時の獲得資源量が14.5%増加"
+    name: "遺跡研究Lv15"
+    power: "604"
+    techid: "415"
+    techtype: "62"
+    town: "20856"
+res.list[14]
+    bid: "815"
+    bindex: "1076"
+    description: "遺跡攻略時の宝物獲得確率が7.7%増加"
+    name: "探索装置研究Lv15"
+    power: "1208"
+    techid: "515"
+    techtype: "63"
+    town: "20856"
+
+//nt:2の場合
+res.list[0]
+    bid: "1108"
+    bindex: "463"
+    description: "変換効率が3.7%上昇"
+    name: "高重変換装置Lv8"
+    power: "47"
+    techid: "608"
+    techtype: "1"
+    town: "20856"
+
+//バフON
+//遺跡研究の場合
+remain_.php
+
+op:set_battle_tech
+bindex:1076
+bid:815
+teid:415
+tid:20856
+nt:1
+
+res.result = 1
+res.power = xxxx //number
+res.list[0] //ONにすることでリストの順序が入れ替わる
+    description: "遺跡攻略時の獲得資源量が14.5%増加"
+    endtime: "2015-03-16 22:36"
+    index: "1076"
+    name: "遺跡研究Lv15"
+    techid: "415"
+    techtype: "62"
+    town: "20856"
+
+//変換
+remain_.php
+
+op:res_trans
+tid:20856
+ttype:1     //0：ダイム, 1:魔晶石
+tval:12     //蒼
+
+res.alert="変換成功！6蒼水晶獲得しました"
+res.result=1
+
+//資源更新
+updateinfo_.php
+op:update
+args[]:res

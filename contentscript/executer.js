@@ -24,6 +24,7 @@ console.log = function (message) {
     'use strict';
 
     /* Command Instances */
+    var battleBuff = null;
     var blockBattle = null;
     var mapBattle = null;
     var allDystopia = null;
@@ -115,20 +116,25 @@ console.log = function (message) {
         var recruitConfig = {};
 
         if (request.op === COMMON.OP.MAP) {
-            var mapid = request.args.map + request.args.level;
-            if (request.args.mapid) {
-                mapid = request.args.mapid;
-            }
-
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
+                /*var mapid = request.args.map + request.args.level;
+                if (request.args.mapid) {
+                    mapid = request.args.mapid;
+                }*/
+
                 battleConfig = {};
-                battleConfig.mapid = mapid;
+                battleConfig.mapid = request.args.mapid || request.args.map + request.args.level;
                 battleConfig.count = request.args.map_count;
                 battleConfig.isFirst = request.args.isFirst;
                 battleConfig.time = request.args.time;
                 mapBattle = new cmdManager.CmdMapBattle(battleConfig, function () {
                     mapBattle = null;
                 });
+                if (!battleBuff) {
+                    battleBuff = new cmdManager.CmdBattleBuff(function () {
+                        battleBuff = null;
+                    });
+                }
             } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
                 mapBattle.cmd.state = COMMON.CMD_STATUS.END;
                 mapBattle = null;
@@ -150,23 +156,14 @@ console.log = function (message) {
                         dystopia = null;
                     });
                 }
+                if (!battleBuff) {
+                    battleBuff = new cmdManager.CmdBattleBuff(function () {
+                        battleBuff = null;
+                    });
+                }
             } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
                 dystopia.cmd.state = COMMON.CMD_STATUS.END;
                 dystopia = null;
-            }
-
-        } else if (request.op === COMMON.OP.RECRUIT) {
-            if (request.ctrl === COMMON.OP_CTRL.RUN) {
-                recruitConfig = {};
-                recruitConfig.rarity = request.args.rarity;
-                recruitConfig.maxnum = request.args.maxnum;
-                recruitConfig.count = request.args.count;
-                recruit = new cmdManager.CmdRecruit(recruitConfig, function () {
-                    recruit = null;
-                });
-            } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
-                recruit.cmd.state = COMMON.CMD_STATUS.END;
-                recruit = null;
             }
 
         } else if (request.op === COMMON.OP.BLOCK) {
@@ -195,12 +192,31 @@ console.log = function (message) {
                     blockBattle = new cmdManager.CmdBlockBattle(battleConfig, function () {
                         blockBattle = null;
                     });
+                    if (!battleBuff) {
+                        battleBuff = new cmdManager.CmdBattleBuff(function () {
+                            battleBuff = null;
+                        });
+                    }
                 }
             } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
                 if (blockBattle !== null) {
                     blockBattle.cmd.state = COMMON.CMD_STATUS.END;
                     blockBattle = null;
                 }
+            }
+
+        } else if (request.op === COMMON.OP.RECRUIT) {
+            if (request.ctrl === COMMON.OP_CTRL.RUN) {
+                recruitConfig = {};
+                recruitConfig.rarity = request.args.rarity;
+                recruitConfig.maxnum = request.args.maxnum;
+                recruitConfig.count = request.args.count;
+                recruit = new cmdManager.CmdRecruit(recruitConfig, function () {
+                    recruit = null;
+                });
+            } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
+                recruit.cmd.state = COMMON.CMD_STATUS.END;
+                recruit = null;
             }
 
         } else if (request.op === COMMON.OP.TRANS) {

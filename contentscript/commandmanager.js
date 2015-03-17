@@ -415,6 +415,32 @@ var cfgManager = {};
         }
     };
 
+    /* Command : 戦闘用バフを付ける */
+    cmdManager.CmdBattleBuff = function (handler) {
+        this.cmd = new Command("CmdBattleBuff", handler);
+        this.setNextTask();
+        cmdList.push(this);
+    };
+
+    cmdManager.CmdBattleBuff.prototype.setNextTask = function () {
+        /*var now = new Date();
+        var cmd = this.cmd;
+
+        if (cmd.state === COMMON.CMD_STATUS.END) {
+            return;
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
+            cmd.state = COMMON.CMD_STATUS.END;
+            return;
+        }
+
+        cmd.reset();
+        if (cmd.func === null) {
+            cmd.func = task.getBattleBuff;
+        } else {
+            cmd.func = task.setBattleBuff;
+        }*/
+    };
+
     /* Command : 指定された☆以上のキャラを召喚する */
     cmdManager.CmdRecruit = function (recruitConfig, handler) {
         this.recruitConfig = recruitConfig;
@@ -578,14 +604,32 @@ var cfgManager = {};
         if (cmd.func === null) {
             cmd.reset();
 
-            cmd.time = now;
-            cmd.func = task.TransduceStone;
-            cmd.param = {
-            };
+            cmd.func = task.SetAllBattleBuff;
+            cmd.param = [
+                {
+                    techtype: "62", // 遺跡研究（資源UP）
+                    nt: "1"
+                },
+                {
+                    techtype: "63", // 探索装置研究（ドロップUP）
+                    nt: "1"
+                },
+                {
+                    techtype: "1",  // 高重変換装置
+                    nt: "2"
+                }
+            ];
 
             //var $iframe = $('#main');
             //var ifrmDoc = $iframe[0].contentWindow.document;
             //$("#merc_title", ifrmDoc).click();
+        /*} else if (cmd.func === task.GetBattleBuff) {
+            var techList = cmd.result;
+
+            cmd.reset();
+            cmd.func = task.SetBattleBuff;
+            cmd.param = techList;*/
+
         } else {
             cmd.state = COMMON.CMD_STATUS.END;
         }

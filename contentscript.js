@@ -470,6 +470,183 @@ var task = {};
         return defer.promise();
     };
 
+    /* techInfo = {
+        techtype,   // constant
+        nt,         // constant
+        techid,
+        town (=tid),
+        bindex,
+        bid,
+        endtime
+    } */
+    var setBattleBuff = function (techInfo) {
+        console.log("[Enter]setBattleBuff");
+        var defer = $.Deferred().resolve(techInfo);
+
+        // 発動中バフのリストを取得
+        defer = defer.then(function (tech) {
+            var d = $.Deferred();
+            $.ajax({
+                url: "remain_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({ op: "battle_tech" }),
+                success: function (res) {
+                    if (res.tech.length > 0) {
+                        var name = null;
+                        $.each(res.tech, function () {
+                            if (this !== 0 && this.type === tech.techtype) {
+                                name = this.name;
+                                return false;
+                            }
+                        });
+                        if (name) {
+                            console.log(name + "(techtype=" + tech.techtype + ")は発動中");
+                            d.resolve();
+                        } else {
+                            d.resolve(tech);
+                        }
+                    } else {
+                        log("発動中のバフ情報取得に失敗");
+                        d.reject();
+                    }
+                },
+                error: function () {
+                    log("戦闘前準備情報取得に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        // バフの一覧から指定されたバフの情報を取得
+        }).then(function (tech) {
+            var d = $.Deferred();
+            if (!tech) {
+                return d.resolve().promise();
+            }
+            $.ajax({
+                url: "remain_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({ op: "battle_tech_list", nt: tech.nt }),
+                success: function (res) {
+                    if (res.list.length > 0) {
+                        $.each(res.list, function () {
+                            if (this.techtype === tech.techtype) {
+                                if (this.endtime) {
+                                    tech.endtime = this.endtime;
+                                    tech.bindex = this.index;
+                                    tech.bid = null;
+                                } else {
+                                    tech.endtime = null;
+                                    tech.bindex = this.bindex;
+                                    tech.bid = this.bid;
+                                }
+                                tech.techid = this.techid;
+                                tech.town = this.town;
+
+                                console.log(this.name + " の情報取得に成功");
+                                return false;
+                            }
+                        });
+                        if (tech.endtime) {
+                            console.log("バフ(techtype=" + tech.techtype + ")は発動中");
+                            d.resolve();
+                        } else {
+                            d.resolve(tech);
+                        }
+                    } else {
+                        log("戦闘バフリスト(techtype=" + tech.techtype + ")取得に失敗");
+                        d.reject();
+                    }
+                },
+                error: function () {
+                    log("戦闘前準備情報取得に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        // バフを発動
+        }).then(function (tech) {
+            var d = $.Deferred();
+            if (!tech) {
+                return d.resolve().promise();
+            }
+            $.ajax({
+                url: "remain_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({
+                    op: "set_battle_tech",
+                    bindex: tech.bindex,
+                    bid: tech.bid,
+                    teid: tech.techid,
+                    tid: tech.town,
+                    nt: tech.nt
+                }),
+                success: function (res) {
+                    if (res.result === 1 && res.list.length > 0) {
+                        $.each(res.list, function () {
+                            if (this.techtype === tech.techtype) {
+                                if (this.endtime) {
+                                    tech.endtime = this.endtime;
+                                    tech.bindex = this.index;
+                                    tech.bid = null;
+                                } else {
+                                    tech.endtime = null;
+                                    tech.bindex = this.bindex;
+                                    tech.bid = this.bid;
+                                }
+                                tech.techid = this.techid;
+                                tech.town = this.town;
+
+                                log(this.name + " を発動");
+                                return false;
+                            }
+                        });
+                        if (tech.endtime) {
+                            d.resolve();
+                        } else {
+                            log("バフ(techtype=" + tech.techtype + ")発動に失敗");
+                            d.reject();
+                        }
+                        /*setTimeout(function () {
+                            d.resolve();
+                        }, 1000);*/
+                    } else {
+                        log("バフ(techtype=" + tech.techtype + ")発動に失敗");
+                        d.reject();
+                    }
+                },
+                error: function () {
+                    log("バフ(techtype=" + tech.techtype + ")発動送信に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        });
+
+        return defer.promise();
+    };
+
+    /*** 都市バフ付け ***/
+    // 指定されたバフが発動していなければ発動させる
+    task.SetAllBattleBuff = function (techList) {
+        console.log("[[TaskStart]]SetAllBattleBuff");
+        var defer = $.Deferred().resolve();
+        $.each(techList, function (i, tech) {
+            defer = defer.then(function () {
+                return setBattleBuff(tech);
+            });
+        });
+        return defer.promise();
+    };
+
     /*** 蒼変換 ***/
     task.TransduceStone = function (current_stone, limit_stone) {
         console.log("[[TaskStart]]TransduceStone");
