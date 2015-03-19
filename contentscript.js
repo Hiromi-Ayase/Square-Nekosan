@@ -362,15 +362,15 @@ var task = {};
             if (battleData.time.max > 1800) {
                 battleData.time.max = 1800;  // 最大30分とする
             }
-            if (battleData.time.min < 0) {
-                battleData.time.min = 0;
+            if (battleData.time.min < 1) {
+                battleData.time.min = 1;
             }
             time = battleData.time.min + Math.floor(Math.random() * (battleData.time.max - battleData.time.min));
             sec = time % 60;
             if (time >= 60) {
                 min = Math.floor((time - sec) / 60);
             }
-            console.log(min + ":" + sec + "後に戦闘結果を送信");
+            log(min + ":" + (sec < 10 ? "0" + sec : sec) + "後に戦闘結果を送信");
         } else {
             sec = 1 + Math.floor(Math.random() * 58);
         }
@@ -473,15 +473,15 @@ var task = {};
     /* techInfo = {
         techtype,   // constant
         nt,         // constant
+        endtime,
         techid,
         town (=tid),
         bindex,
-        bid,
-        endtime
+        bid
     } */
-    var setBattleBuff = function (techInfo) {
+    var setBattleBuff = function (tech) {
         console.log("[Enter]setBattleBuff");
-        var defer = $.Deferred().resolve(techInfo);
+        var defer = $.Deferred().resolve(tech);
 
         // 発動中バフのリストを取得
         defer = defer.then(function (tech) {
@@ -497,6 +497,7 @@ var task = {};
                         var name = null;
                         $.each(res.tech, function () {
                             if (this !== 0 && this.type === tech.techtype) {
+                                tech.endtime = Date.parse(this.endtime);
                                 name = this.name;
                                 return false;
                             }
@@ -536,7 +537,7 @@ var task = {};
                         $.each(res.list, function () {
                             if (this.techtype === tech.techtype) {
                                 if (this.endtime) {
-                                    tech.endtime = this.endtime;
+                                    tech.endtime = Date.parse(this.endtime);
                                     tech.bindex = this.index;
                                     tech.bid = null;
                                 } else {
@@ -593,7 +594,7 @@ var task = {};
                         $.each(res.list, function () {
                             if (this.techtype === tech.techtype) {
                                 if (this.endtime) {
-                                    tech.endtime = this.endtime;
+                                    tech.endtime = Date.parse(this.endtime);
                                     tech.bindex = this.index;
                                     tech.bid = null;
                                 } else {
@@ -609,7 +610,7 @@ var task = {};
                             }
                         });
                         if (tech.endtime) {
-                            d.resolve();
+                            d.resolve(tech);
                         } else {
                             log("バフ(techtype=" + tech.techtype + ")発動に失敗");
                             d.reject();
@@ -639,15 +640,96 @@ var task = {};
     task.SetAllBattleBuff = function (techList) {
         console.log("[[TaskStart]]SetAllBattleBuff");
         var defer = $.Deferred().resolve();
+
+        if (!cmdManager.IsBattleCmd()) {
+            return $.Deferred().reject().promise();
+        }
+
         $.each(techList, function (i, tech) {
             defer = defer.then(function () {
                 return setBattleBuff(tech);
             });
         });
+
+        defer = defer.then(function () {
+            return $.Deferred().resolve(techList).promise();
+        });
         return defer.promise();
     };
 
-    /*** 蒼変換 ***/
+    // 戦闘前準備機能で蒼変換
+    task.TransBattlePrepare = function (stone) {
+        console.log("[Enter]transBattlePrepare");
+        var defer = $.Deferred().resolve();
+
+        if (!TRANS.ENABLE || stone.current < stone.limit * TRANS.THRESHOLD) {
+            return defer.promise();
+        }
+        var trans_stone = parseInt(stone.limit * TRANS.RATIO, 10);
+
+        defer = defer.then(function () {
+            var d = $.Deferred();
+            $.ajax({
+                url: "remain_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({ op: "battle_tech" }),
+                success: function (res) {
+                    var tid = res.trans.power.tid;
+                    if (tid) {
+                        d.resolve(tid);
+                    } else {
+                        log("蒼水晶変換用パラメータ(tid)取得に失敗");
+                        d.reject();
+                    }
+                },
+                error: function () {
+                    log("戦闘前準備情報取得に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        }).then(function (tid) {
+            var d = $.Deferred();
+            $.ajax({
+                url: "remain_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({
+                    op: "res_trans",
+                    tid: tid,
+                    ttype: 1,
+                    tval: trans_stone
+                }),
+                success: function (res) {
+                    if (res.result === 1) {
+                        log(res.alert);
+                        d.resolve();
+                    } else {
+                        log("蒼水晶変換失敗");
+                        d.reject();
+                    }
+                },
+                error: function () {
+                    log("蒼水晶変換情報取得に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+        });
+
+        return defer.promise();
+    };
+
+    /**
+     * 都市での蒼水晶変換（戦闘前準備機能の使用に切り替えるため削除予定）
+     * @param   {Number} current_stone [[Description]]
+     * @param   {Number} limit_stone   [[Description]]
+     * @returns {[[Type]]} [[Description]]
+     */
     task.TransduceStone = function (current_stone, limit_stone) {
         console.log("[[TaskStart]]TransduceStone");
         var defer = $.Deferred().resolve();
@@ -779,13 +861,13 @@ var task = {};
                     if (ecoin) { $("#ecoin", ifrmDoc).html(ecoin); }
                     if (bpoint) { $("#bonus_num>span", ifrmDoc).html(bpoint); }
 
-                    defer2.resolve(res.stone, res.limit);
+                    defer2.resolve({current : res.stone, limit: res.limit });
                 },
                 error: defer2.reject
             });
             return defer2.promise();
 
-        }).then(task.TransduceStone);
+        }).then(task.TransBattlePrepare);
 
         return defer.promise();
     };
@@ -875,7 +957,36 @@ var task = {};
                         data: ({
                             op: "sudden_all_reward"
                         }),
-                        success: defer.resolve,
+                        success: function (res) {
+                            if (res.result === 1) {
+                                log("サドン報酬：" + this);
+                                if (res.reward.discover) {
+                                    log("  [遭遇報酬]");
+                                    $.each(res.reward.discover, function () {
+                                        log("    " + this);
+                                    });
+                                }
+                                if (res.reward.item1) {
+                                    log("  [参加報酬]");      // (<10%)
+                                    $.each(res.reward.item1, function () {
+                                        log("    " + this);
+                                    });
+                                }
+                                if (res.reward.item2) {
+                                    log("  [援護報酬]");      // (<30%)
+                                    $.each(res.reward.item2, function () {
+                                        log("    " + this);
+                                    });
+                                }
+                                if (res.reward.item3) {
+                                    log("  [優戦報酬]");      // (>30%)
+                                    $.each(res.reward.item3, function () {
+                                        log("    " + this);
+                                    });
+                                }
+                            }
+                            defer.resolve();
+                        },
                         error: defer.reject
                     });
                 } else {
@@ -906,7 +1017,7 @@ var task = {};
             return;
         }
 
-        log("---- sudden id = " + suddenData.id);
+        console.log("---- sudden id = " + suddenData.id);
 
         $.ajax({
             url: "guild_.php",
@@ -1938,6 +2049,37 @@ var task = {};
 
         return defer.promise();
     };
+
+    /* 拠点戦に参加 */
+    task.JoinCamp = function () {
+        console.log("[[TaskStart]]JoinCamp");
+        var defer = $.Deferred();
+        var townIdList = [];
+
+        $.ajax({
+            url: "camp_occupy_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: ({
+                op: "sign_up_data",
+                nid: 0
+            }),
+            success: function (res) {
+                if (res.result === 1) {
+                    log("拠点戦に参加");
+                }
+                defer.resolve();
+            },
+            error: function () {
+                log("拠点戦参加に失敗");
+                defer.resolve();    // 失敗してもコマンドは終了させない
+            }
+        });
+
+        return defer.promise();
+    };
+
 }());
 
 $(function () {

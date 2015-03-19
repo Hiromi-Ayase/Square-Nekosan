@@ -100,6 +100,9 @@ console.log = function (message) {
         }, 5000);
 
         cfgManager.InitTrans();
+        var camp = new cmdManager.CmdCamp(function () {
+            camp = null;
+        });
 
         window.setInterval(function () {
             chrome.runtime.sendMessage({

@@ -89,7 +89,9 @@ var cfgManager = {};
                         task.result = result;
                     })
                     .always(function () {
-                        cmdList[i].setNextTask();
+                        if (cmdList[i].setNextTask() === null) {
+                            cmdList.splice(i, 1);
+                        }
                         defer.resolve();
                     });
             } else {
@@ -111,6 +113,26 @@ var cfgManager = {};
             .then(cmdManager.pollTask);
 
         return defer.promise();
+    };
+
+    /**
+     * Check if Battle commands are running or not
+     * @returns {Boolean} If running, return true
+     */
+    cmdManager.IsBattleCmd = function () {
+        var battleCmdList = [
+            "CmdMapBattle",
+            "CmdBlockBattle",
+            "CmdDystopia",
+            "CmdAllDystopia"
+        ];
+        var i;
+        for (i = 0; i < cmdList.length; i++) {
+            if ($.inArray(cmdList[i].cmd.name, battleCmdList) !== -1) {
+                return true;
+            }
+        }
+        return false;
     };
 
     /* 共通のコマンドオブジェクト */
@@ -417,13 +439,19 @@ var cfgManager = {};
 
     /* Command : 戦闘用バフを付ける */
     cmdManager.CmdBattleBuff = function (handler) {
+        this.techList = [
+            { techtype: "62", nt: "1", endtime: null },    // 遺跡研究（資源UP）
+            { techtype: "63", nt: "1", endtime: null },    // 探索装置研究（ドロップUP）
+            { techtype: "1", nt: "2", endtime: null }      // 高重変換装置
+        ];
+
         this.cmd = new Command("CmdBattleBuff", handler);
         this.setNextTask();
         cmdList.push(this);
     };
 
     cmdManager.CmdBattleBuff.prototype.setNextTask = function () {
-        /*var now = new Date();
+        var now = new Date();
         var cmd = this.cmd;
 
         if (cmd.state === COMMON.CMD_STATUS.END) {
@@ -433,12 +461,32 @@ var cfgManager = {};
             return;
         }
 
-        cmd.reset();
         if (cmd.func === null) {
-            cmd.func = task.getBattleBuff;
+            cmd.reset();
+
+            cmd.func = task.SetAllBattleBuff;
+            cmd.param = this.techList;
+
         } else {
-            cmd.func = task.setBattleBuff;
-        }*/
+            //this.techList = cmd.result;
+            cmd.reset();
+
+            var t = Math.min.apply(null, this.techList.map(function (o) {
+                return o.endtime;
+            }));
+            var nextTime;
+            if (t === 0) {
+                nextTime = new Date();
+            } else {
+                nextTime = new Date(t);
+            }
+            // 直近のバフ終了時刻から2分後に設定する
+            nextTime.setMinutes(nextTime.getMinutes() + 2);
+
+            cmd.time = nextTime;
+            cmd.func = task.SetAllBattleBuff;
+            cmd.param = this.techList;
+        }
     };
 
     /* Command : 指定された☆以上のキャラを召喚する */
@@ -540,18 +588,14 @@ var cfgManager = {};
                 // ログインボーナス獲得時刻が3時を過ぎていたら、targetTimeを3時にする
                 // # ログインボーナス獲得までの時間は最大2ｈなのでこの判定でいけるはず
                 if (now.getHours() < 3 && targetTime.getHours() >= 3) {
-                    targetTime.setHours(3);
-                    targetTime.setMinutes(2);
-                    targetTime.setSeconds(0);
+                    targetTime.setHours(3, 2, 0);
                 }
             }
         } else if (cmd.funcState === COMMON.CMD_RESULT.OK && cmd.result.isNext === false) {
             if (now.getHours() >= 3) {
                 targetTime.setDate(now.getDate() + 1);
             }
-            targetTime.setHours(3);
-            targetTime.setMinutes(2);
-            targetTime.setSeconds(0);
+            targetTime.setHours(3, 2, 0);
         }
 
         cmd.reset();
@@ -583,6 +627,38 @@ var cfgManager = {};
         }
     };
 
+    /* Command : 拠点戦に参加する */
+    cmdManager.CmdCamp = function (handler) {
+        var now = new Date();
+        var days = 6 - now.getDay();
+        if (days < 0) {
+            days += 7;      // 指定が土曜日(6)なので、本来この処理は不要
+        }
+        now.setDate(now.getDate() + days);
+
+        var i;
+        for (i = 0; i < 3; i++) {
+            if (i === 0) {
+                now.setHours(9, 1, 0);
+            } else if (i === 1) {
+                now.setHours(13, 1, 0);
+            } else if (i === 2) {
+                now.setHours(17, 1, 0);
+            }
+
+            var camp = {};
+            camp.cmd = new Command("CmdCamp" + i, handler);
+            camp.cmd.time = new Date(now);
+            camp.cmd.func = task.JoinCamp;
+            camp.setNextTask = this.setNextTask;
+            cmdList.push(camp);
+        }
+    };
+
+    cmdManager.CmdCamp.prototype.setNextTask = function () {
+        return null;
+    };
+
     /* Command : テスト用 */
     cmdManager.CmdTest = function (testData, handler) {
         this.cmd = new Command("CmdTest", handler);
@@ -604,21 +680,8 @@ var cfgManager = {};
         if (cmd.func === null) {
             cmd.reset();
 
-            cmd.func = task.SetAllBattleBuff;
-            cmd.param = [
-                {
-                    techtype: "62", // 遺跡研究（資源UP）
-                    nt: "1"
-                },
-                {
-                    techtype: "63", // 探索装置研究（ドロップUP）
-                    nt: "1"
-                },
-                {
-                    techtype: "1",  // 高重変換装置
-                    nt: "2"
-                }
-            ];
+            cmd.func = task.TransBattlePrepare;
+            cmd.param = { current : 98000, limit: 100000 };
 
             //var $iframe = $('#main');
             //var ifrmDoc = $iframe[0].contentWindow.document;
