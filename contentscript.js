@@ -1581,15 +1581,15 @@ var task = {};
                     defer.reject();
                     return;
                 }
-                var isEnd = false;
-                var lastBlockid = res.remain[res.remain.length - 1].id;
+
+                var prevBlockid = param.blockid;
                 var nextBlockid;
+                var lastBlockid = res.remain[res.remain.length - 1].id;
 
                 if (param.blockid) {
                     nextBlockid = ++param.blockid;
                     if (nextBlockid > lastBlockid) {
                         nextBlockid = res.remain[0].id;
-                        isEnd = true;   // マップを一周した
                     }
                 } else if (param.isFirst) {
                     nextBlockid = res.remain[0].id;
@@ -1613,26 +1613,24 @@ var task = {};
                             if (nextIndex < 0) {
                                 log("次のマスの決定に失敗");
                                 defer.reject();
+                                return;
                             } else {
                                 log(res.remain[nextIndex].name + "[" + res.target_level + "]に行きます");
-                                defer.resolve({
-                                    blockid: res.target_level,
-                                    isEnd: isEnd
-                                });
+                                nextBlockid = res.target_level;
                             }
-                        } else {
-                            defer.resolve({
-                                blockid: nextBlockid,
-                                isEnd: isEnd
-                            });
                         }
                         break;
                     }
                     if (i === res.remain.length - 1) {
                         log("blockid=" + nextBlockid + "がmapid=" + param.mapid + "に存在しません");
                         defer.reject();
+                        return;
                     }
                 }
+                defer.resolve({
+                    blockid: nextBlockid,
+                    isEnd: (prevBlockid === lastBlockid && nextBlockid === res.remain[0].id)
+                });
             },
             error: function () {
                 log("マップ情報取得に失敗");

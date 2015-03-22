@@ -63,7 +63,7 @@ console.log = function (message) {
                 statusText: "いぐー"
             },
             gift: gift !== null ? {
-                statusText: "実行中！",
+                statusText: "実行中！ - " + gift.stateStr,
                 state: gift.cmd.state
             } : {
                 state: COMMON.CMD_STATUS.END,

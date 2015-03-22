@@ -528,7 +528,7 @@ var cfgManager = {};
     /* Command : 指定されたアイテムを所持していたら側近へプレゼントする */
     cmdManager.CmdGiftToMaid = function (giftConfig, handler) {
         this.giftConfig = giftConfig;
-        //this.counterStr = "";
+        this.stateStr = "";
 
         this.cmd = new Command("CmdGiftToMaid", handler);
         this.setNextTask();
@@ -550,7 +550,11 @@ var cfgManager = {};
             if (cmd.result) { this.giftConfig = cmd.result; }
             cmd.reset();
 
-            if (this.giftConfig.time) { cmd.time = this.giftConfig.time; }
+            if (this.giftConfig.time) {
+                this.giftConfig.time.setMinutes(this.giftConfig.time.getMinutes() + 2);
+                cmd.time = this.giftConfig.time;
+                this.stateStr = "次は " + cmd.time.toLocaleTimeString();
+            }
             cmd.func = task.GiftToMaid;
             cmd.param  = this.giftConfig;
         }

@@ -72,12 +72,13 @@
             }
         };
 /*
-        $scope.onChangeCheckbox = function () {
+        $scope.onChangeCheckbox = function (ctrl, op) {
             storage.args = $scope.args;
+            storage.config = $scope.config;
             $scope.saveSetting();
             chrome.tabs.sendMessage(data.tabId, {
-                "op": COMMON.OP.TRANS,
-                "ctrl": $scope.args.trans
+                "op": op,
+                "ctrl": ctrl
             }, function (response) {});
         };
 */
