@@ -1,0 +1,171 @@
+dialog_.php
+
+op:md_page
+
+--
+
+gifttime: {dcount: 1774, duedate: "2015-03-22 18:34", mallcheck: 1} // プレゼント可能な場合はこのぷパティは存在しない
+md_merc
+    0: {id: "7769543", uid: "16621", name: "フリューネ",…}
+    1: {id: "7769547", uid: "16621", name: "キサナ",…}
+
+----
+mdmerc_.php
+
+op:gift_list
+mid:7769543
+itype:0
+
+--
+
+item: [[{id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…},…],…]
+    0: [{id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…},…]
+        0: {id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…}
+        1: {id: "10688890", ilock: "0", name: "蒼藍星の原石", pic: "19", energy: {min: "2500", max: "3500"},…}
+    1: [,…]
+        0: {id: "10688379", ilock: "0", name: "A級吸神宝飾", pic: "3", energy: {min: "4000", max: "6000"}, atk: "22",…}
+        1: {id: "10662274", ilock: "1", name: "A級アグヴェスタ", pic: "3", energy: {min: "4000", max: "6000"}, atk: "18",…}
+        2: {id: "10646266", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        3: {id: "10647274", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        4: {id: "10647256", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        5: {id: "10647059", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        6: {id: "10646975", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        7: {id: "10646420", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        8: {id: "10693502", ilock: "0", name: "S級守護継運", pic: "3", energy: {min: "3000", max: "4500"}, def: "6",…}
+        9: {id: "10578650", ilock: "0", name: "アージュの龍玉", pic: "31", energy: {min: "2000", max: "3000"}, atk: "18",…}
+        10: {id: "10578651", ilock: "0", name: "ベリルの龍玉", pic: "32", energy: {min: "2000", max: "3000"}, atk: "18",…}
+        11: {id: "10578654", ilock: "0", name: "グラルの龍玉", pic: "33", energy: {min: "2000", max: "3000"}, atk: "18",…}
+max: 10
+num: "5"
+result: 1
+
+----
+mdmerc_.php
+
+op:item_give
+mid:7769543
+item:10636355
+itype:0
+
+--
+
+add: 2000
+energy: 83566
+gifttime: {dcount: 1800, duedate: "2015-03-22 18:00", mallcheck: 1}
+    dcount: 1800
+    duedate: "2015-03-22 18:00"
+    mallcheck: 1
+item: [[{id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…},…],…]
+    0: [{id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…},…]
+        0: {id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…}
+        1: {id: "10688890", ilock: "0", name: "蒼藍星の原石", pic: "19", energy: {min: "2500", max: "3500"},…}
+    1: [,…]
+        0: {id: "10688379", ilock: "0", name: "A級吸神宝飾", pic: "3", energy: {min: "4000", max: "6000"}, atk: "22",…}
+        1: {id: "10662274", ilock: "1", name: "A級アグヴェスタ", pic: "3", energy: {min: "4000", max: "6000"}, atk: "18",…}
+        2: {id: "10646266", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        3: {id: "10647274", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        4: {id: "10647256", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        5: {id: "10647059", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        6: {id: "10646975", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        7: {id: "10646420", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
+        8: {id: "10693502", ilock: "0", name: "S級守護継運", pic: "3", energy: {min: "3000", max: "4500"}, def: "6",…}
+        9: {id: "10578650", ilock: "0", name: "アージュの龍玉", pic: "31", energy: {min: "2000", max: "3000"}, atk: "18",…}
+        10: {id: "10578651", ilock: "0", name: "ベリルの龍玉", pic: "32", energy: {min: "2000", max: "3000"}, atk: "18",…}
+        11: {id: "10578654", ilock: "0", name: "グラルの龍玉", pic: "33", energy: {min: "2000", max: "3000"}, atk: "18",…}
+max: 10
+num: "5"
+result: 1
+
+----
+// ただのかばん表示
+item_.php
+
+op:merc_equip
+append:0
+nTag:0  // 特殊表示の場合は 1
+
+--
+
+0: {pic: "7", name: "バレンタインチョコレート", stack: "1", type: "24", trade: "0", color: "4", lv: "1", sell: "1",…}
+1: {pic: "27", name: "ザンティカルコア", stack: "1", type: "4", trade: "0", color: "4", lv: "1", sell: "1",…}
+2: {pic: "7", name: "ぺろりポップ", stack: "1", type: "24", trade: "0", color: "白", lv: "1", sell: "1",…}
+3: {pic: "7", name: "乱心ピンクチョコケーキ", stack: "1", type: "24", trade: "0", color: "4", lv: "1", sell: "1000",…}
+4: {pic: "7", name: "ほみロイヤル", stack: "1", type: "24", trade: "0", color: "4", lv: "1", sell: "1000",…}
+5: {pic: "7", name: "ナニマロ", stack: "1", type: "24", trade: "0", color: "4", lv: "1", sell: "1000",…}
+6: {pic: "7", name: "4★魂珠", stack: "1", type: "26", trade: "0", color: "1", lv: "1", sell: "400",…}
+7: {pic: "7", name: "8★魂珠", stack: "1", type: "26", trade: "0", color: "4", lv: "1", sell: "800",…}
+8: {pic: "17", name: "7★魂珠の欠片", stack: "1", type: "5", trade: "0", color: "4", lv: "1", sell: "100",…}
+9: {pic: "1", name: "S級暴徒徽章", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+10: {pic: "1", name: "S級信念徽章", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+11: {pic: "3", name: "A級炎天勾玉", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
+12: {pic: "3", name: "S級命運勾玉", stack: "0", type: "3", trade: "1", color: "3", lv: "60", sell: "1650",…}
+13: {pic: "3", name: "S級山神勾玉", stack: "0", type: "3", trade: "1", color: "3", lv: "60", sell: "1650",…}
+14: {pic: "3", name: "A級狐神玉", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
+15: {pic: "3", name: "A級狐神玉", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
+16: {pic: "3", name: "A級狐神玉", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
+17: {pic: "3", name: "A級吸神宝飾", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
+18: {pic: "4", name: "A級ボルグアクス", stack: "0", type: "1", trade: "1", color: "4", lv: "60", sell: "1540",…}
+19: {pic: "3", name: "A級アグヴェスタ", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
+20: {pic: "19", name: "ディストピア", stack: "1", type: "8", trade: "0", color: "3", lv: "1", sell: "1000",…}
+21: {pic: "19", name: "赤玉", stack: "1", type: "8", trade: "0", color: "白", lv: "1", sell: "10",…}
+22: {pic: "27", name: "カスタボックス", stack: "1", type: "4", trade: "0", color: "4", lv: "1", sell: "1000",…}
+23: {pic: "7", name: "クージリュック", stack: "0", type: "7", trade: "0", color: "1", lv: "1", sell: "1",…}
+24: {pic: "7", name: "勲章", stack: "0", type: "7", trade: "0", color: "1", lv: "1", sell: "1",…}
+25: {pic: "7", name: "ふとももリボン(紫)", stack: "0", type: "7", trade: "1", color: "3", lv: "1", sell: "1",…}
+26: {pic: "19", name: "蒼藍星の原石", stack: "1", type: "8", trade: "0", color: "1", lv: "1", sell: "2400",…}
+27: {pic: "16", name: "アミルレイク(God)原石箱", stack: "1", type: "4", trade: "0", color: "3", lv: "1", sell: "1",…}
+28: {pic: "16", name: "ゴーズセント(God)原石箱", stack: "1", type: "4", trade: "0", color: "3", lv: "1", sell: "1",…}
+29: {pic: "16", name: "ベルサイド(God)徽章箱", stack: "1", type: "4", trade: "0", color: "3", lv: "1", sell: "1",…}
+30: {pic: "16", name: "シュタイン城(God)徽章箱", stack: "1", type: "4", trade: "0", color: "3", lv: "1", sell: "1",…}
+31: {pic: "16", name: "バールロック(God)勾玉箱", stack: "1", type: "4", trade: "0", color: "3", lv: "1", sell: "1",…}
+32: {pic: "23", name: "タクレット", stack: "1", type: "10", trade: "0", color: "白", lv: "1", sell: "1",…}
+33: {pic: "23", name: "シグレット", stack: "1", type: "10", trade: "0", color: "白", lv: "1", sell: "1",…}
+34: {pic: "24", name: "オルテラ", stack: "1", type: "10", trade: "0", color: "白", lv: "1", sell: "1",…}
+35: {pic: "24", name: "エルミナ", stack: "1", type: "10", trade: "0", color: "白", lv: "1", sell: "1",…}
+36: {pic: "25", name: "リーチェボックス", stack: "1", type: "10", trade: "0", color: "白", lv: "1", sell: "1",…}
+37: {pic: "18", name: "ファクター：8星オムニコフ", stack: "1", type: "11", trade: "0", color: "白", lv: "1",…}
+38: {pic: "14", name: "闘具箱", stack: "1", type: "4", trade: "0", color: "2", lv: "1", sell: "1",…}
+39: {pic: "13", name: "ロックシェード", stack: "1", type: "4", trade: "0", color: "1", lv: "1", sell: "1",…}
+40: {pic: "1", name: "S級活力神盾", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+41: {pic: "1", name: "S級活力独裁", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+42: {pic: "1", name: "S級活力暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+43: {pic: "1", name: "S級活力元帥", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+44: {pic: "1", name: "S級活力元帥", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+45: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+46: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+47: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+48: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+49: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+50: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+51: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+52: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+53: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+54: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+55: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+56: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
+57: {pic: "3", name: "S級守護継運", stack: "0", type: "3", trade: "1", color: "3", lv: "54", sell: "900",…}
+58: {pic: "1", name: "A級勇者神盾", stack: "0", type: "1", trade: "1", color: "4", lv: "60", sell: "1540",…}
+59: {pic: "1", name: "A級勇者信念", stack: "0", type: "1", trade: "1", color: "4", lv: "60", sell: "1540",…}
+60: {pic: "2", name: "A級勇者遊興", stack: "0", type: "2", trade: "1", color: "4", lv: "60", sell: "1540",…}
+61: {pic: "2", name: "A級勇者遊興", stack: "0", type: "2", trade: "1", color: "4", lv: "60", sell: "1540",…}
+62: {pic: "4", name: "赤瓢箪", stack: "0", type: "16", trade: "1", color: "1", lv: "30", sell: "2000",…}
+63: {pic: "4", name: "ヴェリアナウ", stack: "0", type: "16", trade: "1", color: "1", lv: "30", sell: "2000",…}
+64: {pic: "4", name: "ルヴェイラ", stack: "0", type: "16", trade: "1", color: "1", lv: "30", sell: "2000",…}
+65: {pic: "31", name: "アージュの龍玉", stack: "0", type: "22", trade: "1", color: "1", lv: "40", sell: "1000",…}
+66: {pic: "32", name: "ベリルの龍玉", stack: "0", type: "22", trade: "1", color: "1", lv: "40", sell: "1000",…}
+67: {pic: "33", name: "グラルの龍玉", stack: "0", type: "22", trade: "1", color: "1", lv: "40", sell: "1000",…}
+68: {pic: "32", name: "ベリルの龍鱗", stack: "0", type: "22", trade: "1", color: "2", lv: "50", sell: "2000",…}
+con_rein: 0
+max: 55
+mul_op: 1
+num: 69
+show_num: 69
+tags: [{tid: 0, name: "全部"}, {tid: 1, name: "裝備"}, {tid: 2, name: "宝箱/資源"}, {tid: 3, name: "好感度"},…]
+    0: {tid: 0, name: "全部"}
+    1: {tid: 1, name: "裝備"}
+    2: {tid: 2, name: "宝箱/資源"}
+    3: {tid: 3, name: "好感度"}
+    4: {tid: 5, name: "ファクター"}
+    5: {tid: 6, name: "デバイス"}
+    6: {tid: 7, name: "その他"}
+total: 69

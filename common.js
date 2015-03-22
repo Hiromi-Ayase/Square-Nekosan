@@ -9,6 +9,7 @@ COMMON.OP = {
     LOG: "log",
     BLOCK: "block",
     TRANS: "trans",
+    GIFT: "gift",
     RECRUIT: "recruit",
     SUSPEND: "suspend",
     END: "end",

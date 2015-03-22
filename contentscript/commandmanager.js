@@ -293,7 +293,7 @@ var cfgManager = {};
         this.battleConfig = battleConfig;
         this.handler = handler;
 
-        this.cmd = new Command("CmdAllBossBlock", function () {});
+        this.cmd = new Command("CmdAllBossBlock");
         this.setNextTask();
         cmdList.push(this);
     };
@@ -522,6 +522,37 @@ var cfgManager = {};
             cmd.time = nextTime;
             cmd.func = task.SetAllBattleBuff;
             cmd.param = this.techList;
+        }
+    };
+
+    /* Command : 指定されたアイテムを所持していたら側近へプレゼントする */
+    cmdManager.CmdGiftToMaid = function (giftConfig, handler) {
+        this.giftConfig = giftConfig;
+        //this.counterStr = "";
+
+        this.cmd = new Command("CmdGiftToMaid", handler);
+        this.setNextTask();
+        cmdList.push(this);
+    };
+
+    cmdManager.CmdGiftToMaid.prototype.setNextTask = function () {
+        var now = new Date();
+        var cmd = this.cmd;
+
+        if (cmd.state === COMMON.CMD_STATUS.END) {
+            return;
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
+            cmd.state = COMMON.CMD_STATUS.END;
+            return;
+        }
+
+        if (cmd.func === null || cmd.func === task.GiftToMaid) {
+            if (cmd.result) { this.giftConfig = cmd.result; }
+            cmd.reset();
+
+            if (this.giftConfig.time) { cmd.time = this.giftConfig.time; }
+            cmd.func = task.GiftToMaid;
+            cmd.param  = this.giftConfig;
         }
     };
 

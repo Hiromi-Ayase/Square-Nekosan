@@ -29,6 +29,7 @@ console.log = function (message) {
     var mapBattle = null;
     var allDystopia = null;
     var dystopia = null;
+    var gift = null;
     var recruit = null;
     var loginBonus = null;
     var trans = false;
@@ -57,6 +58,13 @@ console.log = function (message) {
             dystopia: dystopia !== null ? {
                 statusText: "実行中！",
                 state: dystopia.cmd.state
+            } : {
+                state: COMMON.CMD_STATUS.END,
+                statusText: "いぐー"
+            },
+            gift: gift !== null ? {
+                statusText: "実行中！",
+                state: gift.cmd.state
             } : {
                 state: COMMON.CMD_STATUS.END,
                 statusText: "いぐー"
@@ -116,6 +124,7 @@ console.log = function (message) {
 
     chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
         var battleConfig = {};
+        var giftConfig = {};
         var recruitConfig = {};
 
         if (request.op === COMMON.OP.MAP) {
@@ -217,6 +226,18 @@ console.log = function (message) {
                     blockBattle.cmd.state = COMMON.CMD_STATUS.END;
                     blockBattle = null;
                 }
+            }
+
+        } else if (request.op === COMMON.OP.GIFT) {
+            if (request.ctrl === COMMON.OP_CTRL.RUN) {
+                giftConfig.maidName = request.args.maid;
+                giftConfig.itemList = request.args.itemList.split(",").map(function (s) { return s.trim(); });
+                gift = new cmdManager.CmdGiftToMaid(giftConfig, function () {
+                    gift = null;
+                });
+            } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
+                gift.cmd.state = COMMON.CMD_STATUS.END;
+                gift = null;
             }
 
         } else if (request.op === COMMON.OP.RECRUIT) {

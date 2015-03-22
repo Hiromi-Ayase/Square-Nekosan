@@ -165,6 +165,35 @@
         ]
     },
     {
+        "name": "gift",
+        "title": "ギフト",
+        "form": [
+            {
+                "type": "select",
+                "name": "maid",
+                "title": "側近",
+                "column": 12,
+                "values": [
+                    { "name": "フリューネ", "value": "フリューネ" },
+                    { "name": "キサナ", "value": "キサナ" },
+                    { "name": "アリシア", "value": "アリシア" },
+                    { "name": "リエル", "value": "リエル" }
+                ]
+            },
+            {
+                "type": "text",
+                "name": "itemList",
+                "title": "アイテムリスト",
+                "init": "",
+                "column": 12
+            }
+        ],
+        "ctrl": [
+            { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+            { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+        ]
+    },
+    {
         "name": "recruit",
         "title": "召喚",
         "form": [

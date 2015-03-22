@@ -1797,6 +1797,146 @@ var task = {};
     };
 */
 
+    /* 側近へプレゼント */
+    task.GiftToMaid = function (giftConfig) {
+        console.log("[Enter]giveItemsToMaid");
+        var defer = $.Deferred().resolve();
+
+        defer = defer.then(function () {
+            var d = $.Deferred();
+            $.ajax({
+                url: "dialog_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({
+                    op: "md_page"
+                }),
+                success: function (res) {
+                    if (res.gifttime) {
+                        giftConfig.time = new Date(res.gifttime.duedate);
+                        d.resolve();
+                        return;
+                    }
+                    $.each(res.md_merc, function () {
+                        if (this.name === giftConfig.maidName) {
+                            giftConfig.maidid = this.id;
+                            return false;
+                        }
+                    });
+                    if (!giftConfig.maidid) {
+                        log("指定された名前の側近が見つかりません");
+                        d.reject();
+                    }
+                    d.resolve(giftConfig);
+                },
+                error: function (res) {
+                    log("側近情報取得に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        }).then(function (giftConfig) {
+            var d = $.Deferred();
+            if (!giftConfig) {
+                return d.resolve().promise();
+            }
+
+            $.ajax({
+                url: "mdmerc_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({
+                    op: "gift_list",
+                    mid: giftConfig.maidid,
+                    itype: 0
+                }),
+                success: function (res) {
+                    if (res.result === 1) {
+                        giftConfig.giftid = null;
+                        giftConfig.gifttype = null;
+                        $.each(giftConfig.itemList, function (i, giftItem) {
+                            $.each(res.item, function (type, typeList) {
+                                $.each(typeList, function (index, item) {
+                                    if (item.name === giftItem && item.ilock === "0") {
+                                        giftConfig.giftid = item.id;
+                                        giftConfig.gifttype = type;
+                                        log(item.name + "を" + giftConfig.maidName + "へプレゼントします");
+                                        return false;
+                                    }
+                                });
+                                if (giftConfig.giftid) { return false; }
+                            });
+                            if (giftConfig.giftid) { return false; }
+                        });
+                        if (giftConfig.giftid) {
+                            d.resolve(giftConfig);
+                        } else {
+                            console.log("プレゼント対象のアイテム所持なし");
+                            d.reslve();     // プレゼント対象のアイテムなし
+                        }
+                    } else {
+                        log("プレゼントリスト取得に失敗");
+                        d.reject();
+                    }
+                },
+                error: function (res) {
+                    log("側近情報取得に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        }).then(function (giftConfig) {
+            var d = $.Deferred();
+            if (!giftConfig) {
+                return d.resolve().promise();
+            }
+
+            $.ajax({
+                url: "mdmerc_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({
+                    op: "item_give",
+                    mid: giftConfig.maidid,
+                    item: giftConfig.giftid,
+                    itype: giftConfig.gifttype
+                }),
+                success: function (res) {
+                    if (res.result === 1) {
+                        var str = "アイアスの羽:" + res.add;
+                        if (res.addgp) {
+                            str += ", 好感度上昇:" + res.addgp;
+                        }
+                        log(str);
+                        giftConfig.time = new Date(res.gifttime.duedate);
+                        d.resolve(giftConfig);
+                    } else {
+                        log("プレゼントに失敗");
+                        d.reject();
+                    }
+                },
+                error: function (res) {
+                    log("プレゼント情報取得に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        }).then(function (giftConfig) {
+            return $.Deferred().resolve(giftConfig);
+        }, function () {
+            return $.Deferred().reject();
+        });
+
+        return defer.promise();
+    };
+
+
     /* ログインボーナスを獲得 */
     task.getLoginBonus = function () {
         console.log("[Enter]getLoginBonus");
