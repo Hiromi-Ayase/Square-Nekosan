@@ -177,17 +177,28 @@ console.log = function (message) {
             } else if (request.ctrl === COMMON.OP_CTRL.RUN) {
                 if (blockBattle !== null) {
                     blockBattle.cmd.state = COMMON.CMD_STATUS.RUN;
+                } else if (request.args.blockid === "" && request.args.map === 0) {
+                    battleConfig.time = request.args.time;
+                    blockBattle = new cmdManager.CmdAllBossBlock(battleConfig, function () {
+                        blockBattle = null;
+                    });
+                    if (!battleBuff) {
+                        battleBuff = new cmdManager.CmdBattleBuff(function () {
+                            battleBuff = null;
+                        });
+                    }
                 } else {
                     var blockid;
-                    if (request.args.blockid === undefined || request.args.blockid === "") {
+                    if (request.args.blockid === "") {
                         blockid = request.args.map;
                     } else {
                         blockid = request.args.blockid;
                     }
+                    blockid = blockid.split(",").map(parseFloat);
                     var blockidList = [];
                     var i;
                     for (i = 0; i < request.args.block_count; i++) {
-                        blockidList.push(blockid);
+                        blockidList.push.apply(blockidList, blockid);
                     }
                     battleConfig = {};
                     battleConfig.blockidList = blockidList;

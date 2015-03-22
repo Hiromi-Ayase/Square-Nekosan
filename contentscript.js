@@ -959,7 +959,7 @@ var task = {};
                         }),
                         success: function (res) {
                             if (res.result === 1) {
-                                log("サドン報酬：" + this);
+                                log("サドン報酬：");
                                 if (res.reward.discover) {
                                     log("  [遭遇報酬]");
                                     $.each(res.reward.discover, function () {
@@ -1609,7 +1609,17 @@ var task = {};
                     if (parseInt(res.remain[i].id, 10) === parseInt(nextBlockid, 10)) {
                         if (res.remain[i].cable === 0) {
                             log(res.remain[i].name + "[" + res.remain[i].id + "]に行くことができません");
-                            defer.reject();
+                            var nextIndex = res.level_set.indexOf(res.target_level);
+                            if (nextIndex < 0) {
+                                log("次のマスの決定に失敗");
+                                defer.reject();
+                            } else {
+                                log(res.remain[nextIndex].name + "[" + res.target_level + "]に行きます");
+                                defer.resolve({
+                                    blockid: res.target_level,
+                                    isEnd: isEnd
+                                });
+                            }
                         } else {
                             defer.resolve({
                                 blockid: nextBlockid,
@@ -1630,6 +1640,66 @@ var task = {};
             }
         });
 
+        return defer.promise();
+    };
+
+    /*** 全マップの攻略済みの最高難易度のボスマスのIDを取得 ***/
+    // mapid, blockid, isFirst(マップの最初のマスが取得対象か)
+    // blockidとisFirstを同時に指定しないこと（blockidを優先）
+    task.GetAllBossBlockid = function () {
+        console.log("[[TaskStart]]GetAllBossBlockid");
+        var defer = $.Deferred();
+
+        var blockidList = [];
+        var maxRank = 3;
+        var i = 0;
+
+        //$.each(NormalMapList, function () {
+        var getAllBossBlockidInner = function (mapid) {
+            $.ajax({
+                url: "remain_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({
+                    op: "remain_rank_data",
+                    rrank: mapid
+                }),
+                success: function (res) {
+                    if (!res.remain) {
+                        log("マップが存在しません（きっと）");
+                        defer.reject();
+                        return;
+                    }
+
+                    var bossBlockid = parseInt(res.level_set[res.level_set.length - 1], 10);
+                    if (res.target_level - 1 !== bossBlockid) {
+                        if (mapid % 1000 > 1) {
+                            getAllBossBlockidInner(mapid - 1);
+                            return;
+                        } else {
+                            if (++i < NormalMapList.length) {
+                                getAllBossBlockidInner(NormalMapList[i] + maxRank);
+                                return;
+                            }
+                        }
+                    } else {
+                        blockidList.push(bossBlockid);
+                        if (++i < NormalMapList.length) {
+                            getAllBossBlockidInner(NormalMapList[i] + maxRank);
+                            return;
+                        }
+                    }
+                    defer.resolve(blockidList);
+                },
+                error: function () {
+                    log("マップ情報取得に失敗");
+                    defer.reject();
+                }
+            });
+        };
+
+        getAllBossBlockidInner(NormalMapList[i] + maxRank);
         return defer.promise();
     };
 

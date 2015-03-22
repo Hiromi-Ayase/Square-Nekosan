@@ -286,6 +286,42 @@ var cfgManager = {};
         }
     };
 
+    /* Command : 全マップの攻略済みの最高難易度のボスのマスで手動戦闘する */
+    cmdManager.CmdAllBossBlock = function (battleConfig, handler) {
+        this.counterStr = "ボスのマスID取得中";
+
+        this.battleConfig = battleConfig;
+        this.handler = handler;
+
+        this.cmd = new Command("CmdAllBossBlock", function () {});
+        this.setNextTask();
+        cmdList.push(this);
+    };
+
+    cmdManager.CmdAllBossBlock.prototype.setNextTask = function () {
+        var now = new Date();
+        var cmd = this.cmd;
+
+        if (cmd.state === COMMON.CMD_STATUS.END) {
+            return;
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
+            cmd.state = COMMON.CMD_STATUS.END;
+            return;
+        }
+
+        if (cmd.func === null || cmd.func === task.Battle) {
+            cmd.reset();
+            cmd.func = task.GetAllBossBlockid;
+        } else if (cmd.func === task.GetAllBossBlockid) {
+            console.log("Boss blockid = " + cmd.result);
+            this.battleConfig.blockidList = cmd.result;
+            var c = new cmdManager.CmdBlockBattle(this.battleConfig, this.handler);
+            this.counterStr = c.counterStr;
+            this.cmd = c.cmd;
+            return null;
+        }
+    };
+
     /* Command : 入場可能な魔界戦マップすべてで手動戦闘する（攻略済みがあってもOK） */
     cmdManager.CmdAllDystopia = function (battleConfig, handler) {
         this.mapno = 0;     // DystopiaMapListのうち何番目のマップか
@@ -680,8 +716,8 @@ var cfgManager = {};
         if (cmd.func === null) {
             cmd.reset();
 
-            cmd.func = task.TransBattlePrepare;
-            cmd.param = { current : 98000, limit: 100000 };
+            cmd.func = task.GetAllBossBlockid;
+            //cmd.param = { current : 98000, limit: 100000 };
 
             //var $iframe = $('#main');
             //var ifrmDoc = $iframe[0].contentWindow.document;
@@ -694,6 +730,7 @@ var cfgManager = {};
             cmd.param = techList;*/
 
         } else {
+            console.log(cmd.result);
             cmd.state = COMMON.CMD_STATUS.END;
         }
     };
