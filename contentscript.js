@@ -1582,31 +1582,34 @@ var task = {};
                     return;
                 }
 
-                var prevBlockid = param.blockid;
+                var prevBlockid = parseInt(param.blockid, 10);
                 var nextBlockid;
-                var lastBlockid = res.remain[res.remain.length - 1].id;
+                var firstBlockid = parseInt(res.remain[0].id, 10);
+                var lastBlockid = parseInt(res.remain[res.remain.length - 1].id, 10);
+                var targetBlockid = parseInt(res.target_level, 10);
 
                 if (param.blockid) {
                     nextBlockid = ++param.blockid;
                     if (nextBlockid > lastBlockid) {
-                        nextBlockid = res.remain[0].id;
+                        nextBlockid = firstBlockid;
                     }
                 } else if (param.isFirst) {
-                    nextBlockid = res.remain[0].id;
+                    nextBlockid = firstBlockid;
                     if (res.remain[0].cable === 0) {
-                        nextBlockid = res.target_level;
+                        nextBlockid = targetBlockid;
                         // nextBlockidがマップ外かどうかのチェックはしない（最初のマスがセットできない状態なので）
                     }
                 } else if (!param.isFirst) {
-                    nextBlockid = res.target_level;
+                    nextBlockid = targetBlockid;
                     if (nextBlockid > lastBlockid) {
-                        nextBlockid = res.remain[0].id;
+                        nextBlockid = firstBlockid;
                     }
                 }
-
+                nextBlockid = parseInt(nextBlockid, 10);
+                // nextBlockidが行けるマスか確認
                 var i;
                 for (i = 0; i < res.remain.length; i++) {
-                    if (parseInt(res.remain[i].id, 10) === parseInt(nextBlockid, 10)) {
+                    if (parseInt(res.remain[i].id, 10) === nextBlockid) {
                         if (res.remain[i].cable === 0) {
                             log(res.remain[i].name + "[" + res.remain[i].id + "]に行くことができません");
                             var nextIndex = res.level_set.indexOf(res.target_level);
@@ -1616,7 +1619,7 @@ var task = {};
                                 return;
                             } else {
                                 log(res.remain[nextIndex].name + "[" + res.target_level + "]に行きます");
-                                nextBlockid = res.target_level;
+                                nextBlockid = targetBlockid;
                             }
                         }
                         break;
@@ -1629,7 +1632,7 @@ var task = {};
                 }
                 defer.resolve({
                     blockid: nextBlockid,
-                    isEnd: (prevBlockid === lastBlockid && nextBlockid === res.remain[0].id)
+                    isEnd: (prevBlockid === lastBlockid && nextBlockid === firstBlockid)
                 });
             },
             error: function () {
