@@ -179,7 +179,11 @@
                 } catch (e2) {
                     return;
                 }
-                $scope.saveSetting();
+                chrome.runtime.sendMessage({
+                    "op": COMMON.OP.SET,
+                    "storage": jsonString
+                });
+                cmSetting.setValue(jsonString);
                 $scope.settingsStatus = "Saved!";
             } else if (mode === "restore") {
                 cmSetting.setValue(JSON.stringify(storage, null, 4));
