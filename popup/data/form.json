@@ -1,4 +1,5 @@
-[
+{
+    "cmd": [
     {
         "name": "map",
         "title": "マップ",
@@ -130,9 +131,9 @@
                 "title": "マップ名",
                 "column": 12,
                 "values": [
-                    { "name": "全ボス", "value": 0 },
+                    { "name": "全ボス", "value": "0" },
                     { "name": "森,デガ,桜,ゴーズのN,H,Mボス", "value": "1025,1050,1075,2025,2050,2075,3025,3050,3075,4025,4050,4075" },
-                    { "name": "フィグルの森の最初", "value": 1001 }
+                    { "name": "フィグルの森の最初", "value": "1001" }
                 ]
             },
             {
@@ -201,21 +202,21 @@
                 "type": "number",
                 "name": "rarity",
                 "title": "下限レア度☆",
-                "init": "7",
+                "init": 7,
                 "column": 4
             },
             {
                 "type": "number",
                 "name": "maxnum",
                 "title": "必要数",
-                "init": "",
+                "init": 0,
                 "column": 4
             },
             {
                 "type": "number",
                 "name": "count",
                 "title": "召喚試行回数",
-                "init": "",
+                "init": 0,
                 "column": 4
             }
         ],
@@ -240,46 +241,51 @@
             { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
             { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
         ]
-    },
+    }
+    ],
+    "flag": [
     {
         "name": "trans",
         "title": "変換",
+        "init": true,
         "form": [
             {
                 "type": "number",
                 "name": "ratio",
                 "title": "Resource Translation Ratio(%)",
-                "init": 70,
+                "init": 10,
                 "column": 6
             },
             {
                 "type": "number",
                 "name": "threshold",
                 "title": "Resource Translation Threshold(%)",
-                "init": 10,
+                "init": 70,
                 "column": 6
+            },
+            {
+                "type": "checkbox",
+                "name": "dance",
+                "title": "踊る",
+                "init": true,
+                "column": 12
             }
-        ],
-        "ctrl": [
-            { "name": "on", "title": "ON", "class": "btn-primary" },
-            { "name": "off", "title": "OFF", "class": "btn-danger" }
         ]
     },
     {
-        "name": "option",
-        "title": "オプション",
+        "name": "sudden",
+        "title": "サドン",
+        "init": true,
         "form": [
             {
-                "type": "flag",
-                "name": "trans",
-                "title": "魔晶石を変換する",
-                "column": 6,
-                "init": true
+                "type": "number",
+                "name": "hp",
+                "title": "攻撃対象サドン 下限HP",
+                "init": 50000,
+                "column": 6
             }
-        ],
-        "ctrl": [
-            { "name": "on", "title": "ON", "class": "btn-primary" },
-            { "name": "off", "title": "OFF", "class": "btn-danger" }
         ]
     }
-]
+    ]
+}
+

@@ -32,9 +32,12 @@ console.log = function (message) {
     var gift = null;
     var recruit = null;
     var loginBonus = null;
-    var trans = false;
-    var option = false;
     var test = null;
+
+    /* Flag */
+    var trans = false;
+    var sudden = false;
+    var option = false;
 
     var setting = null;
     var data = null;
@@ -77,6 +80,13 @@ console.log = function (message) {
                 statusText: "いぐー"
             },
             trans: trans !== false ? {
+                statusText: "実行中！",
+                state: COMMON.CMD_STATUS.ON
+            } : {
+                state: COMMON.CMD_STATUS.OFF,
+                statusText: "いぐー"
+            },
+            sudden: sudden !== false ? {
                 statusText: "実行中！",
                 state: COMMON.CMD_STATUS.ON
             } : {
@@ -186,7 +196,7 @@ console.log = function (message) {
             } else if (request.ctrl === COMMON.OP_CTRL.RUN) {
                 if (blockBattle !== null) {
                     blockBattle.cmd.state = COMMON.CMD_STATUS.RUN;
-                } else if (request.args.blockid === "" && request.args.map === 0) {
+                } else if (request.args.blockid === "" && request.args.map === "0") {
                     battleConfig.time = request.args.time;
                     blockBattle = new cmdManager.CmdAllBossBlock(battleConfig, function () {
                         blockBattle = null;
@@ -203,7 +213,7 @@ console.log = function (message) {
                     } else {
                         blockid = request.args.blockid;
                     }
-                    blockid = blockid.split(",").map(parseFloat);
+                    blockid = blockid.toString().split(",").map(parseFloat);
                     var blockidList = [];
                     var i;
                     for (i = 0; i < request.args.block_count; i++) {
@@ -255,17 +265,28 @@ console.log = function (message) {
             }
 
         } else if (request.op === COMMON.OP.TRANS) {
-            if (request.ctrl === COMMON.OP_CTRL.ON) {
-                log("変換ON");
-                trans = true;
-                var transConfig = {};
-                transConfig.ratio = request.args.ratio;
-                transConfig.threshold = request.args.threshold;
-                cfgManager.Trans(true, transConfig);
-            } else if (request.ctrl === COMMON.OP_CTRL.OFF) {
+            if (request.ctrl === COMMON.OP_CTRL.FLAG) {
+                if (!trans) {
+                    log("変換ON");
+                } else {
+                    log("変換OFF");
+                }
+                trans = !trans;
+                if (request.args.ratio < 0 || request.args.ratio > 100 ||
+                        request.args.threshold < 0 || request.args.threshold > 100) {
+                    log("変換の設定値がおかしいので確認しろばか");
+                    trans = false;
+                } else {
+                    COMMON.TRANS.ENABLE = trans;
+                    COMMON.TRANS.RATIO = request.args.ratio * 0.01;
+                    COMMON.TRANS.THRESHOLD = request.args.threshold * 0.01;
+                }
+                sendResponse(trans);
+            } else if (request.ctrl === COMMON.OP_CTRL.CHANGE && trans === true) {
                 log("変換OFF");
                 trans = false;
-                cfgManager.Trans(false, null);
+                COMMON.TRANS.ENABLE = trans;
+                sendResponse(trans);
             }
 
         } else if (request.op === COMMON.OP.TEST) {
@@ -280,6 +301,10 @@ console.log = function (message) {
 
         } else if (request.op === COMMON.OP.CONTENTS_DATA) {
             sendResponse(buildContentsData());
+
+        } else if (request.op === COMMON.OP.INIT) {
+            trans = request.args[COMMON.OP.TRANS].enable;
+            sudden = request.args[COMMON.OP.SUDDEN].enable;
         }
     });
 }());

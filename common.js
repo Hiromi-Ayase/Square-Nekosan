@@ -9,11 +9,11 @@ COMMON.OP = {
     LOG: "log",
     BLOCK: "block",
     TRANS: "trans",
+    SUDDEN: "sudden",
     GIFT: "gift",
     RECRUIT: "recruit",
-    SUSPEND: "suspend",
-    END: "end",
     CONTENTS_DATA: "contents_data",
+    INIT: "init",
     TEST: "test"
 };
 
@@ -21,8 +21,8 @@ COMMON.CMD_STATUS = {
     RUN: "RUN",
     PAUSE: "PAUSE",
     END: "END",
-    ON: "on",
-    OFF: "off"
+    ON: "ON",
+    OFF: "OFF"
 };
 
 COMMON.CMD_RESULT = {
@@ -35,7 +35,9 @@ COMMON.OP_CTRL = {
     PAUSE: "pause",
     ABORT: "abort",
     ON: "on",
-    OFF: "off"
+    OFF: "off",
+    CHANGE: "change",
+    FLAG: "flag"
 };
 
 COMMON.STORAGE = "storage";
@@ -45,6 +47,12 @@ COMMON.INTERVAL = {
 };
 COMMON.LOG = {
     RELOAD: 100
+};
+
+COMMON.TRANS = {
+    ENABLE: false,
+    RATIO: 0,
+    THRESHOLD: 100
 };
 
 COMMON.DATESTR = function (date) {
@@ -82,5 +90,3 @@ COMMON.DATESTR = function (date) {
 
     return y + "/" + m + "/" + d + " " + h + ":" + n + ":" + s + "." + l;
 };
-
-COMMON.HELLWAIT = 5;    // minutes

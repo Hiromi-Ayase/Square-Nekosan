@@ -20,9 +20,9 @@ var g_suddenList = [];  // {id : this.id, mine : 1}    mine=1なら自分が遭�
 
 /* --- 蒼変換 --- */
 var TRANS = {};
-TRANS.ENABLE = true;
-TRANS.RATIO = 0.1;
-TRANS.THRESHOLD = 0.7;
+//TRANS.ENABLE = true;
+//TRANS.RATIO = 0.1;
+//TRANS.THRESHOLD = 0.7;
 TRANS.TOWNID = null;
 
 /* --- マップID --- */
@@ -662,10 +662,10 @@ var task = {};
         console.log("[Enter]transBattlePrepare");
         var defer = $.Deferred().resolve();
 
-        if (!TRANS.ENABLE || stone.current < stone.limit * TRANS.THRESHOLD) {
+        if (!COMMON.TRANS.ENABLE || stone.current < stone.limit * COMMON.TRANS.THRESHOLD) {
             return defer.promise();
         }
-        var trans_stone = parseInt(stone.limit * TRANS.RATIO, 10);
+        var trans_stone = parseInt(stone.limit * COMMON.TRANS.RATIO, 10);
 
         defer = defer.then(function () {
             var d = $.Deferred();
@@ -734,7 +734,7 @@ var task = {};
         console.log("[[TaskStart]]TransduceStone");
         var defer = $.Deferred().resolve();
 
-        if (TRANS.ENABLE && current_stone > limit_stone * TRANS.THRESHOLD) {
+        if (COMMON.TRANS.ENABLE && current_stone > limit_stone * COMMON.TRANS.THRESHOLD) {
             defer = defer.then(function () {
                 var defer2 = $.Deferred();
                 $.ajax({
@@ -754,7 +754,7 @@ var task = {};
 
             }).then(function () {
                 var defer2 = $.Deferred();
-                var trans_stone = parseInt(limit_stone * TRANS.RATIO, 10);
+                var trans_stone = parseInt(limit_stone * COMMON.TRANS.RATIO, 10);
                 $.ajax({
                     url: "flash_trans_xml_.php?town=" + TRANS.TOWNID,
                     type: "POST",
@@ -1576,7 +1576,7 @@ var task = {};
                 rrank: param.mapid
             }),
             success: function (res) {
-                if (!res.remain) {
+                if (!res.remain || res.remain.length === 0) {
                     log("マップが存在しません（きっと）");
                     defer.reject();
                     return;
