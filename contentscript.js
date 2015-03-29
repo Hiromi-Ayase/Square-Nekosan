@@ -904,7 +904,7 @@ var task = {};
         console.log("[Enter]getSuddenList");
         var defer = $.Deferred();
 
-        if (!(g_isBattleSudden && IS_CHECK_SUDDEN)) {
+        if (!(g_isBattleSudden && COMMON.SUDDEN.ENABLE)) {
             defer.resolve();
             return;
         }
@@ -937,6 +937,8 @@ var task = {};
                         clearCount++;
                     } else if (this.hp <= 0) {
                         console.log(this.name + "(id=" + this.id + ") : HPが0です");
+                    } else if (this.max_hp <= COMMON.SUDDEN.MINHP) {
+                        console.log(this.name + "(id=" + this.id + ") : 最大HPが" + COMMON.SUDDEN.MINHP + "以下なので攻撃対象ではありません");
                     } else if (this.discoverer === myname) {
                         g_suddenList.push({id : this.id, mine : 1});
                         console.log(this.name + "(id=" + this.id + ") : 遭遇者が自分なので攻撃対象です");

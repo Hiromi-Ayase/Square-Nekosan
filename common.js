@@ -55,6 +55,11 @@ COMMON.TRANS = {
     THRESHOLD: 100
 };
 
+COMMON.SUDDEN = {
+    ENABLE: false,
+    MINHP: 1000000
+};
+
 COMMON.DATESTR = function (date) {
     'use strict';
     if (date === undefined) {

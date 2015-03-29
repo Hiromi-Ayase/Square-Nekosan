@@ -37,7 +37,6 @@ console.log = function (message) {
     /* Flag */
     var trans = false;
     var sudden = false;
-    var option = false;
 
     var setting = null;
     var data = null;
@@ -79,33 +78,22 @@ console.log = function (message) {
                 state: COMMON.CMD_STATUS.END,
                 statusText: "いぐー"
             },
-            trans: trans !== false ? {
-                statusText: "実行中！",
-                state: COMMON.CMD_STATUS.ON
-            } : {
-                state: COMMON.CMD_STATUS.OFF,
-                statusText: "いぐー"
-            },
-            sudden: sudden !== false ? {
-                statusText: "実行中！",
-                state: COMMON.CMD_STATUS.ON
-            } : {
-                state: COMMON.CMD_STATUS.OFF,
-                statusText: "いぐー"
-            },
-            option: option !== false ? {
-                statusText: "実行中！",
-                state: COMMON.CMD_STATUS.ON
-            } : {
-                state: COMMON.CMD_STATUS.OFF,
-                statusText: "いぐー"
-            },
             test: test !== null ? {
                 statusText: "実行中！",
                 state: test.cmd.state
             } : {
                 state: COMMON.CMD_STATUS.END,
                 statusText: "いぐー"
+            },
+            trans: trans !== false ? {
+                state: COMMON.CMD_STATUS.ON
+            } : {
+                state: COMMON.CMD_STATUS.OFF
+            },
+            sudden: sudden !== false ? {
+                state: COMMON.CMD_STATUS.ON
+            } : {
+                state: COMMON.CMD_STATUS.OFF
             },
             log: logBuffer.join("\n"),
             loginBonus: loginBonus === null ? "" : loginBonus.statusMsg
@@ -117,7 +105,7 @@ console.log = function (message) {
             loginBonus = new cmdManager.CmdLoginBonus();
         }, 5000);
 
-        cfgManager.InitTrans();
+        //cfgManager.InitTrans();
         var camp = new cmdManager.CmdCamp(function () {
             camp = null;
         });
@@ -264,31 +252,6 @@ console.log = function (message) {
                 recruit = null;
             }
 
-        } else if (request.op === COMMON.OP.TRANS) {
-            if (request.ctrl === COMMON.OP_CTRL.FLAG) {
-                if (!trans) {
-                    log("変換ON");
-                } else {
-                    log("変換OFF");
-                }
-                trans = !trans;
-                if (request.args.ratio < 0 || request.args.ratio > 100 ||
-                        request.args.threshold < 0 || request.args.threshold > 100) {
-                    log("変換の設定値がおかしいので確認しろばか");
-                    trans = false;
-                } else {
-                    COMMON.TRANS.ENABLE = trans;
-                    COMMON.TRANS.RATIO = request.args.ratio * 0.01;
-                    COMMON.TRANS.THRESHOLD = request.args.threshold * 0.01;
-                }
-                sendResponse(trans);
-            } else if (request.ctrl === COMMON.OP_CTRL.CHANGE && trans === true) {
-                log("変換OFF");
-                trans = false;
-                COMMON.TRANS.ENABLE = trans;
-                sendResponse(trans);
-            }
-
         } else if (request.op === COMMON.OP.TEST) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
                 test = new cmdManager.CmdTest(request.args.testData, function () {
@@ -297,6 +260,54 @@ console.log = function (message) {
             } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
                 test.cmd.state = COMMON.CMD_STATUS.END;
                 test = null;
+            }
+
+        } else if (request.op === COMMON.OP.TRANS) {
+            if (request.ctrl === COMMON.OP_CTRL.FLAG) {
+                trans = !trans;
+                if (request.args.ratio < 0 || request.args.ratio > 100 ||
+                        request.args.threshold < 0 || request.args.threshold > 100) {
+                    log("変換の設定値がおかしいので確認しろばか");
+                    trans = false;
+                } else {
+                    COMMON.TRANS.RATIO = request.args.ratio * 0.01;
+                    COMMON.TRANS.THRESHOLD = request.args.threshold * 0.01;
+                }
+                COMMON.TRANS.ENABLE = trans;
+                sendResponse(trans);
+                if (trans) {
+                    log("[Flag]変換ON");
+                } else {
+                    log("[Flag]変換OFF");
+                }
+            } else if (request.ctrl === COMMON.OP_CTRL.CHANGE && trans === true) {
+                log("[Flag]変換OFF");
+                trans = false;
+                COMMON.TRANS.ENABLE = trans;
+                sendResponse(trans);
+            }
+
+        } else if (request.op === COMMON.OP.SUDDEN) {
+            if (request.ctrl === COMMON.OP_CTRL.FLAG) {
+                sudden = !sudden;
+                if (!request.args.minhp) {
+                    log("サドンの設定値がおかしいので確認しろばか");
+                    sudden = false;
+                } else {
+                    COMMON.SUDDEN.MINHP = request.args.minhp;
+                }
+                COMMON.SUDDEN.ENABLE = sudden;
+                sendResponse(sudden);
+                if (sudden) {
+                    log("[Flag]サドンON");
+                } else {
+                    log("[Flag]サドンOFF");
+                }
+            } else if (request.ctrl === COMMON.OP_CTRL.CHANGE && sudden === true) {
+                log("[Flag]サドンOFF");
+                sudden = false;
+                COMMON.SUDDEN.ENABLE = sudden;
+                sendResponse(sudden);
             }
 
         } else if (request.op === COMMON.OP.CONTENTS_DATA) {

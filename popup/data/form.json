@@ -265,8 +265,8 @@
             },
             {
                 "type": "checkbox",
-                "name": "dance",
-                "title": "踊る",
+                "name": "step",
+                "title": "ふみふみ",
                 "init": true,
                 "column": 12
             }
@@ -279,7 +279,7 @@
         "form": [
             {
                 "type": "number",
-                "name": "hp",
+                "name": "minhp",
                 "title": "攻撃対象サドン 下限HP",
                 "init": 50000,
                 "column": 6
