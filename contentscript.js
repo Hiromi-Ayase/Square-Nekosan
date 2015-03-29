@@ -13,7 +13,7 @@ var g_lvupCharaId = 0;
 var g_lvupCharaList = [];
 
 /* --- サドンボス --- */
-var IS_CHECK_SUDDEN = 1; // 戦闘終了時にサドンボスをチェックするか
+//var IS_CHECK_SUDDEN = 1; // 戦闘終了時にサドンボスをチェックするか
 var IS_BEAT_SUDDEN = 1; // 自分が遭遇したサドンボスを30％以上削るか（キャラに余裕がある場合使用推奨）
 var g_isBattleSudden = 0; // 戦闘終了後にサドンボスが出たか
 var g_suddenList = [];  // {id : this.id, mine : 1}    mine=1なら自分が遭遇者
@@ -1189,7 +1189,7 @@ var task = {};
         console.log("[Enter]suddenAllAttack");
         var defer = $.Deferred();
 
-        if (!(g_isBattleSudden && IS_CHECK_SUDDEN)) {
+        if (!(g_isBattleSudden && COMMON.SUDDEN.ENABLE)) {
             defer.resolve();
             return;
         }
