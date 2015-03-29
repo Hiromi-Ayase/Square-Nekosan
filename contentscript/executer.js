@@ -315,7 +315,24 @@ console.log = function (message) {
 
         } else if (request.op === COMMON.OP.INIT) {
             trans = request.args[COMMON.OP.TRANS].enable;
+            if (request.args[COMMON.OP.TRANS].ratio < 0 || request.args[COMMON.OP.TRANS].ratio > 100 ||
+                    request.args[COMMON.OP.TRANS].threshold < 0 || request.args[COMMON.OP.TRANS].threshold > 100) {
+                log("変換の設定値がおかしいので確認しろばか");
+                trans = false;
+            } else {
+                COMMON.TRANS.RATIO = request.args[COMMON.OP.TRANS].ratio * 0.01;
+                COMMON.TRANS.THRESHOLD = request.args[COMMON.OP.TRANS].threshold * 0.01;
+            }
+            COMMON.TRANS.ENABLE = trans;
+
             sudden = request.args[COMMON.OP.SUDDEN].enable;
+            if (!request.args[COMMON.OP.SUDDEN].minhp) {
+                log("サドンの設定値がおかしいので確認しろばか");
+                sudden = false;
+            } else {
+                COMMON.SUDDEN.MINHP = request.args[COMMON.OP.SUDDEN].minhp;
+            }
+            COMMON.SUDDEN.ENABLE = sudden;
         }
     });
 }());
