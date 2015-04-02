@@ -36,7 +36,20 @@ var NormalMapList = [1001, 2001, 3001, 4001, 5001,
 // ジュールズベルグ(GOD最奥:8100)
 var valley = [8001];
 
-
+/*
+battleData = {
+    // 戦闘前にセット
+    blockid,
+    time,
+    round,
+    // 戦闘中にセット
+    maxPartyNum,
+    partyData,
+    result_txt = { pteam_txt, eteam_txt },
+    isBattleSuccess,
+    isSudden
+}
+*/
 var task = {};
 (function () {
     'use strict';
@@ -396,11 +409,11 @@ var task = {};
                 }),
                 success: function (data) {
                     console.log("手動戦闘結果送信に成功");
-                    defer.resolve(); // goto battleGetReport
+                    defer.resolve(battleData); // goto battleGetReport
                 },
                 error: function (data) {
                     log("手動戦闘結果送信に失敗");
-                    defer.reject(); // goto updateCQ
+                    defer.reject(battleData); // goto updateCQ
                 }
             });
         }, time * 1000);
@@ -409,7 +422,7 @@ var task = {};
     };
 
     /* 戦闘獲得資源・アイテム取得 */
-    var battleGetReport = function () {
+    var battleGetReport = function (battleData) {
         console.log("[Enter]battleGetReport");
         var defer = $.Deferred();
 
@@ -427,6 +440,7 @@ var task = {};
                     //warning_boss(parseInt(data.eid,10),data.name);
                     log("サドンボスが出ました！");
                     g_isBattleSudden = 1;
+                    battleData.isSudden = true;
                 } else if (data !== -1) {
                     // 勝敗
                     // data.winner:"16394"(自分) or "0"(敵(通常マップ・ゼクスタワーは確認済み))
@@ -615,9 +629,6 @@ var task = {};
                             log("バフ(techtype=" + tech.techtype + ")発動に失敗");
                             d.reject();
                         }
-                        /*setTimeout(function () {
-                            d.resolve();
-                        }, 1000);*/
                     } else {
                         log("バフ(techtype=" + tech.techtype + ")発動に失敗");
                         d.reject();
@@ -904,7 +915,7 @@ var task = {};
         console.log("[Enter]getSuddenList");
         var defer = $.Deferred();
 
-        if (!(g_isBattleSudden && COMMON.SUDDEN.ENABLE)) {
+        if (!(COMMON.SUDDEN.ENABLE)) {
             defer.resolve();
             return;
         }
@@ -919,7 +930,7 @@ var task = {};
             return;
         }
 
-        g_suddenList = [];
+        var suddenList = [];
 
         $.ajax({
             url: "guild_.php",
@@ -940,10 +951,10 @@ var task = {};
                     } else if (this.max_hp <= COMMON.SUDDEN.MINHP) {
                         console.log(this.name + "(id=" + this.id + ") : 最大HPが" + COMMON.SUDDEN.MINHP + "以下なので攻撃対象ではありません");
                     } else if (this.discoverer === myname) {
-                        g_suddenList.push({id : this.id, mine : 1});
+                        suddenList.push({id : this.id, mine : 1});
                         console.log(this.name + "(id=" + this.id + ") : 遭遇者が自分なので攻撃対象です");
                     } else if (this.hp / this.max_hp < 0.70) {
-                        g_suddenList.push({id : this.id, mine : 0});
+                        suddenList.push({id : this.id, mine : 0});
                         console.log(this.name + "(id=" + this.id + ") : HPが70%以下なので攻撃対象です");
                     } else {
                         console.log(this.name + "(id=" + this.id + ") : 攻撃対象ではありません");
@@ -987,12 +998,12 @@ var task = {};
                                     });
                                 }
                             }
-                            defer.resolve();
+                            defer.resolve(suddenList);    // goto suddenAllAttack
                         },
                         error: defer.reject
                     });
                 } else {
-                    defer.resolve();   // goto suddenAllAttack
+                    defer.resolve(suddenList);   // goto suddenAllAttack
                 }
             },
             error: function () {
@@ -1187,28 +1198,59 @@ var task = {};
 
     var suddenAllAttack = function () {
         console.log("[Enter]suddenAllAttack");
-        var defer = $.Deferred();
+        var defer = $.Deferred().resolve();
 
-        if (!(g_isBattleSudden && COMMON.SUDDEN.ENABLE)) {
+        if (!(COMMON.SUDDEN.ENABLE)) {
             defer.resolve();
             return;
         }
 
-        var list = g_suddenList;
+        /*var list = g_suddenList;
         var suddenData = list.shift();
         if (!suddenData) {
             console.log("出現中のサドンボスがこれ以上いません");
             defer.reject();
             return;
-        }
+        }*/
 
+        //var suddenList;
+
+        var suddenAttack = function (suddenList) {
+            var d = $.Deferred().resolve();
+            $.each(suddenList, function (index, suddenData) {
+                d = d.then(function () {
+                    return $.Deferred().resolve(suddenData).promise();
+                })
+                    .then(isAttackedSudden)
+                    .then(getAvailableCharaSudden)
+                    .then(attackSudden)
+                    .then(function () {
+                        console.log("suddenProcess成功");
+                        return $.Deferred().resolve().promise();
+                    }, function () {
+                        log("suddenProcess失敗");
+                        return $.Deferred().reject().promise();
+                    });
+            });
+            return d.promise();
+        };
+
+        defer = defer.then(getSuddenList)
+            .then(function (res) {
+                return $.Deferred().resolve(res).promise();
+                //suddenList = res;
+            }).then(suddenAttack);
+
+
+
+        /*
         suddenProcess(suddenData)
             .then(suddenAllAttack)
             .then(defer.resolve, function () {
                 log("Failed suddenAllAttack");
                 defer.reject();
             });
-
+        */
         return defer.promise();
     };
 
@@ -1714,7 +1756,7 @@ var task = {};
         var isBattleSuccess = 0;
 
         g_isLvup = 0;
-        g_isBattleSudden = battleData.round % 10 === 0 ? 1 : 0;
+        g_isBattleSudden = battleData.round % 5 === 0 ? 1 : 0;
 
         battleGetMaxParty(battleData)
             .then(battleGetParty)
@@ -1730,8 +1772,16 @@ var task = {};
                 return updateCQ();
             })
 
-            .then(getSuddenList)
-            .then(suddenAllAttack)
+            /*.then(function () {
+                if (g_isBattleSudden === 1) {
+                    return getSuddenList();
+                }
+            })*/
+            .then(function () {
+                if (g_isBattleSudden === 1) {
+                    return suddenAllAttack();
+                }
+            })
 
             .then(getLvupCharaInParty)
             .then(lvupAllPTChara)
