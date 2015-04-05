@@ -137,6 +137,8 @@ console.log = function (message) {
                 battleConfig.count = request.args.map_count;
                 battleConfig.isFirst = request.args.isFirst;
                 battleConfig.time = request.args.time;
+                battleConfig.sudden = request.args.sudden;
+                battleConfig.maid = request.args.maid;
                 mapBattle = new cmdManager.CmdMapBattle(battleConfig, function () {
                     mapBattle = null;
                 });
@@ -155,6 +157,8 @@ console.log = function (message) {
                 battleConfig = {};
                 if (request.args.dystopia === 0) {
                     battleConfig.time = request.args.time;
+                    battleConfig.maid = request.args.maid;
+                    battleConfig.maid_hell = request.args.maid_hell;
                     dystopia = new cmdManager.CmdAllDystopia(battleConfig, function () {
                         dystopia = null;
                     });
@@ -162,6 +166,8 @@ console.log = function (message) {
                     battleConfig.mapid = request.args.dystopia;
                     battleConfig.rank = request.args.dystopiaMode;
                     battleConfig.time = request.args.time;
+                    battleConfig.maid = request.args.maid;
+                    battleConfig.maid_hell = request.args.maid_hell;
                     dystopia = new cmdManager.CmdDystopia(battleConfig, function () {
                         dystopia = null;
                     });
@@ -210,6 +216,8 @@ console.log = function (message) {
                     battleConfig = {};
                     battleConfig.blockidList = blockidList;
                     battleConfig.time = request.args.time;
+                    battleConfig.sudden = request.args.sudden;
+                    battleConfig.maid = request.args.maid;
                     blockBattle = new cmdManager.CmdBlockBattle(battleConfig, function () {
                         blockBattle = null;
                     });

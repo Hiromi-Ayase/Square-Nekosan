@@ -169,6 +169,8 @@ var cfgManager = {};
         this.battleCount = battleConfig.count;
         this.isFirst = battleConfig.isFirst;
         this.time = battleConfig.time;
+        this.sudden = battleConfig.sudden;
+        this.maid = battleConfig.maid;
 
         this.blockid = null;
         //this.blockidList = null;
@@ -219,7 +221,8 @@ var cfgManager = {};
                     cmd.param = {
                         blockid: this.blockid,
                         time: this.time,
-                        round: this.round
+                        round: this.round,
+                        maid: this.maid ? 1 : 0
                     };
                 }
             } else {
@@ -227,6 +230,9 @@ var cfgManager = {};
             }
 
         } else if (cmd.func === task.Battle) {
+            if (cmd.result.isSudden && this.sudden) {
+                cmd.state = COMMON.CMD_STATUS.END;
+            }
             cmd.reset();
 
             cmd.time = now;
@@ -245,6 +251,8 @@ var cfgManager = {};
         this.battleCount = battleConfig.blockidList.length;
         this.counterStr = "";
         this.time = battleConfig.time;
+        this.sudden = battleConfig.sudden;
+        this.maid = battleConfig.maid;
 
         this.round = 0;
 
@@ -265,23 +273,29 @@ var cfgManager = {};
         }
 
         if (cmd.func === null || cmd.func === task.Battle) {
-            var blockid = (this.blockidList).shift();
-            cmd.reset();
-
-            if (blockid) {
-                this.round++;
-                this.counterStr = this.round + "回目/" + this.battleCount + "回中";
-
-                cmd.time = now;
-                cmd.func = task.Battle;
-                var battleData = {
-                    blockid: blockid,
-                    time: this.time,
-                    round: this.round
-                };
-                cmd.param = battleData;
-            } else {
+            if (cmd.func === task.Battle && cmd.result.isSudden && this.sudden) {
                 cmd.state = COMMON.CMD_STATUS.END;
+
+            } else {
+                var blockid = (this.blockidList).shift();
+                cmd.reset();
+
+                if (blockid) {
+                    this.round++;
+                    this.counterStr = this.round + "回目/" + this.battleCount + "回中";
+
+                    cmd.time = now;
+                    cmd.func = task.Battle;
+                    var battleData = {
+                        blockid: blockid,
+                        time: this.time,
+                        round: this.round,
+                        maid: this.maid ? 1 : 0
+                    };
+                    cmd.param = battleData;
+                } else {
+                    cmd.state = COMMON.CMD_STATUS.END;
+                }
             }
         }
     };
@@ -329,6 +343,8 @@ var cfgManager = {};
         this.blockidList = null;
         this.battleCount = 0;
         this.time = battleConfig.time;
+        this.maid = battleConfig.maid;
+        this.maid_hell = battleConfig.maid_hell;
 
         this.round = 0;
 
@@ -368,19 +384,22 @@ var cfgManager = {};
             if (blockid) {
                 this.round++;
                 var battleTime = this.time;
+                var maid = this.maid  ? 1 : 0;
                 // Hellは攻略に時間をかける
                 if (this.rank === 1) {
                     battleTime = {
                         min: 180,
                         max: 240
                     };
+                    maid = this.maid || this.maid_hell ? 1 : 0;
                 }
                 cmd.time = now;
                 cmd.func = task.Battle;
                 cmd.param = {
                     blockid: blockid,
                     time: battleTime,
-                    round: this.round
+                    round: this.round,
+                    maid: maid
                 };
             } else {
                 this.mapno++;
@@ -527,6 +546,7 @@ var cfgManager = {};
 
     /* Command : 指定されたアイテムを所持していたら側近へプレゼントする */
     cmdManager.CmdGiftToMaid = function (giftConfig, handler) {
+        console.log("プレゼントリスト：" + giftConfig.itemList);
         this.giftConfig = giftConfig;
         this.stateStr = "";
 

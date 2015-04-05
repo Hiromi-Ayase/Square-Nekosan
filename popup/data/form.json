@@ -67,6 +67,20 @@
                 "column": 6,
                 "initmin": 0,
                 "initmax": 0
+            },
+            {
+                "type": "checkbox",
+                "name": "sudden",
+                "title": "サドンが出るまで",
+                "column": 12,
+                "init": false
+            },
+            {
+                "type": "checkbox",
+                "name": "maid",
+                "title": "側近を参加させる",
+                "column": 12,
+                "init": false
             }
         ],
         "ctrl": [
@@ -114,6 +128,20 @@
                 "column": 6,
                 "initmin": 0,
                 "initmax": 0
+            },
+            {
+                "type": "checkbox",
+                "name": "maid",
+                "title": "側近を参加させる",
+                "column": 6,
+                "init": false
+            },
+            {
+                "type": "checkbox",
+                "name": "maid_hell",
+                "title": "側近をHellに参加させる",
+                "column": 6,
+                "init": false
             }
         ],
         "ctrl": [
@@ -157,6 +185,20 @@
                 "column": 6,
                 "initmin": 0,
                 "initmax": 0
+            },
+            {
+                "type": "checkbox",
+                "name": "sudden",
+                "title": "サドンが出るまで",
+                "column": 12,
+                "init": false
+            },
+            {
+                "type": "checkbox",
+                "name": "maid",
+                "title": "側近を参加させる",
+                "column": 12,
+                "init": false
             }
         ],
         "ctrl": [

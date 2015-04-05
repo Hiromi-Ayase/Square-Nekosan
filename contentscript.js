@@ -178,7 +178,7 @@ var task = {};
                 target_level: battleData.blockid,
                 old_kick: 0,
                 auto_battle: 0,
-                assist_set: 0,
+                assist_set: battleData.maid,
                 hire_set: 0,
                 hire_id: 0
             }),
@@ -230,7 +230,7 @@ var task = {};
             log("戦闘準備データパース失敗");
             return;
         }
-
+        console.log(json_data);
         /* 敵情報解析 */
         var enemy_list = [];
 
@@ -439,7 +439,6 @@ var task = {};
                     // サドン
                     //warning_boss(parseInt(data.eid,10),data.name);
                     log("サドンボスが出ました！");
-                    g_isBattleSudden = 1;
                     battleData.isSudden = true;
                 } else if (data !== -1) {
                     // 勝敗
@@ -1177,43 +1176,14 @@ var task = {};
         return defer.promise();
     };
 
-    /* suddenData (g_suddenList) : {id, mine(0/1), mydamage}*/
-    var suddenProcess = function (suddenData) {
-        console.log("[Enter]suddenProcess");
-        var defer = $.Deferred();
-
-        isAttackedSudden(suddenData)
-            .then(getAvailableCharaSudden)
-            .then(attackSudden)
-            .then(function () {
-                console.log("suddenProcess成功");
-                defer.resolve();
-            }, function () {
-                log("suddenProcess失敗");
-                defer.reject();
-            });
-
-        return defer.promise();
-    };
-
     var suddenAllAttack = function () {
         console.log("[Enter]suddenAllAttack");
         var defer = $.Deferred().resolve();
 
-        if (!(COMMON.SUDDEN.ENABLE)) {
+        if (!COMMON.SUDDEN.ENABLE) {
             defer.resolve();
             return;
         }
-
-        /*var list = g_suddenList;
-        var suddenData = list.shift();
-        if (!suddenData) {
-            console.log("出現中のサドンボスがこれ以上いません");
-            defer.reject();
-            return;
-        }*/
-
-        //var suddenList;
 
         var suddenAttack = function (suddenList) {
             var d = $.Deferred().resolve();
@@ -1236,21 +1206,8 @@ var task = {};
         };
 
         defer = defer.then(getSuddenList)
-            .then(function (res) {
-                return $.Deferred().resolve(res).promise();
-                //suddenList = res;
-            }).then(suddenAttack);
+            .then(suddenAttack);
 
-
-
-        /*
-        suddenProcess(suddenData)
-            .then(suddenAllAttack)
-            .then(defer.resolve, function () {
-                log("Failed suddenAllAttack");
-                defer.reject();
-            });
-        */
         return defer.promise();
     };
 
@@ -1756,7 +1713,6 @@ var task = {};
         var isBattleSuccess = 0;
 
         g_isLvup = 0;
-        g_isBattleSudden = battleData.round % 5 === 0 ? 1 : 0;
 
         battleGetMaxParty(battleData)
             .then(battleGetParty)
@@ -1772,13 +1728,8 @@ var task = {};
                 return updateCQ();
             })
 
-            /*.then(function () {
-                if (g_isBattleSudden === 1) {
-                    return getSuddenList();
-                }
-            })*/
             .then(function () {
-                if (g_isBattleSudden === 1) {
+                if (battleData.isSudden || battleData.round % 10 === 0) {
                     return suddenAllAttack();
                 }
             })
@@ -1787,7 +1738,7 @@ var task = {};
             .then(lvupAllPTChara)
             .then(function () {
                 if (isBattleSuccess) {
-                    defer.resolve();
+                    defer.resolve(battleData);
                 } else {
                     defer.reject();
                     log("Failed Battle task");
