@@ -37,6 +37,7 @@ console.log = function (message) {
     /* Flag */
     var trans = false;
     var sudden = false;
+    var maidLvup = false;
 
     var setting = null;
     var data = null;
@@ -91,6 +92,11 @@ console.log = function (message) {
                 state: COMMON.CMD_STATUS.OFF
             },
             sudden: sudden !== false ? {
+                state: COMMON.CMD_STATUS.ON
+            } : {
+                state: COMMON.CMD_STATUS.OFF
+            },
+            maidLvup: maidLvup !== false ? {
                 state: COMMON.CMD_STATUS.ON
             } : {
                 state: COMMON.CMD_STATUS.OFF
@@ -318,6 +324,18 @@ console.log = function (message) {
                 sendResponse(sudden);
             }
 
+        } else if (request.op === COMMON.OP.MAIDLVUP) {
+            if (request.ctrl === COMMON.OP_CTRL.FLAG) {
+                maidLvup = !maidLvup;
+                COMMON.MAIDLVUP.ENABLE = maidLvup;
+                sendResponse(maidLvup);
+                if (maidLvup) {
+                    log("[Flag]側近レベルアップON");
+                } else {
+                    log("[Flag]側近レベルアップOFF");
+                }
+            }
+
         } else if (request.op === COMMON.OP.CONTENTS_DATA) {
             sendResponse(buildContentsData());
 
@@ -341,6 +359,9 @@ console.log = function (message) {
                 COMMON.SUDDEN.MINHP = request.args[COMMON.OP.SUDDEN].minhp;
             }
             COMMON.SUDDEN.ENABLE = sudden;
+
+            maidLvup = request.args[COMMON.OP.MAIDLVUP].enable;
+            COMMON.MAIDLVUP.ENABLE = maidLvup;
         }
     });
 }());

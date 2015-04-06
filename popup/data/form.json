@@ -304,13 +304,6 @@
                 "title": "Resource Translation Threshold(%)",
                 "init": 70,
                 "column": 6
-            },
-            {
-                "type": "checkbox",
-                "name": "step",
-                "title": "ふみふみ",
-                "init": true,
-                "column": 12
             }
         ]
     },
@@ -327,6 +320,11 @@
                 "column": 6
             }
         ]
+    },
+    {
+        "name": "maidLvup",
+        "title": "側近をレベルアップさせる",
+        "init": false
     }
     ]
 }

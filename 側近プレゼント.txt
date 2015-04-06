@@ -1,171 +1,256 @@
+氷砕片,砂秘晶の原石,紺碧纏晶の原石,蒼藍星の原石,緑深石の原石,紅蓮眼の原石,星耀水晶の原石,水晶,虚水晶,紺碧纏晶,星耀水晶
+
+flash_trans_xml_.php
+
+op:BATTLE
+id:#remain1001
+--
+op=BATTLE&array=[{"id":"1001","round":"99","pic":"chess11","pcoord":"4-5","ecoord":"1-4\/3-2"},[[{"id":"7769546","mid":"10508","lv":"80","rank":"2","hp":904,"attack":200,"speed":134,"skill1":{"id":"10503","name":"\u30e9\u30d6\u30ea\u30a3\u30dd\u30a4\u30ba\u30f3","prob":"300","stype":"2","add_type1":"attack","add_value1":"4","add_type2":"hit","add_value2":"0.083","group":"10501","power":"3"},"skill2":0,"skill3":0,"skill4":0,"hit":117,"avoid":72,"luck":138,"action":3,"behavior":{"name":"\u69cd\u6483","range":"0","mpic":"209","atk":"10","hit":"10","avoid":"5"},"fusion_lv":"1","point":"0","team":0,"order":1,"pos":100,"name":"\u30ca\u30c7\u30a3\u30a2","atktype":"1","pic":"5","ctype":1,"maxhp":904,"effect":"hit1","skill_add":[[[{"type":"dattack","value":"100"}],[{"type":"attack","value":"0.1"}]],0,0,0],"atk_side":0,"def_side":0},{"id":"7769540","mid":"12208","lv":"80","rank":"2","hp":1009,"attack":244,"speed":190,"skill1":{"id":"12203","name":"\u30d2\u30e5\u30fc\u30ba\u30d0\u30a4\u30c8","prob":"300","stype":"2","add_type1":"attack","add_value1":"4","add_type2":"hit","add_value2":"8","group":"12201","power":"3"},"skill2":0,"skill3":0,"skill4":0,"hit":74,"avoid":138,"luck":106,"action":4,"behavior":{"name":"\u8a55\u5224","range":"0","avoid":"6","luck":"5"},"fusion_lv":"1","point":"0","team":0,"order":2,"pos":101,"name":"\u30df\u30ec\u30cb\u30fc","atktype":"2","pic":"22","ctype":1,"maxhp":1009,"effect":"hit1","skill_add":[[[{"type":"attack","value":"0.05"},{"type":"hit","value":"0.05"}],[{"type":"attack","value":"0.1"},{"type":"hit","value":"0.05"}]],0,0,0],"atk_side":0,"def_side":0},{"id":"7769541","mid":"12108","lv":"80","rank":"2","hp":808,"attack":195,"speed":217,"skill1":{"id":"12103","name":"\u30aa\u30fc\u30d5\u30a1\u30a4\u30b6\u30fc","prob":"300","stype":"1","add_type1":"attack","add_value1":"0.083","add_type2":"defence","add_value2":"0.083","group":"12101","power":"3"},"skill2":0,"skill3":0,"skill4":0,"hit":160,"avoid":108,"luck":180,"action":3,"behavior":{"name":"\u7d4c\u9a13","range":"0","atk":"6","luck":"5"},"fusion_lv":"1","point":"0","team":0,"order":3,"pos":102,"name":"\u30df\u30c8\u30b9","atktype":"3","pic":"21","ctype":1,"maxhp":808,"effect":"hit6","magic":"2","skill_add":[[[{"type":"dattack","value":"50"},{"type":"defence","value":"0.05"}],[{"type":"dattack","value":"100"},{"type":"ddefence","value":"40"}]],0,0,0],"atk_side":0,"def_side":0}],[{"id":"7769543","mid":"34155","lv":"2","rank":"1","hp":179,"attack":39,"speed":51,"skill1":{"id":"234101","name":"\u30a2\u30f3\u30b8\u30a7\u30e9\u30f3\u30b9","prob":"300","minprob":"150","stype":"2","add_type1":"attack","add_value1":"0.05","add_type2":"hit","add_value2":"0.05","group":"234101","power":"1"},"skill2":0,"skill3":0,"skill4":0,"hit":36,"avoid":23,"luck":43,"action":4,"behavior":{"name":"\u8b77\u611b","range":"0","mpic":"141","hp":"75","def":"15","luck":"15"},"fusion_lv":"1","point":"0","team":1,"order":1,"pos":110,"name":"\u30d5\u30ea\u30e5\u30fc\u30cd","atktype":"2","pic":"141","ctype":1,"maxhp":179,"effect":"hit10","skill_add":[[[{"type":"attack","value":"0.1"},{"type":"hit","value":"0.05"}],[{"type":"attack","value":"0.1"},{"type":"hit","value":"0.05"}],[{"type":"attack","value":"0.1"},{"type":"hit","value":"0.05"}]],0,0,0],"atk_side":0,"def_side":0},{"id":"7769547","mid":"34255","lv":"2","rank":"1","hp":131,"attack":45,"speed":39,"skill1":{"id":"234201","name":"\u30c0\u30d6\u30eb\u30ea\u30f3\u30b0\u30b9","prob":"300","minprob":"150","stype":"2","add_type1":"attack","add_value1":"0.05","add_type2":"dattack","add_value2":"8","group":"234201","power":"1"},"skill2":0,"skill3":0,"skill4":0,"hit":44,"avoid":39,"luck":45,"action":3,"behavior":{"name":"\u62d7\u611b","range":"0","mpic":"142","atk":"15","hit":"15","avoid":"15"},"fusion_lv":"1","point":"0","team":1,"order":2,"pos":111,"name":"\u30ad\u30b5\u30ca","atktype":"3","pic":"142","ctype":1,"maxhp":131,"effect":"hit2","skill_add":[[[{"type":"attack","value":"0.1"},{"type":"hit","value":"0.05"}],[{"type":"attack","value":"0.1"},{"type":"hit","value":"0.05"}],[{"type":"dseperate","value":"0.6"}]],0,0,0],"atk_side":0,"def_side":0}]],[[{"id":"1","name":"\u30af\u30e9\u30c3\u30c8","pic":"502","atktype":"1","effect":"hit2","lv":"1","hp":"23","attack":"23","speed":"10","hit":"19","avoid":"1","luck":"14","action":"3","exp":"10","skill1":{"id":"30111","name":"\u91cd\u722a\u9023\u6483","prob":"200","stype":"2","add_type1":"attack","add_value1":"4","group":"30111","power":"1","bouns_effect":{"1":1}},"skill2":{"id":"30161","name":"\u30e2\u30fc\u30eb\u30a8\u30b9\u30b1\u30a4\u30d7","prob":"200","stype":"3","add_type1":"avoid","add_value1":"4","group":"30161","power":"1","bouns_effect":{"1":1}},"team":0,"order":-1,"pos":99999,"ctype":2,"skill_add":[0,0,0,0],"skill3":0,"skill4":0,"atk_side":0,"def_side":0}],[{"id":"1","name":"\u30af\u30e9\u30c3\u30c8","pic":"502","atktype":"1","effect":"hit2","lv":"1","hp":"23","attack":"23","speed":"10","hit":"19","avoid":"1","luck":"14","action":"3","exp":"10","skill1":{"id":"30111","name":"\u91cd\u722a\u9023\u6483","prob":"200","stype":"2","add_type1":"attack","add_value1":"4","group":"30111","power":"1","bouns_effect":{"1":1}},"skill2":{"id":"30161","name":"\u30e2\u30fc\u30eb\u30a8\u30b9\u30b1\u30a4\u30d7","prob":"200","stype":"3","add_type1":"avoid","add_value1":"4","group":"30161","power":"1","bouns_effect":{"1":1}},"team":1,"order":-1,"pos":99999,"ctype":2,"skill_add":[0,0,0,0],"skill3":0,"skill4":0,"atk_side":0,"def_side":0}]],[0,0],[],[[{"id":"48","name":"\u30e9\u30d6\u30fb\u30cf\u30fcLv8","group":"5","round":"3","prob":1714,"s_eff1":"3","s_val1":"26","target1":"1","t_effect1":"3","t_val1":"12","description":"\u81ea\u8eab\u52b9\u679c\uff1a\u9632\u5fa1\uff0b36\n\u968a\u54e1\u306e\u307f\uff1a\u9632\u5fa1\uff0b12","merc1":100,"lv":8,"member":1},{"id":"10048","name":"\u611b\u3086\u3048\u306bLv8","group":"1005","round":"3","prob":2214,"s_eff1":"2","s_val1":"24","s_eff2":"3","s_val2":"30","target1":"1","t_effect1":"2","t_val1":"24","target2":"1","t_effect2":"3","t_val2":"30","description":"\u5c0f\u968a\u52b9\u679c\uff1a\u653b\u6483\uff0b24\u3001\u9632\u5fa1\uff0b30","merc1":100,"merc2":101,"lv":8,"member":2},{"id":"218","name":"\u30ad\u30f3\u30b0\u30b9\u30d5\u30a3\u30a2\u30fcLv8","group":"22","round":"3","prob":1636,"s_eff1":"2","s_val1":"18","s_eff2":"4","s_val2":"7","description":"\u81ea\u8eab\u52b9\u679c\uff1a\u653b\u6483\uff0b18\u3001\u547d\u4e2d\uff0b7","merc1":101,"lv":8,"member":1},{"id":"10218","name":"\u30f4\u30a1\u30a4\u30c8\u30ed\u30f3\u30c9Lv8","group":"1022","round":"3","prob":2136,"s_eff1":"2","s_val1":"24","s_eff2":"3","s_val2":"36","s_eff3":"7","s_val3":"2","target1":"1","t_effect1":"2","t_val1":"24","target2":"1","t_effect2":"3","t_val2":"36","target3":"1","t_effect3":"7","t_val3":"2","description":"\u5c0f\u968a\u52b9\u679c\uff1a\u653b\u6483\uff0b24\u3001\u9632\u5fa1\uff0b36\u3001\u79fb\u52d5\u529b\uff0b2","merc1":101,"merc2":102,"lv":8,"member":2},{"id":"208","name":"\u30aa\u30eb\u30ab\u30fb\u30e1\u30eb\u30abLv8","group":"21","round":"2","prob":1836,"s_eff1":"3","s_val1":"26","description":"\u81ea\u8eab\u52b9\u679c\uff1a\u9632\u5fa1\uff0b26","merc1":102,"lv":8,"member":1}],[{"id":"1405","name":"\u30b8\u30e3\u30e0\u306e\u304a\u3082\u3066\u306a\u3057Lv5","group":"141","round":"3","prob":1931,"s_eff1":"6","s_val1":"8","s_eff2":"8","s_val2":"70","target1":"2","t_effect1":"6","t_val1":"8","target2":"2","t_effect2":"8","t_val2":"70","description":"\u5168\u90e8\u968a\uff1a\u5e78\u904b\uff0b8\u3001HP\u56de\u5fa970","merc1":110,"lv":5,"member":1},{"id":"1415","name":"\u30c9\u30fc\u30ca\u30c4\u30ea\u30f3\u30b0Lv5","group":"142","round":"3","prob":1635,"s_eff1":"2","s_val1":"8","s_eff2":"4","s_val2":"8","target1":"2","t_effect1":"2","t_val1":"8","target2":"2","t_effect2":"4","t_val2":"8","description":"\u5168\u90e8\u968a\uff1a\u653b\u6483\uff0b8\u3001\u547d\u4e2d\uff0b8","merc1":111,"lv":5,"member":1}]],[[],[]],{"version":2,"partyskill":1}]
+
+
+
+flash_trans_xml_.php
+
+remain:1001/1/00:00:17
+pteam:7769546-904-0-0/7769540-1009-1-1/7769541-808-0-0#7769543-254-1-1/7769547-206-0-0
+op:BATTLE_RESULT
+eteam:#
+--
+op=BATTLE_RESULT&result=1&msg=
+
+
 dialog_.php
 
 op:md_page
-
 --
+md_merc: [{id: "7769543", uid: "16621", name: "フリューネ",…}, {id: "7769547", uid: "16621", name: "キサナ",…}]
+0: {id: "7769543", uid: "16621", name: "フリューネ",…}
+1: {id: "7769547", uid: "16621", name: "キサナ",…}
+action: "3"
+adventure: "0"
+advfavor: "0"
+atktype: "3"
+attack: 34
+avoid: 32
+battle: "0"
+behavior: {sp: 1, name: "拗愛", range: "0", atk: "15", hit: "15", avoid: "15", description: "採掘ボーナス大↵（範囲：小隊）"}
+bonus_attack: 7
+bonus_avoid: 7
+bonus_hit: 6
+bonus_hp: 12
+bonus_luck: 5
+bonus_speed: 6
+camp: "0"
+camp_revive: "0"
+collect: "0"
+cumexp: 15
+dialog: "34201"
+duetime: "0000-00-00 00:00:00"
+energy: "1311"
+eq_action: 0
+eq_attack: 0
+eq_avoid: 0
+eq_hit: 0
+eq_luck: 0
+eq_speed: 0
+eq_troop: 0
+equip: {1: 0, 2: 0, 3: 0, 4: 0}
+evolve: false
+exp: "53"
+fusion: ""
+fusion_exp: "0"
+fusion_lv: "1"
+fusion_mode: 1
+gp: "0"
+hit: 38
+hp: 119
+id: "7769547"
+job: "メイド"
+lastcheck: "2015-04-05 06:46:36"
+location: "0"
+luck: 40
+lv: "2"
+lv_up: 1
+md: "1"
+member: "2"
+mlock: "0"
+name: "キサナ"
+need: 38
+olocate: "0"
+order: "0"
+party: "0-2"
+pic: "142"
+race: "0"
+rank: "1"
+rarity: "5"
+reinforce: "0"
+reset_exp: "0"
+reset_point: "0"
+round: {name: "ドーナツリングLv5", description: "全部隊：攻撃＋8、命中＋8", type: "all"}
+skill: [{name: "ダブルリングス", lv: "1", effect: "攻撃 + 5%、直撃 + 8、基礎発動率 30%",…}, "--", "--", "--"]
+speed: 29
+sptype: "0"
+state: "4"
+time: "2015-01-24 09:34:43"
+tp: "0"
+troop: 119
+type: "4"
+uid: "16621"
+win: "0"
 
-gifttime: {dcount: 1774, duedate: "2015-03-22 18:34", mallcheck: 1} // プレゼント可能な場合はこのぷパティは存在しない
-md_merc
-    0: {id: "7769543", uid: "16621", name: "フリューネ",…}
-    1: {id: "7769547", uid: "16621", name: "キサナ",…}
 
-----
-mdmerc_.php
+# 戦闘後のリストからやった場合
+mercenary_.php
 
-op:gift_list
+op:get_lvup_merc
+--
+0: {id: "7769543", troop: "151", eq_troop: "0", state: "4", hp: 151, rarity: "5", lv: "2", party: "0-1",…}
+    eq_troop: "0"
+    hp: 151
+    id: "7769543"
+    lv: "2"
+    md: 1
+    name: "フリューネ"
+    party: "0-1"
+    pic: "141"
+    rarity: "5"
+    state: "4"
+    troop: "151"
+4: {id: "7769545", troop: "397", eq_troop: "195", state: "4", hp: 414, rarity: "8", lv: "78",…}
+    eq_troop: "195"
+    hp: 414
+    id: "7769545"
+    lv: "78"
+    name: "ミゼ"
+    party: "4-2"
+    pic: "4"
+    rarity: "8"
+    state: "4"
+    troop: "397"
+
+mercenary_.php
+    op:point
+    mid:7769543
+    type:0
+    md:0
+--
+appoint: 0
+mdata: {name: "フリューネ", id: "7769543", lv: "2", troop: "151", attack: 29, speed: 38, hit: 31, avoid: 19,…}
+    attack: 29
+    avoid: 19
+    hit: 31
+    id: "7769543"
+    luck: 38
+    lv: "2"
+    md_merc: 1
+    name: "フリューネ"
+    speed: 38
+    troop: "151"
+point: "0-1-1-2-0-0"
+price: 50
+
+mercenary_.php
+
+op:point_submit
 mid:7769543
-itype:0
-
 --
-
-item: [[{id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…},…],…]
-    0: [{id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…},…]
-        0: {id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…}
-        1: {id: "10688890", ilock: "0", name: "蒼藍星の原石", pic: "19", energy: {min: "2500", max: "3500"},…}
-    1: [,…]
-        0: {id: "10688379", ilock: "0", name: "A級吸神宝飾", pic: "3", energy: {min: "4000", max: "6000"}, atk: "22",…}
-        1: {id: "10662274", ilock: "1", name: "A級アグヴェスタ", pic: "3", energy: {min: "4000", max: "6000"}, atk: "18",…}
-        2: {id: "10646266", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        3: {id: "10647274", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        4: {id: "10647256", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        5: {id: "10647059", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        6: {id: "10646975", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        7: {id: "10646420", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        8: {id: "10693502", ilock: "0", name: "S級守護継運", pic: "3", energy: {min: "3000", max: "4500"}, def: "6",…}
-        9: {id: "10578650", ilock: "0", name: "アージュの龍玉", pic: "31", energy: {min: "2000", max: "3000"}, atk: "18",…}
-        10: {id: "10578651", ilock: "0", name: "ベリルの龍玉", pic: "32", energy: {min: "2000", max: "3000"}, atk: "18",…}
-        11: {id: "10578654", ilock: "0", name: "グラルの龍玉", pic: "33", energy: {min: "2000", max: "3000"}, atk: "18",…}
-max: 10
-num: "5"
 result: 1
 
-----
+# メイド画面からやった場合
+mercenary_.php
+
+op:point
+mid:7769547
+type:0
+md:1
+--
+appoint: 0
+mdata: {name: "キサナ", id: "7769547", lv: "2", troop: "119", attack: 34, speed: 29, hit: 38, avoid: 32,…}
+    attack: 34
+    avoid: 32
+    hit: 38
+    id: "7769547"
+    luck: 40
+    lv: "2"
+    md_merc: 1
+    name: "キサナ"
+    speed: 29
+    troop: "119"
+point: "0-2-0-1-0-0"
+price: 50
+
+
 mdmerc_.php
-
-op:item_give
-mid:7769543
-item:10636355
-itype:0
-
+op:new_mdata
+mid:7769547
 --
-
-add: 2000
-energy: 83566
-gifttime: {dcount: 1800, duedate: "2015-03-22 18:00", mallcheck: 1}
-    dcount: 1800
-    duedate: "2015-03-22 18:00"
-    mallcheck: 1
-item: [[{id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…},…],…]
-    0: [{id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…},…]
-        0: {id: "10636355", ilock: "0", name: "RSクラック", pic: "7", energy: {min: "2000", max: "2000"},…}
-        1: {id: "10688890", ilock: "0", name: "蒼藍星の原石", pic: "19", energy: {min: "2500", max: "3500"},…}
-    1: [,…]
-        0: {id: "10688379", ilock: "0", name: "A級吸神宝飾", pic: "3", energy: {min: "4000", max: "6000"}, atk: "22",…}
-        1: {id: "10662274", ilock: "1", name: "A級アグヴェスタ", pic: "3", energy: {min: "4000", max: "6000"}, atk: "18",…}
-        2: {id: "10646266", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        3: {id: "10647274", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        4: {id: "10647256", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        5: {id: "10647059", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        6: {id: "10646975", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        7: {id: "10646420", ilock: "0", name: "S級守護暴徒", pic: "1", energy: {min: "4000", max: "6000"}, atk: "21",…}
-        8: {id: "10693502", ilock: "0", name: "S級守護継運", pic: "3", energy: {min: "3000", max: "4500"}, def: "6",…}
-        9: {id: "10578650", ilock: "0", name: "アージュの龍玉", pic: "31", energy: {min: "2000", max: "3000"}, atk: "18",…}
-        10: {id: "10578651", ilock: "0", name: "ベリルの龍玉", pic: "32", energy: {min: "2000", max: "3000"}, atk: "18",…}
-        11: {id: "10578654", ilock: "0", name: "グラルの龍玉", pic: "33", energy: {min: "2000", max: "3000"}, atk: "18",…}
-max: 10
-num: "5"
-result: 1
-
-----
-// ただのかばん表示
-item_.php
-
-op:merc_equip
-append:0
-nTag:0  // 特殊表示の場合は 1
-
---
-
-0: {pic: "7", name: "バレンタインチョコレート", stack: "1", type: "24", trade: "0", color: "4", lv: "1", sell: "1",…}
-1: {pic: "27", name: "ザンティカルコア", stack: "1", type: "4", trade: "0", color: "4", lv: "1", sell: "1",…}
-2: {pic: "7", name: "ぺろりポップ", stack: "1", type: "24", trade: "0", color: "白", lv: "1", sell: "1",…}
-3: {pic: "7", name: "乱心ピンクチョコケーキ", stack: "1", type: "24", trade: "0", color: "4", lv: "1", sell: "1000",…}
-4: {pic: "7", name: "ほみロイヤル", stack: "1", type: "24", trade: "0", color: "4", lv: "1", sell: "1000",…}
-5: {pic: "7", name: "ナニマロ", stack: "1", type: "24", trade: "0", color: "4", lv: "1", sell: "1000",…}
-6: {pic: "7", name: "4★魂珠", stack: "1", type: "26", trade: "0", color: "1", lv: "1", sell: "400",…}
-7: {pic: "7", name: "8★魂珠", stack: "1", type: "26", trade: "0", color: "4", lv: "1", sell: "800",…}
-8: {pic: "17", name: "7★魂珠の欠片", stack: "1", type: "5", trade: "0", color: "4", lv: "1", sell: "100",…}
-9: {pic: "1", name: "S級暴徒徽章", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-10: {pic: "1", name: "S級信念徽章", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-11: {pic: "3", name: "A級炎天勾玉", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
-12: {pic: "3", name: "S級命運勾玉", stack: "0", type: "3", trade: "1", color: "3", lv: "60", sell: "1650",…}
-13: {pic: "3", name: "S級山神勾玉", stack: "0", type: "3", trade: "1", color: "3", lv: "60", sell: "1650",…}
-14: {pic: "3", name: "A級狐神玉", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
-15: {pic: "3", name: "A級狐神玉", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
-16: {pic: "3", name: "A級狐神玉", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
-17: {pic: "3", name: "A級吸神宝飾", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
-18: {pic: "4", name: "A級ボルグアクス", stack: "0", type: "1", trade: "1", color: "4", lv: "60", sell: "1540",…}
-19: {pic: "3", name: "A級アグヴェスタ", stack: "0", type: "3", trade: "1", color: "4", lv: "60", sell: "1540",…}
-20: {pic: "19", name: "ディストピア", stack: "1", type: "8", trade: "0", color: "3", lv: "1", sell: "1000",…}
-21: {pic: "19", name: "赤玉", stack: "1", type: "8", trade: "0", color: "白", lv: "1", sell: "10",…}
-22: {pic: "27", name: "カスタボックス", stack: "1", type: "4", trade: "0", color: "4", lv: "1", sell: "1000",…}
-23: {pic: "7", name: "クージリュック", stack: "0", type: "7", trade: "0", color: "1", lv: "1", sell: "1",…}
-24: {pic: "7", name: "勲章", stack: "0", type: "7", trade: "0", color: "1", lv: "1", sell: "1",…}
-25: {pic: "7", name: "ふとももリボン(紫)", stack: "0", type: "7", trade: "1", color: "3", lv: "1", sell: "1",…}
-26: {pic: "19", name: "蒼藍星の原石", stack: "1", type: "8", trade: "0", color: "1", lv: "1", sell: "2400",…}
-27: {pic: "16", name: "アミルレイク(God)原石箱", stack: "1", type: "4", trade: "0", color: "3", lv: "1", sell: "1",…}
-28: {pic: "16", name: "ゴーズセント(God)原石箱", stack: "1", type: "4", trade: "0", color: "3", lv: "1", sell: "1",…}
-29: {pic: "16", name: "ベルサイド(God)徽章箱", stack: "1", type: "4", trade: "0", color: "3", lv: "1", sell: "1",…}
-30: {pic: "16", name: "シュタイン城(God)徽章箱", stack: "1", type: "4", trade: "0", color: "3", lv: "1", sell: "1",…}
-31: {pic: "16", name: "バールロック(God)勾玉箱", stack: "1", type: "4", trade: "0", color: "3", lv: "1", sell: "1",…}
-32: {pic: "23", name: "タクレット", stack: "1", type: "10", trade: "0", color: "白", lv: "1", sell: "1",…}
-33: {pic: "23", name: "シグレット", stack: "1", type: "10", trade: "0", color: "白", lv: "1", sell: "1",…}
-34: {pic: "24", name: "オルテラ", stack: "1", type: "10", trade: "0", color: "白", lv: "1", sell: "1",…}
-35: {pic: "24", name: "エルミナ", stack: "1", type: "10", trade: "0", color: "白", lv: "1", sell: "1",…}
-36: {pic: "25", name: "リーチェボックス", stack: "1", type: "10", trade: "0", color: "白", lv: "1", sell: "1",…}
-37: {pic: "18", name: "ファクター：8星オムニコフ", stack: "1", type: "11", trade: "0", color: "白", lv: "1",…}
-38: {pic: "14", name: "闘具箱", stack: "1", type: "4", trade: "0", color: "2", lv: "1", sell: "1",…}
-39: {pic: "13", name: "ロックシェード", stack: "1", type: "4", trade: "0", color: "1", lv: "1", sell: "1",…}
-40: {pic: "1", name: "S級活力神盾", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-41: {pic: "1", name: "S級活力独裁", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-42: {pic: "1", name: "S級活力暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-43: {pic: "1", name: "S級活力元帥", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-44: {pic: "1", name: "S級活力元帥", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-45: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-46: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-47: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-48: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-49: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-50: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-51: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-52: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-53: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-54: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-55: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-56: {pic: "1", name: "S級守護暴徒", stack: "0", type: "1", trade: "1", color: "3", lv: "60", sell: "1650",…}
-57: {pic: "3", name: "S級守護継運", stack: "0", type: "3", trade: "1", color: "3", lv: "54", sell: "900",…}
-58: {pic: "1", name: "A級勇者神盾", stack: "0", type: "1", trade: "1", color: "4", lv: "60", sell: "1540",…}
-59: {pic: "1", name: "A級勇者信念", stack: "0", type: "1", trade: "1", color: "4", lv: "60", sell: "1540",…}
-60: {pic: "2", name: "A級勇者遊興", stack: "0", type: "2", trade: "1", color: "4", lv: "60", sell: "1540",…}
-61: {pic: "2", name: "A級勇者遊興", stack: "0", type: "2", trade: "1", color: "4", lv: "60", sell: "1540",…}
-62: {pic: "4", name: "赤瓢箪", stack: "0", type: "16", trade: "1", color: "1", lv: "30", sell: "2000",…}
-63: {pic: "4", name: "ヴェリアナウ", stack: "0", type: "16", trade: "1", color: "1", lv: "30", sell: "2000",…}
-64: {pic: "4", name: "ルヴェイラ", stack: "0", type: "16", trade: "1", color: "1", lv: "30", sell: "2000",…}
-65: {pic: "31", name: "アージュの龍玉", stack: "0", type: "22", trade: "1", color: "1", lv: "40", sell: "1000",…}
-66: {pic: "32", name: "ベリルの龍玉", stack: "0", type: "22", trade: "1", color: "1", lv: "40", sell: "1000",…}
-67: {pic: "33", name: "グラルの龍玉", stack: "0", type: "22", trade: "1", color: "1", lv: "40", sell: "1000",…}
-68: {pic: "32", name: "ベリルの龍鱗", stack: "0", type: "22", trade: "1", color: "2", lv: "50", sell: "2000",…}
-con_rein: 0
-max: 55
-mul_op: 1
-num: 69
-show_num: 69
-tags: [{tid: 0, name: "全部"}, {tid: 1, name: "裝備"}, {tid: 2, name: "宝箱/資源"}, {tid: 3, name: "好感度"},…]
-    0: {tid: 0, name: "全部"}
-    1: {tid: 1, name: "裝備"}
-    2: {tid: 2, name: "宝箱/資源"}
-    3: {tid: 3, name: "好感度"}
-    4: {tid: 5, name: "ファクター"}
-    5: {tid: 6, name: "デバイス"}
-    6: {tid: 7, name: "その他"}
-total: 69
+action: "3"
+adventure: "0"
+advfavor: "0"
+atktype: "3"
+attack: 36
+avoid: 32
+battle: "0"
+behavior: {sp: 1, name: "拗愛", range: "0", atk: "15", hit: "15", avoid: "15", description: "採掘ボーナス大↵（範囲：小隊）"}
+bonus_attack: 7
+bonus_avoid: 7
+bonus_hit: 6
+bonus_hp: 13
+bonus_luck: 6
+bonus_speed: 6
+camp: "0"
+camp_revive: "0"
+collect: "0"
+cumexp: 53
+dialog: "34201"
+duetime: "0000-00-00 00:00:00"
+energy: "1311"
+eq_action: 0
+eq_attack: 0
+eq_avoid: 0
+eq_hit: 0
+eq_luck: 0
+eq_speed: 0
+eq_troop: 0
+equip: {1: 0, 2: 0, 3: 0, 4: 0}
+evolve: false
+exp: 53
+fusion: ""
+fusion_exp: "0"
+fusion_lv: "1"
+fusion_mode: 1
+gp: "0"
+hit: 39
+hp: 119
+id: "7769547"
+job: "メイド"
+lastcheck: "2015-04-05 15:29:12"
+location: "0"
+luck: 40
+lv: "3"
+md: "1"
+member: "2"
+mlock: "0"
+name: "キサナ"
+need: 68
+olocate: "0"
+order: "0"
+party: "0-2"
+pic: "142"
+race: "0"
+rank: "1"
+rarity: "5"
+reinforce: "0"
+reset_exp: 0
+reset_point: "0"
+round: {name: "ドーナツリングLv5", description: "全部隊：攻撃＋8、命中＋8", type: "all"}
+skill: [{name: "ダブルリングス", lv: "1", effect: "攻撃 + 5%、直撃 + 8、基礎発動率 30%",…}, "--", "--", "--"]
+speed: 29
+sptype: "0"
+state: "4"
+time: "2015-01-24 09:34:43"
+tp: "0"
+troop: 119
+type: "4"
+uid: "16621"
+win: "0"

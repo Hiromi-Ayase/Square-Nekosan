@@ -10,6 +10,7 @@ COMMON.OP = {
     BLOCK: "block",
     TRANS: "trans",
     SUDDEN: "sudden",
+    MAIDLVUP: "maidLvup",
     GIFT: "gift",
     RECRUIT: "recruit",
     CONTENTS_DATA: "contents_data",
@@ -58,6 +59,10 @@ COMMON.TRANS = {
 COMMON.SUDDEN = {
     ENABLE: false,
     MINHP: 1000000
+};
+
+COMMON.MAIDLVUP = {
+    ENABLE: false
 };
 
 COMMON.DATESTR = function (date) {

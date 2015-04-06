@@ -7,7 +7,7 @@
 */
 
 /* --- キャラのレベルアップ --- */
-var IS_AUTO_LVUP = 0; // 自動でLVUPするか
+var IS_AUTO_LVUP = false; // 自動でLVUPするか
 var g_isLvup = 0;
 var g_lvupCharaId = 0;
 var g_lvupCharaList = [];
@@ -42,12 +42,14 @@ battleData = {
     blockid,
     time,
     round,
+    maid,
     // 戦闘中にセット
     maxPartyNum,
     partyData,
     result_txt = { pteam_txt, eteam_txt },
     isBattleSuccess,
-    isSudden
+    isSudden,
+    isLvup
 }
 */
 var task = {};
@@ -467,9 +469,9 @@ var task = {};
                     }
 
                     // LVUPしたキャラの有無
-                    g_isLvup = 0;
+                    battleData.isLvup = false;
                     if (data.mercLevel !== undefined && data.mercLevel === 1) {
-                        g_isLvup = 1;
+                        battleData.isLvup = true;
                     }
                 }
                 defer.resolve(["res", "char"]); // goto updateCQ
@@ -1211,8 +1213,177 @@ var task = {};
         return defer.promise();
     };
 
+    /* (new) 戦闘終了後のLVUPキャラリストからレベルアップする方法(PTに入っていないキャラ・側近も取得できるリストに含まれる) */
     /* パーティーに加入しているキャラのうち、レベルアップフラグが立っているキャラのリストを取得 */
-    var getLvupCharaInParty = function () {
+    var getLvupCharaInParty = function (battleData) {
+        console.log("[Enter]getLvupCharaInParty");
+        var defer = $.Deferred();
+
+        var lvupCharaList = [];
+
+        $.ajax({
+            url: "mercenary_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: ({
+                op: "get_lvup_merc"
+            })
+        }).then(function (res) {
+            $.each(res, function () {
+                // パーティーに加入しているメンバーに限定する（側近は常に含まれるはず？party: "0-x"）
+                if (battleData.isLvup && IS_AUTO_LVUP && this.party !== "0") {
+                    lvupCharaList.push(parseInt(this.id, 10));
+
+                } else if (battleData.maid && COMMON.MAIDLVUP.ENABLE) {
+                    if (this.name === "フリューネ" || this.name === "キサナ" ||
+                            this.name === "アリシア" || this.name === "リエル") {
+                        lvupCharaList.push(parseInt(this.id, 10));
+                    }
+                }
+            });
+            defer.resolve(lvupCharaList);
+        }, function () {
+            log("レベルアップキャラリストの取得に失敗");
+            defer.reject();
+        });
+
+        return defer.promise();
+    };
+
+    /* 指定キャラのレベルアップ開始 */
+    var diceLvup = function (charaid, target_parameter) {
+        console.log("[Enter]diceLvup");
+        var defer = $.Deferred();
+        var isFirst = true;
+        var reqData = {};
+
+        var diceLvupInner = function (charaid, target_parameter) {
+            var d = $.Deferred();
+            if (isFirst) {
+                reqData = {
+                    op: "point",
+                    mid: charaid,
+                    type: 0,
+                    md: 0
+                };
+                isFirst = false;
+            } else {
+                reqData = {
+                    op: "point",
+                    mid: charaid,
+                    type: 1
+                };
+            }
+            $.ajax({
+                url: "mercenary_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: reqData,
+                success: function (res) {
+                    if (res === -1) {
+                        log("レベルアップ(ダイス)に失敗"); //getString(593);
+                    } else if (res === -2) {
+                        log("レベルアップ(ダイス)に失敗"); //getString(2240);
+                    } else if (res === -4) {
+                        log("レベルアップ(ダイス)に失敗"); //getString(4312);
+                    } else {
+                        var point = res.point.split("-");
+                        if (point.length !== 6) {
+                            log("レベルアップ(ダイス)に謎の失敗");
+                        } else {
+                            log(res.mdata.name + "(Lv" + res.mdata.lv + ") : " + res.point);
+                            // TODO:ダイス振り直し判定
+                            // if (res.point != target_parameter) {
+                            //    return diceLvupInner();
+                            //};
+                            d.resolve(charaid); // submitLvup
+                            var newlv = parseInt(res.mdata.lv, 10) + 1;
+                            log(res.mdata.name + "レベルアップ確定(Lv" + newlv + ")");
+                            return;
+                        }
+                    }
+                    d.reject();
+                },
+                error: function () {
+                    log("レベルアップ(ダイス)に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+        };
+
+        return diceLvupInner(charaid, target_parameter);
+    };
+
+    /* レベルアップ確定 */
+    var submitLvup = function (charaid) {
+        console.log("[Enter]submitLvup");
+        var defer = $.Deferred();
+
+        $.ajax({
+            url: "mercenary_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: ({
+                op: "point_submit",
+                mid: charaid
+            }),
+            success: function (res) {
+                if (res.result === 1) {
+                    console.log("レベルアップ確定");
+                    defer.resolve();
+                } else {
+                    log("レベルアップ確定に失敗");
+                    defer.reject();
+                }
+            },
+            error: function () {
+                log("レベルアップ確定に失敗");
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
+    };
+
+    var lvupAllPTChara = function (battleData) {
+        console.log("[Enter]lvupAllPTChara");
+        var defer = $.Deferred().resolve(battleData);
+
+        var lvupProcess = function (lvupCharaList) {
+            var d = $.Deferred().resolve();
+            $.each(lvupCharaList, function (index, charaid) {
+                d = d.then(function () {
+                    return $.Deferred().resolve(charaid, "").promise();
+                })
+                    .then(diceLvup)
+                    .then(submitLvup)
+                    .then(function () {
+                        console.log("lvupProcess成功");
+                        return $.Deferred().resolve().promise();
+                    }, function () {
+                        log("lvupProcess失敗");
+                        return $.Deferred().reject().promise();
+                    });
+            });
+            return d.promise();
+        };
+
+        defer = defer.then(getLvupCharaInParty)
+            .then(lvupProcess)
+            .then(defer.resolve, function () {
+                log("Failed lvupAllPTChara");
+                defer.reject();
+            });
+
+        return defer.promise();
+    };
+
+    /* パーティーに加入しているキャラのうち、レベルアップフラグが立っているキャラのリストを取得 */
+    var old_getLvupCharaInParty = function () {
         console.log("[Enter]getLvupCharaInParty");
         var defer = $.Deferred();
 
@@ -1370,7 +1541,7 @@ var task = {};
         return defer.promise();
     };
 
-    var lvupProcess = function (charaid) {
+    var old_lvupProcess = function (charaid) {
         console.log("[Enter]lvupProcess");
         var defer = $.Deferred();
 
@@ -1391,7 +1562,7 @@ var task = {};
         return defer.promise();
     };
 
-    var lvupAllPTChara = function () {
+    var old_lvupAllPTChara = function () {
         console.log("[Enter]lvupAllPTChara");
         var defer = $.Deferred();
 
@@ -1409,7 +1580,7 @@ var task = {};
             return;
         }
 
-        lvupProcess(charaid)
+        old_lvupProcess(charaid)
             .then(lvupAllPTChara)
             .then(defer.resolve, function () {
                 log("Failed lvupAllPTChara");
@@ -1734,8 +1905,12 @@ var task = {};
                 }
             })
 
-            .then(getLvupCharaInParty)
-            .then(lvupAllPTChara)
+            .then(function () {
+                if ((battleData.isLvup && IS_AUTO_LVUP) || (battleData.maid && COMMON.MAIDLVUP.ENABLE)) {
+                    return lvupAllPTChara(battleData);
+                }
+            })
+
             .then(function () {
                 if (isBattleSuccess) {
                     defer.resolve(battleData);
