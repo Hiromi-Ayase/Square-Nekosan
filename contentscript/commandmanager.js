@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true*/
-/*global $, console, log, chrome, COMMON, task, DystopiaMapList, TRANS,
+/*global $, console, log, chrome, COMMON, task, DystopiaMapList,
 waitTime, executeTask*/
 
 /*
@@ -26,7 +26,6 @@ ReportQuest : 任務報告
 /* --- タスク管理用変数 --- */
 
 var cmdManager = {};
-var cfgManager = {};
 (function () {
     'use strict';
 
@@ -498,6 +497,64 @@ var cfgManager = {};
         }
     };
 
+    /* Command : 指定された都市で手動戦闘する */
+    cmdManager.CmdTownBattle = function (battleConfig, handler) {
+        this.townPlayer = battleConfig.player;
+        this.counterStr = "";
+        this.time = battleConfig.time;
+        //this.sudden = battleConfig.sudden;
+        //this.maid = battleConfig.maid;
+
+        this.round = 0;
+
+        this.cmd = new Command("CmdTownBattle", handler);
+        this.setNextTask();
+        cmdList.push(this);
+    };
+
+    cmdManager.CmdTownBattle.prototype.setNextTask = function () {
+        var now = new Date();
+        var cmd = this.cmd;
+
+        if (cmd.state === COMMON.CMD_STATUS.END) {
+            return;
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
+            cmd.state = COMMON.CMD_STATUS.END;
+            return;
+        }
+
+        if (cmd.func === null) {
+            cmd.reset();
+
+            cmd.time = now;
+            cmd.func = task.GetMemberTown;
+            cmd.param = this.townPlayer;
+
+        } else if (cmd.func === task.GetMemberTown) {
+            if (cmd.result) {
+                cmd.reset();
+
+                this.round++;
+                this.counterStr = this.round + "回目";
+
+                cmd.time = now;
+                cmd.func = task.Battle;
+                var battleData = {
+                    blockid: "town",
+                    time: this.time,
+                    round: this.round
+                    //maid: this.maid ? 1 : 0
+                };
+                cmd.param = battleData;
+            } else {
+                cmd.state = COMMON.CMD_STATUS.END;
+            }
+
+        } else {
+            cmd.state = COMMON.CMD_STATUS.END;
+        }
+    };
+
     /* Command : 戦闘用バフを付ける */
     cmdManager.CmdBattleBuff = function (handler) {
         this.techList = [
@@ -699,29 +756,6 @@ var cfgManager = {};
         cmd.time = targetTime;
         cmd.func = task.getLoginBonus;
         this.statusMsg = "次のログインボーナス獲得予定時刻: " + COMMON.DATESTR(targetTime);
-    };
-
-    cfgManager.Set = function (setting) {
-        TRANS.ENABLE = setting.args.trans;
-        if (setting.args.trans.ratio) {
-            TRANS.RATIO = setting.args.trans.ratio;
-        }
-        if (setting.args.trans.threshold) {
-            TRANS.THRESHOLD = setting.args.trans.threshold;
-        }
-    };
-
-    /* Config : 蒼変換 */
-    cfgManager.InitTrans = function () {
-        task.GetTownTransducer();
-    };
-
-    cfgManager.Trans = function (isEnable, transConfig) {
-        TRANS.ENABLE = isEnable;
-        if (transConfig) {
-            TRANS.RATIO = transConfig.ratio;
-            TRANS.THRESHOLD = transConfig.threshold;
-        }
     };
 
     /* Command : 拠点戦に参加する */

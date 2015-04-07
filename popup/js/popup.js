@@ -103,7 +103,7 @@
                 "ctrl": COMMON.OP_CTRL.FLAG,
                 "args": $scope.args[op]
             }, function (response) {
-                storage.args[op].enable = response;
+                $scope.args[op].enable = response;
                 $scope.saveSetting();
             });
         };
@@ -121,7 +121,7 @@
 
         $scope.onChange = function (op) {
             storage.args = $scope.args;
-            storage.config = $scope.config;
+            //storage.config = $scope.config;
             $scope.saveSetting();
             chrome.tabs.sendMessage(data.tabId, {
                 "op": op,
@@ -162,7 +162,7 @@
 */
         $scope.saveSetting = function () {
             storage.args = $scope.args;
-            storage.config = $scope.config;
+            //storage.config = $scope.config;
             var jsonString =  JSON.stringify(storage, null, 4);
             chrome.runtime.sendMessage({
                 "op": COMMON.OP.SET,
@@ -210,9 +210,9 @@
             if (storage.args !== undefined) {
                 $scope.args = storage.args;
             }
-            if (storage.config !== undefined) {
+            /*if (storage.config !== undefined) {
                 $scope.config = storage.config;
-            }
+            }*/
 
             chrome.tabs.sendMessage(data.tabId, {
                 "op": COMMON.OP.INIT,

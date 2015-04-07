@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true*/
-/*global console, chrome, COMMON, g_cmdList, cmdManager, cfgManager, window, $*/
+/*global console, chrome, COMMON, config, g_cmdList, cmdManager, window, $*/
 var debugConsole = console;
 var logBuffer = [];
 
@@ -32,12 +32,14 @@ console.log = function (message) {
     var gift = null;
     var recruit = null;
     var loginBonus = null;
+    var townBattle = null;
     var test = null;
 
     /* Flag */
     var trans = false;
     var sudden = false;
     var maidLvup = false;
+    var battleDamage = false;
 
     var setting = null;
     var data = null;
@@ -79,6 +81,13 @@ console.log = function (message) {
                 state: COMMON.CMD_STATUS.END,
                 statusText: "いぐー"
             },
+            townBattle: townBattle !== null ? {
+                statusText: "実行中！ - " + townBattle.counterStr,
+                state: townBattle.cmd.state
+            } : {
+                statusText: "いぐー",
+                state: COMMON.CMD_STATUS.END
+            },
             test: test !== null ? {
                 statusText: "実行中！",
                 state: test.cmd.state
@@ -101,6 +110,11 @@ console.log = function (message) {
             } : {
                 state: COMMON.CMD_STATUS.OFF
             },
+            battleDamage: battleDamage !== false ? {
+                state: COMMON.CMD_STATUS.ON
+            } : {
+                state: COMMON.CMD_STATUS.OFF
+            },
             log: logBuffer.join("\n"),
             loginBonus: loginBonus === null ? "" : loginBonus.statusMsg
         };
@@ -111,7 +125,6 @@ console.log = function (message) {
             loginBonus = new cmdManager.CmdLoginBonus();
         }, 5000);
 
-        //cfgManager.InitTrans();
         var camp = new cmdManager.CmdCamp(function () {
             camp = null;
         });
@@ -240,6 +253,38 @@ console.log = function (message) {
                 }
             }
 
+        } else if (request.op === COMMON.OP.TOWNBATTLE) {
+            if (request.ctrl === COMMON.OP_CTRL.RUN) {
+                if (townBattle !== null) {
+                    townBattle.cmd.state = COMMON.CMD_STATUS.RUN;
+                } else {
+                    /*blockid = blockid.toString().split(",").map(parseFloat);
+                    var blockidList = [];
+                    var i;
+                    for (i = 0; i < request.args.block_count; i++) {
+                        blockidList.push.apply(blockidList, blockid);
+                    }*/
+                    battleConfig = {};
+                    battleConfig.player = request.args.player;
+                    battleConfig.time = request.args.time;
+                    //battleConfig.sudden = request.args.sudden;
+                    //battleConfig.maid = request.args.maid;
+                    townBattle = new cmdManager.CmdTownBattle(battleConfig, function () {
+                        townBattle = null;
+                    });
+                    if (!battleBuff) {
+                        battleBuff = new cmdManager.CmdBattleBuff(function () {
+                            battleBuff = null;
+                        });
+                    }
+                }
+            } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
+                if (townBattle !== null) {
+                    townBattle.cmd.state = COMMON.CMD_STATUS.END;
+                    townBattle = null;
+                }
+            }
+
         } else if (request.op === COMMON.OP.GIFT) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
                 giftConfig.maidName = request.args.maid;
@@ -284,10 +329,10 @@ console.log = function (message) {
                     log("変換の設定値がおかしいので確認しろばか");
                     trans = false;
                 } else {
-                    COMMON.TRANS.RATIO = request.args.ratio * 0.01;
-                    COMMON.TRANS.THRESHOLD = request.args.threshold * 0.01;
+                    config.trans.ratio = request.args.ratio * 0.01;
+                    config.trans.threshold = request.args.threshold * 0.01;
                 }
-                COMMON.TRANS.ENABLE = trans;
+                config.trans.enable = trans;
                 sendResponse(trans);
                 if (trans) {
                     log("[Flag]変換ON");
@@ -297,7 +342,7 @@ console.log = function (message) {
             } else if (request.ctrl === COMMON.OP_CTRL.CHANGE && trans === true) {
                 log("[Flag]変換OFF");
                 trans = false;
-                COMMON.TRANS.ENABLE = trans;
+                config.trans.enable = trans;
                 sendResponse(trans);
             }
 
@@ -308,9 +353,9 @@ console.log = function (message) {
                     log("サドンの設定値がおかしいので確認しろばか");
                     sudden = false;
                 } else {
-                    COMMON.SUDDEN.MINHP = request.args.minhp;
+                    config.sudden.minHp = request.args.minhp;
                 }
-                COMMON.SUDDEN.ENABLE = sudden;
+                config.sudden.enable = sudden;
                 sendResponse(sudden);
                 if (sudden) {
                     log("[Flag]サドンON");
@@ -320,20 +365,43 @@ console.log = function (message) {
             } else if (request.ctrl === COMMON.OP_CTRL.CHANGE && sudden === true) {
                 log("[Flag]サドンOFF");
                 sudden = false;
-                COMMON.SUDDEN.ENABLE = sudden;
+                config.sudden.enable = sudden;
                 sendResponse(sudden);
             }
 
         } else if (request.op === COMMON.OP.MAIDLVUP) {
             if (request.ctrl === COMMON.OP_CTRL.FLAG) {
                 maidLvup = !maidLvup;
-                COMMON.MAIDLVUP.ENABLE = maidLvup;
+                config.maidLvup.enable = maidLvup;
                 sendResponse(maidLvup);
                 if (maidLvup) {
                     log("[Flag]側近レベルアップON");
                 } else {
                     log("[Flag]側近レベルアップOFF");
                 }
+            }
+
+        } else if (request.op === COMMON.OP.BATTLEDAMAGE) {
+            if (request.ctrl === COMMON.OP_CTRL.FLAG) {
+                battleDamage = !battleDamage;
+                if (request.args.minhp < 0 || request.args.minhp > 100) {
+                    log("ダメージの設定値がおかしいので確認しろばか");
+                    battleDamage = false;
+                } else {
+                    config.battleDamage.minhp = request.args.minhp * 0.01;
+                }
+                config.battleDamage.enable = battleDamage;
+                sendResponse(battleDamage);
+                if (battleDamage) {
+                    log("[Flag]戦闘後ダメージON");
+                } else {
+                    log("[Flag]戦闘後ダメージOFF");
+                }
+            } else if (request.ctrl === COMMON.OP_CTRL.CHANGE && battleDamage === true) {
+                log("[Flag]戦闘後ダメージOFF");
+                battleDamage = false;
+                config.battleDamage.enable = battleDamage;
+                sendResponse(battleDamage);
             }
 
         } else if (request.op === COMMON.OP.CONTENTS_DATA) {
@@ -346,22 +414,31 @@ console.log = function (message) {
                 log("変換の設定値がおかしいので確認しろばか");
                 trans = false;
             } else {
-                COMMON.TRANS.RATIO = request.args[COMMON.OP.TRANS].ratio * 0.01;
-                COMMON.TRANS.THRESHOLD = request.args[COMMON.OP.TRANS].threshold * 0.01;
+                config.trans.ratio = request.args[COMMON.OP.TRANS].ratio * 0.01;
+                config.trans.threshold = request.args[COMMON.OP.TRANS].threshold * 0.01;
             }
-            COMMON.TRANS.ENABLE = trans;
+            config.trans.enable = trans;
 
             sudden = request.args[COMMON.OP.SUDDEN].enable;
             if (!request.args[COMMON.OP.SUDDEN].minhp) {
                 log("サドンの設定値がおかしいので確認しろばか");
                 sudden = false;
             } else {
-                COMMON.SUDDEN.MINHP = request.args[COMMON.OP.SUDDEN].minhp;
+                config.sudden.minHp = request.args[COMMON.OP.SUDDEN].minhp;
             }
-            COMMON.SUDDEN.ENABLE = sudden;
+            config.sudden.enable = sudden;
 
             maidLvup = request.args[COMMON.OP.MAIDLVUP].enable;
-            COMMON.MAIDLVUP.ENABLE = maidLvup;
+            config.maidLvup.enable = maidLvup;
+
+            battleDamage = request.args[COMMON.OP.BATTLEDAMAGE].enable;
+            if (request.args[COMMON.OP.BATTLEDAMAGE].minhp < 0 || request.args[COMMON.OP.BATTLEDAMAGE].minhp > 100) {
+                log("ダメージの設定値がおかしいので確認しろばか");
+                battleDamage = false;
+            } else {
+                config.battleDamage.minhp = request.args[COMMON.OP.BATTLEDAMAGE].minhp * 0.01;
+            }
+            config.battleDamage.enable = battleDamage;
         }
     });
 }());

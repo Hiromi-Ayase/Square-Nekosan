@@ -268,6 +268,31 @@
         ]
     },
     {
+        "name": "townBattle",
+        "title": "都市協防",
+        "form": [
+            {
+                "type": "text",
+                "name": "player",
+                "title": "管理官名",
+                "init": "",
+                "column": 6
+            },
+            {
+                "type": "range",
+                "name": "time",
+                "title": "戦闘時間（秒）",
+                "column": 6,
+                "initmin": 0,
+                "initmax": 0
+            }
+        ],
+        "ctrl": [
+            { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+            { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+        ]
+    },
+    {
         "name": "test",
         "title": "テスト用",
         "form": [
@@ -325,6 +350,20 @@
         "name": "maidLvup",
         "title": "側近をレベルアップさせる",
         "init": false
+    },
+    {
+        "name": "battleDamage",
+        "title": "戦闘後ストライカのHPを減らす",
+        "init": false,
+        "form": [
+            {
+                "type": "number",
+                "name": "minhp",
+                "title": "戦闘後下限HP(%)",
+                "init": 100,
+                "column": 6
+            }
+        ]
     }
     ]
 }

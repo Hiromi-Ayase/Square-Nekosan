@@ -9,12 +9,12 @@
     "content_scripts": [
         {
             "matches": ["http://lm-s4.ujj.co.jp/*", "https://lm-s4.ujj.co.jp/*"],
-            "js": ["jquery.js", "contentscript.js", "common.js", "contentscript/executer.js", "contentscript/commandmanager.js"],
+            "js": ["jquery.js", "contentscript.js", "constants.js", "contentscript/configdata.js", "contentscript/executer.js", "contentscript/commandmanager.js"],
             "run_at": "document_end"
     }
   ],
     "background": {
-        "scripts": ["common.js", "background/background.js"]
+        "scripts": ["constants.js", "background/background.js"]
     },
     "page_action": {
         "default_icon": "icon128.png",

@@ -8,9 +8,11 @@ COMMON.OP = {
     SET: "set",
     LOG: "log",
     BLOCK: "block",
+    TOWNBATTLE: "townBattle",
     TRANS: "trans",
     SUDDEN: "sudden",
     MAIDLVUP: "maidLvup",
+    BATTLEDAMAGE: "battleDamage",
     GIFT: "gift",
     RECRUIT: "recruit",
     CONTENTS_DATA: "contents_data",
@@ -48,21 +50,6 @@ COMMON.INTERVAL = {
 };
 COMMON.LOG = {
     RELOAD: 100
-};
-
-COMMON.TRANS = {
-    ENABLE: false,
-    RATIO: 0,
-    THRESHOLD: 100
-};
-
-COMMON.SUDDEN = {
-    ENABLE: false,
-    MINHP: 1000000
-};
-
-COMMON.MAIDLVUP = {
-    ENABLE: false
 };
 
 COMMON.DATESTR = function (date) {

@@ -1,5 +1,5 @@
 /*jslint vars: true, plusplus: true*/
-/*global $, chrome, console, log, COMMON, cmdManager*/
+/*global $, chrome, console, log, COMMON, config, cmdManager*/
 
 /*
     jQuery JavaScript Library v1.9.1 で動作確認
@@ -39,7 +39,7 @@ var valley = [8001];
 /*
 battleData = {
     // 戦闘前にセット
-    blockid,
+    blockid,    // 協防の場合は"town"
     time,
     round,
     maid,
@@ -61,25 +61,41 @@ var task = {};
         console.log("[Enter]battleGetMaxParty");
         var defer = $.Deferred();
 
-        $.ajax({
-            url: "remain_.php",
-            type: "POST",
-            cache: false,
-            dataType: "json",
-            data: ({
+        var url;
+        var data = {};
+
+        if (battleData.blockid === "town") {
+            url = "flash_trans_xml_.php";
+            data = {
+                op: "town_defend_data"
+            };
+        } else {
+            url = "remain_.php";
+            data = {
                 op: "get_monster_data",
                 level: battleData.blockid,
                 mload: 1
-            }),
+            };
+        }
+
+        $.ajax({
+            url: url,
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: data,
             success: function (res) {
                 if (!res.max_party_num) {
                     log("最大攻略可能パーティ数取得に失敗");
                     defer.reject();
                 } else {
                     battleData.maxPartyNum = parseInt(res.max_party_num, 10);
-
-                    log("---- " + res.stagename + "[" + battleData.blockid + "]");
-
+                    if (battleData.blockid === "town") {
+                        battleData.blockid = res.level;
+                        log("---- " + res.stage.name + "[" + battleData.blockid + "]");
+                    } else {
+                        log("---- " + res.stagename + "[" + battleData.blockid + "]");
+                    }
                     console.log("最大攻略可能パーティ数 ：" + battleData.maxPartyNum);
                     defer.resolve(battleData); // goto battleGetParty
                 }
@@ -182,7 +198,8 @@ var task = {};
                 auto_battle: 0,
                 assist_set: battleData.maid,
                 hire_set: 0,
-                hire_id: 0
+                hire_id: 0,
+                reitem: 0
             }),
             success: function (res) {
                 if (res) {
@@ -267,6 +284,11 @@ var task = {};
             $.each(p_party, function (j, p_party_mem) {
                 var p = "";
                 var hp = p_party_mem.hp - (-hp_bonus[i]);
+                if (config.battleDamage.enable) {
+                    var minhp = hp * config.battleDamage.minhp;
+                    hp = Math.floor(Math.random() * (hp - minhp) + minhp);
+                    if (hp < 1) { hp = 1; }
+                }
                 p += p_party_mem.id + "-" + hp + "-";
                 player_list[i].push(p);
                 player_count++;
@@ -674,10 +696,10 @@ var task = {};
         console.log("[Enter]transBattlePrepare");
         var defer = $.Deferred().resolve();
 
-        if (!COMMON.TRANS.ENABLE || stone.current < stone.limit * COMMON.TRANS.THRESHOLD) {
+        if (!config.trans.enable || stone.current < stone.limit * config.trans.threshold) {
             return defer.promise();
         }
-        var trans_stone = parseInt(stone.limit * COMMON.TRANS.RATIO, 10);
+        var trans_stone = parseInt(stone.limit * config.trans.ratio, 10);
 
         defer = defer.then(function () {
             var d = $.Deferred();
@@ -746,7 +768,7 @@ var task = {};
         console.log("[[TaskStart]]TransduceStone");
         var defer = $.Deferred().resolve();
 
-        if (COMMON.TRANS.ENABLE && current_stone > limit_stone * COMMON.TRANS.THRESHOLD) {
+        if (config.trans.enable && current_stone > limit_stone * config.trans.threshold) {
             defer = defer.then(function () {
                 var defer2 = $.Deferred();
                 $.ajax({
@@ -766,7 +788,7 @@ var task = {};
 
             }).then(function () {
                 var defer2 = $.Deferred();
-                var trans_stone = parseInt(limit_stone * COMMON.TRANS.RATIO, 10);
+                var trans_stone = parseInt(limit_stone * config.trans.ratio, 10);
                 $.ajax({
                     url: "flash_trans_xml_.php?town=" + TRANS.TOWNID,
                     type: "POST",
@@ -916,7 +938,7 @@ var task = {};
         console.log("[Enter]getSuddenList");
         var defer = $.Deferred();
 
-        if (!(COMMON.SUDDEN.ENABLE)) {
+        if (!(config.sudden.enable)) {
             defer.resolve();
             return;
         }
@@ -949,8 +971,8 @@ var task = {};
                         clearCount++;
                     } else if (this.hp <= 0) {
                         console.log(this.name + "(id=" + this.id + ") : HPが0です");
-                    } else if (this.max_hp <= COMMON.SUDDEN.MINHP) {
-                        console.log(this.name + "(id=" + this.id + ") : 最大HPが" + COMMON.SUDDEN.MINHP + "以下なので攻撃対象ではありません");
+                    } else if (this.max_hp <= config.sudden.minHp) {
+                        console.log(this.name + "(id=" + this.id + ") : 最大HPが" + config.sudden.minHp + "以下なので攻撃対象ではありません");
                     } else if (this.discoverer === myname) {
                         suddenList.push({id : this.id, mine : 1});
                         console.log(this.name + "(id=" + this.id + ") : 遭遇者が自分なので攻撃対象です");
@@ -1182,7 +1204,7 @@ var task = {};
         console.log("[Enter]suddenAllAttack");
         var defer = $.Deferred().resolve();
 
-        if (!COMMON.SUDDEN.ENABLE) {
+        if (!config.sudden.enable) {
             defer.resolve();
             return;
         }
@@ -1235,7 +1257,7 @@ var task = {};
                 if (battleData.isLvup && IS_AUTO_LVUP && this.party !== "0") {
                     lvupCharaList.push(parseInt(this.id, 10));
 
-                } else if (battleData.maid && COMMON.MAIDLVUP.ENABLE) {
+                } else if (battleData.maid && config.maidLvup.enable) {
                     if (this.name === "フリューネ" || this.name === "キサナ" ||
                             this.name === "アリシア" || this.name === "リエル") {
                         lvupCharaList.push(parseInt(this.id, 10));
@@ -1906,7 +1928,7 @@ var task = {};
             })
 
             .then(function () {
-                if ((battleData.isLvup && IS_AUTO_LVUP) || (battleData.maid && COMMON.MAIDLVUP.ENABLE)) {
+                if ((battleData.isLvup && IS_AUTO_LVUP) || (battleData.maid && config.maidLvup.enable)) {
                     return lvupAllPTChara(battleData);
                 }
             })
@@ -2464,6 +2486,114 @@ var task = {};
                 log("拠点戦参加に失敗");
                 defer.resolve();    // 失敗してもコマンドは終了させない
             }
+        });
+
+        return defer.promise();
+    };
+
+    /* 指定したギルドメンバーの都市を取得・移動し、協防可能か判定 */
+    task.GetMemberTown = function (playerName) {
+        console.log("[Enter]getMemberTown");
+        var defer = $.Deferred().resolve();
+        var townsData = {};
+
+        var townId = null;
+        //$.each(townIdList, function (i, townId) {
+        defer = defer.then(function () {
+            var d = $.Deferred();
+            $.ajax({
+                url: "flash_trans_xml_.php",
+                type: "POST",
+                cache: false,
+                dataType: "json",
+                data: ({
+                    op: "member_town"
+                }),
+                success: function (res) {
+                    if (res.length !== 0) {
+                        $.each(res, function (id, member) {
+                            if (member.name === playerName) {
+                                townId = member.id;
+                                d.resolve(townId);
+                                return false;
+                            }
+                        });
+                        if (!townId) {
+                            log("指定されたプレイヤーはギルド内にいません");
+                            d.reject();
+                        }
+                    } else {
+                        log("他人の都市リスト取得に失敗");
+                        d.reject();
+                    }
+                },
+                error: function () {
+                    log("他人の都市リスト取得に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        }).then(function (townId) {
+            var d = $.Deferred();
+            $.ajax({
+                url: "flash_trans_xml_.php?town=" + townId,
+                type: "POST",
+                cache: false,
+                //dataType: "json",
+                data: ({
+                    op: "AREA"
+                }),
+                success: function (res) {
+                    d.resolve(townId);
+                },
+                error: function () {
+                    log("都市データの取得(AREA)に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        }).then(function (townId) {
+            var d = $.Deferred();
+            $.ajax({
+                url: "flash_trans_xml_.php?town=" + townId,
+                type: "POST",
+                cache: false,
+                //dataType: "json",
+                data: ({
+                    op: "READ"
+                }),
+                success: function (res) {
+                    var json_data = null;
+                    try {
+                        json_data = $.parseJSON(res.slice(res.indexOf("["), res.indexOf("&op")));
+                    } catch (e) {}
+                    if (json_data === null) {
+                        log("都市データパース失敗");
+                        d.reject();
+                    } else {
+                        console.log(json_data[7]);
+                        if (json_data[7][5]) {
+                            log("自分が協防済み");
+                            d.reject();
+                        } else if (json_data[7][1] === 0) {
+                            log("他人が協防済み");
+                            d.reject();
+                        } else if (json_data[7][2] === 0) {
+                            log("自分の協防可能回数0");
+                            d.reject();
+                        } else {
+                            d.resolve(townId);
+                        }
+                    }
+                },
+                error: function () {
+                    log("都市データの取得(READ)に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
         });
 
         return defer.promise();
