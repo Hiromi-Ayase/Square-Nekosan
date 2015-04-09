@@ -19,3 +19,8 @@ config.battleDamage = {
     enable: false,
     minhp: 1
 };
+
+config.lvup = {
+    enable: false,
+    data: []    // data = [{ name, cond, type, point }]
+};

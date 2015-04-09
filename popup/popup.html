@@ -65,6 +65,39 @@
             </tab>
 
             <tab>
+                <tab-heading>LVUP</tab-heading>
+                <div class="container form">
+                    <div class="row">
+                        <!--<button class="btn btn-xs" ng-class="flagbtnClass('lvup')" ng-click="sendFlag('lvup')">{{contentsData.lvup.state}}</button> 側近をLVUPする-->
+                        <button class="btn btn-xs" ng-class="flagbtnClass('lvup')" ng-click="sendFlag('lvup')">{{contentsData.lvup.state}}</button> ストライカーをLVUPする
+                    </div>
+                    <div class="row">
+                        <div class="col-xs-3 lvupform-label">キャラ名</div>
+                        <div class="col-xs-4 lvupform-label">パラメータ</div>
+                        <div class="col-xs-2 lvupform-label">タイプ</div>
+                        <div class="col-xs-2 lvupform-label">ポイント</div>
+                    </div>
+                    <div class="row">
+                        <ng-lvupform></ng-lvupform>
+                    </div>
+                    <button class="btn btn-default btn-xs" ng-click="addLvupform()">追加</button>
+                    <div class="row control">
+                        <div class="col-xs-12">
+                            <p class="status">
+                                Status: {{contentsData.lvup.statusText}}
+                            </p>
+                        </div>
+                    </div>
+                    <!--<div class="row">
+                        <div class="col-xs-12 text-right">
+                            <button class="btn btn-primary btn-xs" ng-click="saveSetting()">保存</button>
+                            <button class="btn btn-default btn-xs" ng-click="settingAction('restore')">キャンセル</button>
+                        </div>
+                    </div>-->
+                </div>
+            </tab>
+
+            <tab>
                 <tab-heading>
                     <i class="glyphicon glyphicon-flag"></i>
                 </tab-heading>

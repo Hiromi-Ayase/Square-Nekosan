@@ -1,5 +1,5 @@
 body {
-  width: 400px;
+  width: 420px;
   padding-top: 50px;
 }
 
@@ -80,4 +80,21 @@ body {
 
 .nav>li>a {
     padding: 5px 5px;
+}
+
+.lvupform-element {
+    margin-top: 2px;
+    margin-bottom: 2px;
+    padding-left: 1px;
+    padding-right: 1px;
+    font-size: 12px;
+}
+
+.lvupform-label {
+    margin-top: 4px;
+    margin-bottom: 0px;
+    padding-left: 1px;
+    padding-right: 1px;
+    font-size: 12px;
+    font-weight: 700;
 }

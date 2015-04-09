@@ -1,4 +1,4 @@
-/*jslint vars: true */
+/*jslint vars: true, plusplus: true*/
 /*global angular, $, chrome, console, COMMON, CodeMirror, document*/
 (function () {
     "use strict";
@@ -54,6 +54,42 @@
         };
     }]);
 
+
+    app.directive("ngLvupform", ['$compile', function ($compile) {
+        return function (scope, element, attr) {
+            if (scope.args[COMMON.OP.LVUP] === undefined) {
+                scope.args[COMMON.OP.LVUP] = {};
+                scope.args[COMMON.OP.LVUP].data = [ {type: "dice", point: 5} ];
+            }
+            scope.lvupTypes = [ "dice", "vip" ];
+            scope.lvupPoint = [ 5, 6 ];
+
+            var html;
+            var onChange = ' ng-change="onChange(' + "'lvup'" + ')"';
+            html =
+                '<div ng-repeat="a in args.lvup.data">' +
+                '<div class="col-xs-3 lvupform-element">' +
+                '    <input class="ng-model-box" type="text" ng-model="a.name"' + onChange + ' />' +
+                '</div>' +
+                '<div class="col-xs-4 lvupform-element">' +
+                '    <input class="ng-model-box" type="text" ng-model="a.cond"' + onChange + ' />' +
+                '</div>' +
+                '<div class="col-xs-2 lvupform-element">' +
+                '    <select class="ng-model-box" ng-model="a.type" ng-options="t for t in lvupTypes"' + onChange + '></select>' +
+                '</div>' +
+                '<div class="col-xs-1 lvupform-element">' +
+                '    <select class="ng-model-box" ng-model="a.point" ng-options="p for p in lvupPoint"' + onChange + '></select>' +
+                '</div>' +
+                '<div class="col-xs-1 text-right">' +
+                '    <button class="btn btn-default btn-xs" ng-click="delLvupform($index)">削除</button>' +
+                '</div>' +
+                '</div>';
+            element.append($compile(html)(scope));
+            scope.args[COMMON.OP.LVUP].enable = false;
+            //scope.args[scope.c.name].enable = scope.c.init;
+        };
+    }]);
+
     app.factory("getData", ["$http", function ($http) {
         return {
             get: function (file) {
@@ -82,6 +118,76 @@
             }, function (response) {});
         };
 
+        $scope.addLvupform = function () {
+            $scope.onChange(COMMON.OP.LVUP);
+            $scope.args.lvup.data.push({type: "dice", point: 5});
+        };
+        $scope.delLvupform = function (i) {
+            $scope.onChange(COMMON.OP.LVUP);
+            $scope.args.lvup.data.splice(i, 1);
+        };
+        $scope.parseLvupCond = function (cond, maxPoint) {
+            var statusList = ["HP", "ATK", "DEF", "DEX", "AGI", "LUK"];
+            var operator = {"<=": -1, "==": 0, ">=": 1};
+            var ret = [[], [], [], [], [], []];
+
+            var elem = cond.split(",");
+            if (cond === null || cond.trim() === "") {
+                return ret;
+            }
+
+            var total = 0;
+            var i = 0, j = 0, k = 0;
+            for (i = 0; i < elem.length; i++) {
+                var opFound = false;
+                var op;
+                for (op in operator) {
+                    if (operator.hasOwnProperty(op)) {
+                        var x = elem[i].split(op);
+                        if (x.length === 2) {
+                            opFound = true;
+                            var key = x[0].trim();
+                            var value = x[1].trim();
+                            if (isNaN(value) || value > maxPoint || value < 0) {
+                                throw "Illegal Value: 右辺は0から" + maxPoint + "の範囲で指定してください: " + value
+                                    + " (Ex:AGI == 0, HP <= 3)";
+                            }
+                            value = Number(value);
+                            var statusFound = false;
+                            for (j = 0; j < statusList.length; j++) {
+                                if (key === statusList[j]) {
+                                    if (operator[op] === 0) {
+                                        ret[j].push(value);
+                                    } else {
+                                        if (operator[op] > 0) {
+                                            total += value;
+                                        }
+                                        if (total > maxPoint) {
+                                            throw "Illegal Value: 合計値は" + maxPoint + "以下にしてください: " + total;
+                                        }
+                                        for (k = value; k >= 0 && k <= maxPoint; k += operator[op]) {
+                                            ret[j].push(k);
+                                        }
+                                    }
+                                    statusFound = true;
+                                    break;
+                                }
+                            }
+                            if (!statusFound) {
+                                throw "Syntax Error: 左辺は HP, ATK, DEF, DEX, AGI, LUKのいずれかを指定してください: " + key
+                                    + " (Ex:AGI == 0, HP <= 3)";
+                            }
+                            break;
+                        }
+                    }
+                }
+                if (!opFound) {
+                    throw "Syntax Error: 演算子は <=, ==, >= のいずれかを指定してください (Ex:AGI == 0, HP <= 3)";
+                }
+            }
+            return ret;
+        };
+
         $scope.btnClass = function (ctrl, op) {
             if ($scope.contentsData === undefined || $scope.contentsData[op] === undefined) {
                 return { disabled: true };
@@ -99,7 +205,6 @@
         $scope.sendFlag = function (op) {
             chrome.tabs.sendMessage(data.tabId, {
                 "op": op,
-                //"ctrl": s === COMMON.CMD_STATUS.ON ? COMMON.OP_CTRL.OFF : COMMON.OP_CTRL.ON,
                 "ctrl": COMMON.OP_CTRL.FLAG,
                 "args": $scope.args[op]
             }, function (response) {
@@ -120,14 +225,17 @@
         };
 
         $scope.onChange = function (op) {
-            storage.args = $scope.args;
-            //storage.config = $scope.config;
-            $scope.saveSetting();
             chrome.tabs.sendMessage(data.tabId, {
                 "op": op,
                 "ctrl": COMMON.OP_CTRL.CHANGE,
                 "args": $scope.args[op]
-            }, function (response) {});
+            }, function (response) {
+                if (response !== undefined) {
+                    $scope.args[op].enable = response;
+                    $scope.saveSetting();
+                    console.log("reponse");
+                }
+            });
         };
 
         var cmSetting;

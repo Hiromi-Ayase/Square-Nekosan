@@ -40,6 +40,7 @@ console.log = function (message) {
     var sudden = false;
     var maidLvup = false;
     var battleDamage = false;
+    var lvup = false;
 
     var setting = null;
     var data = null;
@@ -111,6 +112,11 @@ console.log = function (message) {
                 state: COMMON.CMD_STATUS.OFF
             },
             battleDamage: battleDamage !== false ? {
+                state: COMMON.CMD_STATUS.ON
+            } : {
+                state: COMMON.CMD_STATUS.OFF
+            },
+            lvup: lvup !== false ? {
                 state: COMMON.CMD_STATUS.ON
             } : {
                 state: COMMON.CMD_STATUS.OFF
@@ -404,6 +410,24 @@ console.log = function (message) {
                 sendResponse(battleDamage);
             }
 
+        } else if (request.op === COMMON.OP.LVUP) {
+            if (request.ctrl === COMMON.OP_CTRL.FLAG) {
+                lvup = !lvup;
+                config.lvup.enable = lvup;
+                config.lvup.data = request.args.data;
+                sendResponse(lvup);
+                if (lvup) {
+                    log("[Flag]ストライカーレベルアップON");
+                } else {
+                    log("[Flag]ストライカーレベルアップOFF");
+                }
+            } else if (request.ctrl === COMMON.OP_CTRL.CHANGE && lvup === true) {
+                log("[Flag]ストライカーレベルアップOFF");
+                lvup = false;
+                config.lvup.enable = lvup;
+                sendResponse(lvup);
+            }
+
         } else if (request.op === COMMON.OP.CONTENTS_DATA) {
             sendResponse(buildContentsData());
 
@@ -439,6 +463,10 @@ console.log = function (message) {
                 config.battleDamage.minhp = request.args[COMMON.OP.BATTLEDAMAGE].minhp * 0.01;
             }
             config.battleDamage.enable = battleDamage;
+
+            lvup = request.args[COMMON.OP.LVUP].enable;
+            config.lvup.data = request.args[COMMON.OP.LVUP].data;
+            config.lvup.enable = lvup;
         }
     });
 }());

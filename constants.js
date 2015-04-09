@@ -14,6 +14,7 @@ COMMON.OP = {
     MAIDLVUP: "maidLvup",
     BATTLEDAMAGE: "battleDamage",
     GIFT: "gift",
+    LVUP: "lvup",
     RECRUIT: "recruit",
     CONTENTS_DATA: "contents_data",
     INIT: "init",

@@ -97,6 +97,13 @@ var task = {};
                         log("---- " + res.stagename + "[" + battleData.blockid + "]");
                     }
                     console.log("最大攻略可能パーティ数 ：" + battleData.maxPartyNum);
+
+                    if (battleData.maid) {
+                        if (res.assist.num <= 0 && battleData.maid === 1) {
+                            console.log("側近残り戦闘回数0");
+                            battleData.maid = 0;
+                        }
+                    }
                     defer.resolve(battleData); // goto battleGetParty
                 }
             },
