@@ -11,10 +11,6 @@ config.sudden = {
     minHp: 1000000
 };
 
-config.maidLvup = {
-    enable: false
-};
-
 config.battleDamage = {
     enable: false,
     minhp: 1

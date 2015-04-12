@@ -1248,6 +1248,10 @@ var task = {};
         console.log("[Enter]getLvupCharaInParty");
         var defer = $.Deferred();
 
+        if (!config.lvup.enable) {
+            return defer.resolve([]).promise();
+        }
+
         var lvupCharaList = [];
         var i;
 
@@ -1262,7 +1266,7 @@ var task = {};
         }).then(function (res) {
             $.each(res, function () {
                 // パーティーに加入しているメンバーに限定する（側近は常に含まれるはず？party: "0-x"）
-                if (battleData.isLvup && config.lvup.enable && this.party !== "0") {
+                if (battleData.isLvup && this.party !== "0") {
                     for (i = 0; i < config.lvup.data.length; i++) {
                         if (config.lvup.data[i].name === this.name) {
                             lvupCharaList.push({
@@ -1274,7 +1278,7 @@ var task = {};
                         }
                     }
 
-                } else if (battleData.maid && config.maidLvup.enable) {
+                } else if (battleData.maid) {
                     if (this.name === "フリューネ" || this.name === "キサナ" ||
                             this.name === "アリシア" || this.name === "リエル") {
                         for (i = 0; i < config.lvup.data.length; i++) {
@@ -1981,7 +1985,7 @@ var task = {};
             })
 
             .then(function () {
-                if ((battleData.isLvup && config.lvup.enable) || (battleData.maid && config.maidLvup.enable)) {
+                if ((battleData.isLvup && config.lvup.enable) || (battleData.maid && config.lvup.enable)) {
                     return lvupAllPTChara(battleData);
                 }
             })
@@ -2552,6 +2556,7 @@ var task = {};
 
         var townId = null;
         //$.each(townIdList, function (i, townId) {
+        log(playerName + " の都市を防衛")
         defer = defer.then(function () {
             var d = $.Deferred();
             $.ajax({
@@ -2576,12 +2581,29 @@ var task = {};
                             d.reject();
                         }
                     } else {
-                        log("他人の都市リスト取得に失敗");
+                        log("ギルドメンバーの都市リスト取得に失敗");
                         d.reject();
                     }
                 },
                 error: function () {
-                    log("他人の都市リスト取得に失敗");
+                    log("ギルドメンバーの都市リスト取得に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        }).then(function (townId) {
+            var d = $.Deferred();
+            $.ajax({
+                url: "town.php?town=" + townId,
+                type: "GET",
+                //cache: false,
+                //dataType: "json",
+                success: function (res) {
+                    d.resolve(townId);
+                },
+                error: function () {
+                    log("都市データの取得(town.php)に失敗");
                     d.reject();
                 }
             });

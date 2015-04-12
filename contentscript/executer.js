@@ -38,7 +38,6 @@ console.log = function (message) {
     /* Flag */
     var trans = false;
     var sudden = false;
-    var maidLvup = false;
     var battleDamage = false;
     var lvup = false;
 
@@ -102,11 +101,6 @@ console.log = function (message) {
                 state: COMMON.CMD_STATUS.OFF
             },
             sudden: sudden !== false ? {
-                state: COMMON.CMD_STATUS.ON
-            } : {
-                state: COMMON.CMD_STATUS.OFF
-            },
-            maidLvup: maidLvup !== false ? {
                 state: COMMON.CMD_STATUS.ON
             } : {
                 state: COMMON.CMD_STATUS.OFF
@@ -472,20 +466,6 @@ console.log = function (message) {
                 sendResponse(args);
             }
 
-        } else if (request.op === COMMON.OP.MAIDLVUP) {
-            if (request.ctrl === COMMON.OP_CTRL.FLAG) {
-                maidLvup = !maidLvup;
-                config.maidLvup.enable = maidLvup;
-                args = request.args;
-                args.enable = maidLvup;
-                sendResponse(args);
-                if (maidLvup) {
-                    log("[Flag]側近レベルアップON");
-                } else {
-                    log("[Flag]側近レベルアップOFF");
-                }
-            }
-
         } else if (request.op === COMMON.OP.BATTLEDAMAGE) {
             if (request.ctrl === COMMON.OP_CTRL.FLAG) {
                 battleDamage = !battleDamage;
@@ -593,9 +573,6 @@ console.log = function (message) {
                 config.sudden.minHp = request.args[COMMON.OP.SUDDEN].minhp;
             }
             config.sudden.enable = sudden;
-
-            maidLvup = request.args[COMMON.OP.MAIDLVUP].enable;
-            config.maidLvup.enable = maidLvup;
 
             battleDamage = request.args[COMMON.OP.BATTLEDAMAGE].enable;
             if (request.args[COMMON.OP.BATTLEDAMAGE].minhp < 0 || request.args[COMMON.OP.BATTLEDAMAGE].minhp > 100) {

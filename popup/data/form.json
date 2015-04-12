@@ -347,11 +347,6 @@
         ]
     },
     {
-        "name": "maidLvup",
-        "title": "側近をレベルアップさせる",
-        "init": false
-    },
-    {
         "name": "battleDamage",
         "title": "戦闘後ストライカのHPを減らす",
         "init": false,
