@@ -53,6 +53,10 @@ COMMON.LOG = {
     RELOAD: 100
 };
 
+COMMON.STATUSLIST = [
+    "HP", "ATK", "DEF", "DEX", "FLEE", "LUK"
+];
+
 COMMON.DATESTR = function (date) {
     'use strict';
     if (date === undefined) {

@@ -117,6 +117,7 @@ console.log = function (message) {
                 state: COMMON.CMD_STATUS.OFF
             },
             lvup: lvup !== false ? {
+                statusText: COMMON.STATUSLIST + "を設定してください",
                 state: COMMON.CMD_STATUS.ON
             } : {
                 state: COMMON.CMD_STATUS.OFF
@@ -125,6 +126,95 @@ console.log = function (message) {
             loginBonus: loginBonus === null ? "" : loginBonus.statusMsg
         };
     }
+
+    var parseLvupCond = function (lvupCond) {
+        var operator = {"<=": -1, "==": 0, ">=": 1};
+        var ret = [[], [], [], [], [], []];
+
+        var s = lvupCond.condstr;
+        var n = lvupCond.point;
+        var elem = s.split(",");
+        if (s === null || s.trim() === "") {
+            return ret;
+        }
+
+        var total = 0;
+        var i, j, k;
+        for (i = 0; i < elem.length; i++) {
+            var opFound = false;
+            var op;
+            for (op in operator) {
+                if (operator.hasOwnProperty(op)) {
+                    var x = elem[i].split(op);
+                    if (x.length === 2) {
+                        opFound = true;
+                        var key = x[0].trim();
+                        var value = x[1].trim();
+                        if (isNaN(value) || value > n || value < 0) {
+                            throw "Illegal Value: 右辺は0から" + n + "の範囲で指定してください: " + value + " (Ex:AGI == 0, HP <= 3)";
+                        }
+                        value = Number(value);
+                        var statusFound = false;
+                        for (j = 0; j < COMMON.STATUSLIST.length; j++) {
+                            if (key === COMMON.STATUSLIST[j]) {
+                                if (operator[op] === 0) {
+                                    ret[j].push(value);
+                                } else {
+                                    if (operator[op] > 0) {
+                                        total += value;
+                                    }
+                                    if (total > n) {
+                                        throw "Illegal Value: 合計値は" + n + "以下にしてください: " + total;
+                                    }
+                                    for (k = value; k >= 0 && k <= n; k += operator[op]) {
+                                        ret[j].push(k);
+                                    }
+                                }
+                                statusFound = true;
+                                break;
+                            }
+                        }
+                        if (!statusFound) {
+                            throw "Syntax Error: 左辺は " + COMMON.STATUSLIST + "のいずれかを指定してください: " + key + " (Ex:AGI == 0, HP <= 3)";
+                        }
+                        break;
+                    }
+                }
+            }
+            if (!opFound) {
+                throw "Syntax Error: 演算子は <=, ==, >= のいずれかを指定してください (Ex:AGI == 0, HP <= 3)";
+            }
+        }
+        return ret;
+    };
+
+    var getConditionMsg = function (cond, maxPoint) {
+        var s = "";
+        var found = false;
+        var i;
+        for (i = 0; i < COMMON.STATUSLIST.length; i++) {
+            if (cond[i].length === 0) {
+                s += "";
+            } else if (cond[i].length === 1) {
+                found = true;
+                s += COMMON.STATUSLIST[i] + "が" + cond[i][0] + ", ";
+            } else {
+                found = true;
+                s += COMMON.STATUSLIST[i] + "が" + cond[i][0];
+                if (cond[i][0] > cond[i][1]) {
+                    s += "以下, ";
+                } else {
+                    s += "以上, ";
+                }
+            }
+        }
+        if (found) {
+            s += "合計が" + maxPoint;
+            return s;
+        } else {
+            return "合計が" + maxPoint;
+        }
+    };
 
     $(function () {
         window.setTimeout(function () {
@@ -149,6 +239,7 @@ console.log = function (message) {
         var battleConfig = {};
         var giftConfig = {};
         var recruitConfig = {};
+        var i, args;
 
         if (request.op === COMMON.OP.MAP) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
@@ -234,7 +325,6 @@ console.log = function (message) {
                     }
                     blockid = blockid.toString().split(",").map(parseFloat);
                     var blockidList = [];
-                    var i;
                     for (i = 0; i < request.args.block_count; i++) {
                         blockidList.push.apply(blockidList, blockid);
                     }
@@ -266,7 +356,6 @@ console.log = function (message) {
                 } else {
                     /*blockid = blockid.toString().split(",").map(parseFloat);
                     var blockidList = [];
-                    var i;
                     for (i = 0; i < request.args.block_count; i++) {
                         blockidList.push.apply(blockidList, blockid);
                     }*/
@@ -339,7 +428,9 @@ console.log = function (message) {
                     config.trans.threshold = request.args.threshold * 0.01;
                 }
                 config.trans.enable = trans;
-                sendResponse(trans);
+                args = request.args;
+                args.enable = trans;
+                sendResponse(args);
                 if (trans) {
                     log("[Flag]変換ON");
                 } else {
@@ -349,7 +440,9 @@ console.log = function (message) {
                 log("[Flag]変換OFF");
                 trans = false;
                 config.trans.enable = trans;
-                sendResponse(trans);
+                args = request.args;
+                args.enable = trans;
+                sendResponse(args);
             }
 
         } else if (request.op === COMMON.OP.SUDDEN) {
@@ -362,7 +455,9 @@ console.log = function (message) {
                     config.sudden.minHp = request.args.minhp;
                 }
                 config.sudden.enable = sudden;
-                sendResponse(sudden);
+                args = request.args;
+                args.enable = sudden;
+                sendResponse(args);
                 if (sudden) {
                     log("[Flag]サドンON");
                 } else {
@@ -372,14 +467,18 @@ console.log = function (message) {
                 log("[Flag]サドンOFF");
                 sudden = false;
                 config.sudden.enable = sudden;
-                sendResponse(sudden);
+                args = request.args;
+                args.enable = sudden;
+                sendResponse(args);
             }
 
         } else if (request.op === COMMON.OP.MAIDLVUP) {
             if (request.ctrl === COMMON.OP_CTRL.FLAG) {
                 maidLvup = !maidLvup;
                 config.maidLvup.enable = maidLvup;
-                sendResponse(maidLvup);
+                args = request.args;
+                args.enable = maidLvup;
+                sendResponse(args);
                 if (maidLvup) {
                     log("[Flag]側近レベルアップON");
                 } else {
@@ -397,7 +496,9 @@ console.log = function (message) {
                     config.battleDamage.minhp = request.args.minhp * 0.01;
                 }
                 config.battleDamage.enable = battleDamage;
-                sendResponse(battleDamage);
+                args = request.args;
+                args.enable = battleDamage;
+                sendResponse(args);
                 if (battleDamage) {
                     log("[Flag]戦闘後ダメージON");
                 } else {
@@ -407,25 +508,66 @@ console.log = function (message) {
                 log("[Flag]戦闘後ダメージOFF");
                 battleDamage = false;
                 config.battleDamage.enable = battleDamage;
-                sendResponse(battleDamage);
+                args = request.args;
+                args.enable = battleDamage;
+                sendResponse(args);
             }
 
         } else if (request.op === COMMON.OP.LVUP) {
+            var cond;
             if (request.ctrl === COMMON.OP_CTRL.FLAG) {
                 lvup = !lvup;
+
+                args = request.args;
+                for (i = 0; i < args.data.length; i++) {
+                    try {
+                        cond = parseLvupCond(args.data[i]);
+                        args.data[i].status = getConditionMsg(cond, args.data[i].point);
+                        args.data[i].cond = cond;
+                        args.data[i].judge = true;
+                    } catch (e1) {
+                        args.data[i].status = e1;
+                        args.data[i].judge = false;
+                        lvup = false;
+                    }
+                    if (args.data[i].name === "") {
+                        args.data[i].judge = false;
+                        lvup = false;
+                    }
+                }
+                args.enable = lvup;
+                sendResponse(args);
+
                 config.lvup.enable = lvup;
-                config.lvup.data = request.args.data;
-                sendResponse(lvup);
                 if (lvup) {
+                    config.lvup.data = args.data;
                     log("[Flag]ストライカーレベルアップON");
                 } else {
                     log("[Flag]ストライカーレベルアップOFF");
                 }
-            } else if (request.ctrl === COMMON.OP_CTRL.CHANGE && lvup === true) {
-                log("[Flag]ストライカーレベルアップOFF");
+            } else if (request.ctrl === COMMON.OP_CTRL.CHANGE) {
+                //log("[Flag]ストライカーレベルアップOFF");
                 lvup = false;
+
+                args = request.args;
+                for (i = 0; i < args.data.length; i++) {
+                    try {
+                        cond = parseLvupCond(args.data[i]);
+                        args.data[i].status = getConditionMsg(cond, args.data[i].point);
+                        args.data[i].cond = cond;
+                        args.data[i].judge = true;
+                    } catch (e2) {
+                        args.data[i].status = e2;
+                        args.data[i].judge = false;
+                    }
+                    if (args.data[i].name === "") {
+                        args.data[i].judge = false;
+                    }
+                }
+                args.enable = lvup;
+                sendResponse(args);
+
                 config.lvup.enable = lvup;
-                sendResponse(lvup);
             }
 
         } else if (request.op === COMMON.OP.CONTENTS_DATA) {

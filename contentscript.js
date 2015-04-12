@@ -1249,6 +1249,7 @@ var task = {};
         var defer = $.Deferred();
 
         var lvupCharaList = [];
+        var i;
 
         $.ajax({
             url: "mercenary_.php",
@@ -1261,13 +1262,31 @@ var task = {};
         }).then(function (res) {
             $.each(res, function () {
                 // パーティーに加入しているメンバーに限定する（側近は常に含まれるはず？party: "0-x"）
-                if (battleData.isLvup && IS_AUTO_LVUP && this.party !== "0") {
-                    lvupCharaList.push(parseInt(this.id, 10));
+                if (battleData.isLvup && config.lvup.enable && this.party !== "0") {
+                    for (i = 0; i < config.lvup.data.length; i++) {
+                        if (config.lvup.data[i].name === this.name) {
+                            lvupCharaList.push({
+                                id: parseInt(this.id, 10),
+                                name: this.name,
+                                lvupData: config.lvup.data[i]
+                            });
+                            break;
+                        }
+                    }
 
                 } else if (battleData.maid && config.maidLvup.enable) {
                     if (this.name === "フリューネ" || this.name === "キサナ" ||
                             this.name === "アリシア" || this.name === "リエル") {
-                        lvupCharaList.push(parseInt(this.id, 10));
+                        for (i = 0; i < config.lvup.data.length; i++) {
+                            if (config.lvup.data[i].name === this.name) {
+                                lvupCharaList.push({
+                                    id: parseInt(this.id, 10),
+                                    name: this.name,
+                                    lvupData: config.lvup.data[i]
+                                });
+                                break;
+                            }
+                        }
                     }
                 }
             });
@@ -1281,18 +1300,17 @@ var task = {};
     };
 
     /* 指定キャラのレベルアップ開始 */
-    var diceLvup = function (charaid, target_parameter) {
+    var diceLvup = function (charaData) {
         console.log("[Enter]diceLvup");
         var defer = $.Deferred();
         var isFirst = true;
         var reqData = {};
 
-        var diceLvupInner = function (charaid, target_parameter) {
-            var d = $.Deferred();
+        var diceLvupInner = function (charaData) {
             if (isFirst) {
                 reqData = {
                     op: "point",
-                    mid: charaid,
+                    mid: charaData.id,
                     type: 0,
                     md: 0
                 };
@@ -1300,7 +1318,7 @@ var task = {};
             } else {
                 reqData = {
                     op: "point",
-                    mid: charaid,
+                    mid: charaData.id,
                     type: 1
                 };
             }
@@ -1313,41 +1331,55 @@ var task = {};
                 success: function (res) {
                     if (res === -1) {
                         log("レベルアップ(ダイス)に失敗"); //getString(593);
+                        defer.reject();
                     } else if (res === -2) {
                         log("レベルアップ(ダイス)に失敗"); //getString(2240);
+                        defer.reject();
                     } else if (res === -4) {
                         log("レベルアップ(ダイス)に失敗"); //getString(4312);
+                        defer.reject();
                     } else {
-                        var point = res.point.split("-");
+                        var point = res.point.split("-").map(function (p) { return parseInt(p, 10); });
                         if (point.length !== 6) {
                             log("レベルアップ(ダイス)に謎の失敗");
+                            defer.reject();
                         } else {
-                            log(res.mdata.name + "(Lv" + res.mdata.lv + ") : " + res.point);
-                            // TODO:ダイス振り直し判定
-                            // if (res.point != target_parameter) {
-                            //    return diceLvupInner();
-                            //};
-                            d.resolve(charaid); // submitLvup
+                            log(res.mdata.name + "(Lv" + res.mdata.lv + ") : " + res.point + "(total " +
+                                point.reduce(function (a, b, i) { return (i === 1 ? (a / 5) : a) + b; }) + ")");
+                            point[0] = point[0] / 5;  // HP
+                            // ダイス振り直し判定
+                            var total = 0, i;
+                            for (i = 0; i < COMMON.STATUSLIST.length; i++) {
+                                if (charaData.lvupData.cond[i].length > 0) {
+                                    if (charaData.lvupData.cond[i].indexOf(point[i]) === -1) {
+                                        break;
+                                    }
+                                }
+                                total += point[i];
+                            }
+                            if (total < charaData.lvupData.point) {
+                                diceLvupInner(charaData);
+                                return;
+                            }
                             var newlv = parseInt(res.mdata.lv, 10) + 1;
                             log(res.mdata.name + "レベルアップ確定(Lv" + newlv + ")");
-                            return;
+                            defer.resolve(charaData); // submitLvup
                         }
                     }
-                    d.reject();
                 },
                 error: function () {
                     log("レベルアップ(ダイス)に失敗");
-                    d.reject();
+                    defer.reject();
                 }
             });
-            return d.promise();
         };
 
-        return diceLvupInner(charaid, target_parameter);
+        diceLvupInner(charaData);
+        return defer.promise();
     };
 
     /* レベルアップ確定 */
-    var submitLvup = function (charaid) {
+    var submitLvup = function (charaData) {
         console.log("[Enter]submitLvup");
         var defer = $.Deferred();
 
@@ -1358,7 +1390,7 @@ var task = {};
             dataType: "json",
             data: ({
                 op: "point_submit",
-                mid: charaid
+                mid: charaData.id
             }),
             success: function (res) {
                 if (res.result === 1) {
@@ -1384,9 +1416,9 @@ var task = {};
 
         var lvupProcess = function (lvupCharaList) {
             var d = $.Deferred().resolve();
-            $.each(lvupCharaList, function (index, charaid) {
+            $.each(lvupCharaList, function (index, charaData) {
                 d = d.then(function () {
-                    return $.Deferred().resolve(charaid, "").promise();
+                    return $.Deferred().resolve(charaData).promise();
                 })
                     .then(diceLvup)
                     .then(submitLvup)
@@ -1784,15 +1816,26 @@ var task = {};
                 }
 
                 var prevBlockid = parseInt(param.blockid, 10);
-                var nextBlockid;
+                var nextBlockid = 0;
                 var firstBlockid = parseInt(res.remain[0].id, 10);
                 var lastBlockid = parseInt(res.remain[res.remain.length - 1].id, 10);
                 var targetBlockid = parseInt(res.target_level, 10);
+                var i, j;
 
                 if (param.blockid) {
-                    nextBlockid = ++param.blockid;
-                    if (nextBlockid > lastBlockid) {
-                        nextBlockid = firstBlockid;
+                    //nextBlockid = ++param.blockid;
+                    //if (nextBlockid > lastBlockid) {
+                    //    nextBlockid = firstBlockid;
+                    //}
+                    for (i = 0; i < res.remain.length; i++) {
+                        if (parseInt(res.remain[i].id, 10) === param.blockid) {
+                            if (i === res.remain.length - 1) {
+                                nextBlockid = firstBlockid;
+                            } else {
+                                nextBlockid = parseInt(res.remain[i + 1].id, 10);
+                            }
+                            break;
+                        }
                     }
                 } else if (param.isFirst) {
                     nextBlockid = firstBlockid;
@@ -1808,19 +1851,22 @@ var task = {};
                 }
                 nextBlockid = parseInt(nextBlockid, 10);
                 // nextBlockidが行けるマスか確認
-                var i;
                 for (i = 0; i < res.remain.length; i++) {
                     if (parseInt(res.remain[i].id, 10) === nextBlockid) {
                         if (res.remain[i].cable === 0) {
                             log(res.remain[i].name + "[" + res.remain[i].id + "]に行くことができません");
-                            var nextIndex = res.level_set.indexOf(res.target_level);
-                            if (nextIndex < 0) {
-                                log("次のマスの決定に失敗");
-                                defer.reject();
-                                return;
-                            } else {
-                                log(res.remain[nextIndex].name + "[" + res.target_level + "]に行きます");
-                                nextBlockid = targetBlockid;
+                            for (j = 0; j < res.remain.length; j++) {
+                                if (parseInt(res.remain[j].id, 10) === targetBlockid &&
+                                        res.remain[j].cable !== 0) {
+                                    log(res.remain[j].name + "[" + targetBlockid + "]に行きます");
+                                    nextBlockid = targetBlockid;
+                                    break;
+                                }
+                                if (i === res.remain.length - 1) {
+                                    log("次のマスの決定に失敗");
+                                    defer.reject();
+                                    return;
+                                }
                             }
                         }
                         break;
@@ -1935,7 +1981,7 @@ var task = {};
             })
 
             .then(function () {
-                if ((battleData.isLvup && IS_AUTO_LVUP) || (battleData.maid && config.maidLvup.enable)) {
+                if ((battleData.isLvup && config.lvup.enable) || (battleData.maid && config.maidLvup.enable)) {
                     return lvupAllPTChara(battleData);
                 }
             })

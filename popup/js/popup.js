@@ -59,34 +59,34 @@
         return function (scope, element, attr) {
             if (scope.args[COMMON.OP.LVUP] === undefined) {
                 scope.args[COMMON.OP.LVUP] = {};
-                scope.args[COMMON.OP.LVUP].data = [ {type: "dice", point: 5} ];
+                scope.args[COMMON.OP.LVUP].data = [{
+                    name: "",
+                    cond: [],
+                    type: "dice",
+                    point: 5,
+                    condstr: "",
+                    status: "",
+                    judge: false
+                }];
             }
             scope.lvupTypes = [ "dice", "vip" ];
-            scope.lvupPoint = [ 5, 6 ];
+            scope.lvupPoint = [ 4, 5, 6 ];
 
             var html;
             var onChange = ' ng-change="onChange(' + "'lvup'" + ')"';
             html =
-                '<div ng-repeat="a in args.lvup.data">' +
-                '<div class="col-xs-3 lvupform-element">' +
-                '    <input class="ng-model-box" type="text" ng-model="a.name"' + onChange + ' />' +
-                '</div>' +
-                '<div class="col-xs-4 lvupform-element">' +
-                '    <input class="ng-model-box" type="text" ng-model="a.cond"' + onChange + ' />' +
-                '</div>' +
-                '<div class="col-xs-2 lvupform-element">' +
-                '    <select class="ng-model-box" ng-model="a.type" ng-options="t for t in lvupTypes"' + onChange + '></select>' +
-                '</div>' +
-                '<div class="col-xs-1 lvupform-element">' +
-                '    <select class="ng-model-box" ng-model="a.point" ng-options="p for p in lvupPoint"' + onChange + '></select>' +
-                '</div>' +
-                '<div class="col-xs-1 text-right">' +
-                '    <button class="btn btn-default btn-xs" ng-click="delLvupform($index)">削除</button>' +
-                '</div>' +
+                '<div class="row" ng-repeat="a in args.lvup.data">' +
+                '    <span class="glyphicon glyphicon-ok" ng-if="a.judge" />' +
+                '    <span class="glyphicon glyphicon-remove" ng-if="!a.judge" />' +
+                '    <input class="ng-model-box lvupform-element" style="width:20%" type="text" ng-model="a.name"' + onChange + ' />' +
+                '    <input class="ng-model-box lvupform-element" style="width:42%" type="text" ng-model="a.condstr"' +
+                ' tooltip="{{a.status}}" tooltip-trigger="focus" tooltip-placement="bottom"' + onChange + ' />' +
+                '    <select class="ng-model-box lvupform-element" style="width:13%" ng-model="a.type" ng-options="t for t in lvupTypes"' + onChange + '></select>' +
+                '    <select class="ng-model-box lvupform-element" style="width:9%" ng-model="a.point" ng-options="p for p in lvupPoint"' + onChange + '></select>' +
+                '    <button class="btn btn-default btn-xs glyphicon glyphicon-minus pull-right" ng-click="delLvupform($index)" ></button>' +
                 '</div>';
             element.append($compile(html)(scope));
             scope.args[COMMON.OP.LVUP].enable = false;
-            //scope.args[scope.c.name].enable = scope.c.init;
         };
     }]);
 
@@ -119,14 +119,32 @@
         };
 
         $scope.addLvupform = function () {
+            $scope.args.lvup.data.push({
+                name: "",
+                cond: [],
+                type: "dice",
+                point: 5,
+                condstr: "",
+                status: "",
+                judge: false
+            });
             $scope.onChange(COMMON.OP.LVUP);
-            $scope.args.lvup.data.push({type: "dice", point: 5});
         };
         $scope.delLvupform = function (i) {
-            $scope.onChange(COMMON.OP.LVUP);
             $scope.args.lvup.data.splice(i, 1);
+            $scope.onChange(COMMON.OP.LVUP);
         };
-        $scope.parseLvupCond = function (cond, maxPoint) {
+//        $scope.lvupJudgeIconClass = function () {
+//            if ($scope.contentsData === undefined || $scope.contentsData[op] === undefined || $scope.contentsData[op].state === undefined) {
+//                return { "btn-primary": true };
+//            }
+//            var s = $scope.contentsData[op].state;
+//            return {
+//                "glyphicon-ok": $scope.args.lvup.data.judge,
+//                "glyphicon-remove": !$scope.args.lvup.data.judge
+//            };
+//        };
+        $scope.parseLvupCond = function (cond, maxPoint, index) {
             var statusList = ["HP", "ATK", "DEF", "DEX", "AGI", "LUK"];
             var operator = {"<=": -1, "==": 0, ">=": 1};
             var ret = [[], [], [], [], [], []];
@@ -137,7 +155,7 @@
             }
 
             var total = 0;
-            var i = 0, j = 0, k = 0;
+            var i, j, k;
             for (i = 0; i < elem.length; i++) {
                 var opFound = false;
                 var op;
@@ -149,7 +167,7 @@
                             var key = x[0].trim();
                             var value = x[1].trim();
                             if (isNaN(value) || value > maxPoint || value < 0) {
-                                throw "Illegal Value: 右辺は0から" + maxPoint + "の範囲で指定してください: " + value
+                                $scope.args.lvup.err = "Illegal Value: 右辺は0から" + maxPoint + "の範囲で指定してください: " + value
                                     + " (Ex:AGI == 0, HP <= 3)";
                             }
                             value = Number(value);
@@ -231,7 +249,7 @@
                 "args": $scope.args[op]
             }, function (response) {
                 if (response !== undefined) {
-                    $scope.args[op].enable = response;
+                    $scope.args[op] = response;
                     $scope.saveSetting();
                     console.log("reponse");
                 }

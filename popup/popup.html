@@ -72,15 +72,14 @@
                         <button class="btn btn-xs" ng-class="flagbtnClass('lvup')" ng-click="sendFlag('lvup')">{{contentsData.lvup.state}}</button> ストライカーをLVUPする
                     </div>
                     <div class="row">
-                        <div class="col-xs-3 lvupform-label">キャラ名</div>
-                        <div class="col-xs-4 lvupform-label">パラメータ</div>
-                        <div class="col-xs-2 lvupform-label">タイプ</div>
-                        <div class="col-xs-2 lvupform-label">ポイント</div>
+                        <span class="lvupform-label" style="display:inline-block;width:4%"></span>
+                        <span class="lvupform-label" style="display:inline-block;width:20%">キャラ名</span>
+                        <span class="lvupform-label" style="display:inline-block;width:42%">パラメータ</span>
+                        <span class="lvupform-label" style="display:inline-block;width:12%">タイプ</span>
+                        <span class="lvupform-label" style="display:inline-block;width:15%">ポイント</span>
                     </div>
-                    <div class="row">
-                        <ng-lvupform></ng-lvupform>
-                    </div>
-                    <button class="btn btn-default btn-xs" ng-click="addLvupform()">追加</button>
+                    <ng-lvupform></ng-lvupform>
+                    <button class="btn btn-default btn-xs glyphicon glyphicon-plus" ng-click="addLvupform()"></button>
                     <div class="row control">
                         <div class="col-xs-12">
                             <p class="status">
@@ -88,12 +87,6 @@
                             </p>
                         </div>
                     </div>
-                    <!--<div class="row">
-                        <div class="col-xs-12 text-right">
-                            <button class="btn btn-primary btn-xs" ng-click="saveSetting()">保存</button>
-                            <button class="btn btn-default btn-xs" ng-click="settingAction('restore')">キャンセル</button>
-                        </div>
-                    </div>-->
                 </div>
             </tab>
 

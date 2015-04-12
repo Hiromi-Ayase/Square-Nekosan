@@ -22,5 +22,5 @@ config.battleDamage = {
 
 config.lvup = {
     enable: false,
-    data: []    // data = [{ name, cond, type, point }]
+    data: []    // data = [{ name, cond, type, point, condstr, status, judge }]
 };
