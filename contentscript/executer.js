@@ -114,6 +114,7 @@ console.log = function (message) {
                 statusText: COMMON.STATUSLIST + "を設定してください",
                 state: COMMON.CMD_STATUS.ON
             } : {
+                statusText: COMMON.STATUSLIST + "を設定してください",
                 state: COMMON.CMD_STATUS.OFF
             },
             log: logBuffer.join("\n"),
@@ -127,6 +128,7 @@ console.log = function (message) {
 
         var s = lvupCond.condstr;
         var n = lvupCond.point;
+        var type = lvupCond.type;
         var elem = s.split(",");
         if (s === null || s.trim() === "") {
             return ret;
@@ -141,17 +143,24 @@ console.log = function (message) {
                 if (operator.hasOwnProperty(op)) {
                     var x = elem[i].split(op);
                     if (x.length === 2) {
+                        if (type === "vip" && operator[op] !== 0) {
+                            throw "Syntax Error: 演算子は == のみ指定可能です: " + op;
+                        }
                         opFound = true;
                         var key = x[0].trim();
                         var value = x[1].trim();
                         if (isNaN(value) || value > n || value < 0) {
-                            throw "Illegal Value: 右辺は0から" + n + "の範囲で指定してください: " + value + " (Ex:AGI == 0, HP <= 3)";
+                            throw "Illegal Value: 右辺は0から" + n + "の範囲で指定してください: " + value + " (Ex:DEF == 0, HP <= 3)";
                         }
                         value = Number(value);
                         var statusFound = false;
                         for (j = 0; j < COMMON.STATUSLIST.length; j++) {
                             if (key === COMMON.STATUSLIST[j]) {
                                 if (operator[op] === 0) {
+                                    total += value;
+                                    if (total > n) {
+                                        throw "Illegal Value: 合計値は" + n + "にしてください: " + total;
+                                    }
                                     ret[j].push(value);
                                 } else {
                                     if (operator[op] > 0) {
@@ -169,15 +178,22 @@ console.log = function (message) {
                             }
                         }
                         if (!statusFound) {
-                            throw "Syntax Error: 左辺は " + COMMON.STATUSLIST + "のいずれかを指定してください: " + key + " (Ex:AGI == 0, HP <= 3)";
+                            throw "Syntax Error: 左辺は " + COMMON.STATUSLIST + "のいずれかを指定してください: " + key + " (Ex:DEF == 0, HP <= 3)";
                         }
                         break;
                     }
                 }
             }
             if (!opFound) {
-                throw "Syntax Error: 演算子は <=, ==, >= のいずれかを指定してください (Ex:AGI == 0, HP <= 3)";
+                if (type === "dice") {
+                    throw "Syntax Error: 演算子は <=, ==, >= のいずれかを指定してください (Ex:DEF == 0, HP <= 3)";
+                } else if (type === "dice") {
+                    throw "Syntax Error: 演算子は == のみを指定してください (Ex:DEF == 0, HP == 3)";
+                }
             }
+        }
+        if (type === "vip" && total !== n) {
+            throw "Illegal Value: 合計値は" + n + "ちょうどにしてください: " + total;
         }
         return ret;
     };

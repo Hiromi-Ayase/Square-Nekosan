@@ -70,7 +70,7 @@
                 }];
             }
             scope.lvupTypes = [ "dice", "vip" ];
-            scope.lvupPoint = [ 4, 5, 6 ];
+            scope.lvupPoint = [ 3, 4, 5, 6 ];
 
             var html;
             var onChange = ' ng-change="onChange(' + "'lvup'" + ')"';
@@ -155,7 +155,7 @@
                 "ctrl": COMMON.OP_CTRL.FLAG,
                 "args": $scope.args[op]
             }, function (response) {
-                $scope.args[op].enable = response;
+                $scope.args[op] = response;
                 $scope.saveSetting();
             });
         };
@@ -180,7 +180,6 @@
                 if (response !== undefined) {
                     $scope.args[op] = response;
                     $scope.saveSetting();
-                    console.log("reponse");
                 }
             });
         };

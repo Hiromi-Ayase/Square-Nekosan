@@ -1309,6 +1309,7 @@ var task = {};
         var defer = $.Deferred();
         var isFirst = true;
         var reqData = {};
+        var canVip = false;
 
         var diceLvupInner = function (charaData) {
             if (isFirst) {
@@ -1318,12 +1319,27 @@ var task = {};
                     type: 0,
                     md: 0
                 };
-                isFirst = false;
-            } else {
+            } else if (charaData.lvupData.type === "dice") {
                 reqData = {
                     op: "point",
                     mid: charaData.id,
                     type: 1
+                };
+            } else if (charaData.lvupData.type === "vip") {
+                if (!canVip) {
+                    log("VIP振りはできません");
+                    defer.reject();
+                    return;
+                }
+                var point_array = [];
+                var i;
+                for (i = 0; i < COMMON.STATUSLIST.length; i++) {
+                    point_array.push((charaData.lvupData.cond[i].length === 0) ? 0 : charaData.lvupData.cond[i][0]);
+                }
+                reqData = {
+                    op: "appoint_set",
+                    mid: charaData.id,
+                    point_array: point_array
                 };
             }
             $.ajax({
@@ -1333,16 +1349,30 @@ var task = {};
                 dataType: "json",
                 data: reqData,
                 success: function (res) {
+                    if (charaData.lvupData.type === "vip" && !isFirst) {
+                        if (!res.result || res.result !== "success") {
+                            log("レベルアップ(VIP)に失敗");
+                            defer.reject();
+                        } else {
+                            log(charaData.name + "レベルアップ確定");
+                            defer.resolve(charaData); // submitLvup
+                        }
+                        return;
+                    }
                     if (res === -1) {
                         log("レベルアップ(ダイス)に失敗"); //getString(593);
                         defer.reject();
                     } else if (res === -2) {
-                        log("レベルアップ(ダイス)に失敗"); //getString(2240);
+                        log("レベルアップ(ダイス)に失敗: " + "配分するポイントがありません"); //getString(2240) VIPじゃない;
                         defer.reject();
                     } else if (res === -4) {
-                        log("レベルアップ(ダイス)に失敗"); //getString(4312);
+                        log("レベルアップ(ダイス)に失敗: " + "参戦中はLVUPできません"); //getString(4312);
                         defer.reject();
                     } else {
+                        if (res.appoint && res.appoint === 1) {
+                            canVip = true;
+                        }
+
                         var point = res.point.split("-").map(function (p) { return parseInt(p, 10); });
                         if (point.length !== 6) {
                             log("レベルアップ(ダイス)に謎の失敗");
@@ -1362,6 +1392,7 @@ var task = {};
                                 total += point[i];
                             }
                             if (total < charaData.lvupData.point) {
+                                isFirst = false;
                                 diceLvupInner(charaData);
                                 return;
                             }
@@ -1385,6 +1416,9 @@ var task = {};
     /* レベルアップ確定 */
     var submitLvup = function (charaData) {
         console.log("[Enter]submitLvup");
+        if (charaData.lvupData.type === "vip") {
+            return;
+        }
         var defer = $.Deferred();
 
         $.ajax({
@@ -1441,7 +1475,6 @@ var task = {};
             .then(lvupProcess)
             .then(defer.resolve, function () {
                 log("Failed lvupAllPTChara");
-                defer.reject();
             });
 
         return defer.promise();
@@ -2004,56 +2037,6 @@ var task = {};
 
         return defer.promise();
     };
-/*
-    var repeatBattle = function () {
-        log("[Enter]repeatBattle");
-        var defer = $.Deferred();
-
-        var list = g_blockidList;
-        g_blockid = list.shift();
-        if (!g_blockid) {
-            defer.reject();
-            return;
-        }
-
-        log("---- g_blockid = " + g_blockid);
-
-        Battle()
-            .then(repeatBattle)
-            .then(defer.resolve, function () {
-                log("Failed repeatBattle");
-                defer.reject();
-            });
-
-        return defer.promise();
-    };
-*/
-
-    /* 魔界線 入場可能マップをすべて回る(Heaven・Hell個別) */
-/*
-    var dystopiaAllBattle = function (rank) {
-        log("Enter dystopiaAllBattle");
-        var defer = $.Deferred();
-
-        var maplist = DystopiaMapList;
-        var mapid = maplist.shift();
-        if (!mapid) {
-            defer.reject();
-            return;
-        }
-
-        isAvailableDystopia(mapid, rank)
-            .then(getAllBlockidDystopia)
-            .then(repeatBattle)
-            .then(dystopiaAllBattle)
-            .then(defer.resolve, function () {
-                log("Failed dystopiaAllBattle");
-                defer.reject();
-            });
-
-        return defer.promise();
-    };
-*/
 
     /* 側近へプレゼント */
     task.GiftToMaid = function (giftConfig) {
@@ -2556,7 +2539,7 @@ var task = {};
 
         var townId = null;
         //$.each(townIdList, function (i, townId) {
-        log(playerName + " の都市を防衛")
+        log(playerName + " の都市を防衛");
         defer = defer.then(function () {
             var d = $.Deferred();
             $.ajax({
