@@ -2588,7 +2588,7 @@ var task = {};
                     log("自分の協防可能回数0");
                     d.reject();
                 } else {
-                    d.resolve();
+                    d.resolve(townData);
                 }
                 return d.promise();
             });
