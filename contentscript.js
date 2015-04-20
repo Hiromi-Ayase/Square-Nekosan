@@ -1354,8 +1354,8 @@ var task = {};
                             log("レベルアップ(VIP)に失敗");
                             defer.reject();
                         } else {
-                            log(charaData.name + "レベルアップ確定");
-                            defer.resolve(charaData); // submitLvup
+                            log(charaData.name + "レベルアップ(VIP)確定");
+                            defer.resolve(); // submitLvup
                         }
                         return;
                     }
@@ -1398,7 +1398,7 @@ var task = {};
                             }
                             var newlv = parseInt(res.mdata.lv, 10) + 1;
                             log(res.mdata.name + "レベルアップ確定(Lv" + newlv + ")");
-                            if (charaData.lvupData.type === "vip" && isFirst === false) {
+                            if (charaData.lvupData.type === "vip" && !isFirst) {
                                 defer.resolve(); // submitLvupで何もしない
                             } else {
                                 defer.resolve(charaData); // submitLvup
