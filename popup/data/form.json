@@ -72,14 +72,14 @@
                 "type": "checkbox",
                 "name": "sudden",
                 "title": "サドンが出るまで",
-                "column": 12,
+                "column": 6,
                 "init": false
             },
             {
                 "type": "checkbox",
                 "name": "maid",
                 "title": "側近を参加させる",
-                "column": 12,
+                "column": 6,
                 "init": false
             }
         ],
@@ -124,7 +124,7 @@
             {
                 "type": "range",
                 "name": "time",
-                "title": "戦闘時間（秒）",
+                "title": "Heavenの戦闘時間（秒）",
                 "column": 6,
                 "initmin": 0,
                 "initmax": 0
@@ -135,6 +135,14 @@
                 "title": "側近を参加させる",
                 "column": 6,
                 "init": false
+            },
+            {
+                "type": "range",
+                "name": "time_hell",
+                "title": "Hellの戦闘時間（秒）",
+                "column": 6,
+                "initmin": 180,
+                "initmax": 240
             },
             {
                 "type": "checkbox",
@@ -190,14 +198,14 @@
                 "type": "checkbox",
                 "name": "sudden",
                 "title": "サドンが出るまで",
-                "column": 12,
+                "column": 6,
                 "init": false
             },
             {
                 "type": "checkbox",
                 "name": "maid",
                 "title": "側近を参加させる",
-                "column": 12,
+                "column": 6,
                 "init": false
             }
         ],
@@ -224,11 +232,12 @@
                 ]
             },
             {
-                "type": "text",
+                "type": "textarea",
                 "name": "itemList",
                 "title": "アイテムリスト",
-                "init": "",
-                "column": 12
+                "init": "氷砕片,劣化紅玉,劣化黄玉,劣化緑玉,劣化藍玉,劣化金剛,劣化水晶,虚紅玉,虚黄玉,虚緑玉,虚藍玉,虚金剛,虚水晶,紅玉,黄玉,緑玉,藍玉,金剛,水晶,星耀水晶の原石,紅蓮眼の原石,緑深石の原石,砂秘晶の原石,蒼藍星の原石,紺碧纏晶の原石,星耀水晶,紅蓮眼,緑深石,砂秘晶,蒼藍星,紺碧纏晶",
+                "column": 12,
+                "height": "200px"
             }
         ],
         "ctrl": [

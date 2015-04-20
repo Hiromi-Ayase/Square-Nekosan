@@ -37,14 +37,14 @@
 
     <div class="main" ng-controller="MainController">
         <tabset>
-            <tab ng-repeat="c in config.cmd" active="c.active">
+            <tab ng-repeat="c in config.cmd" active=c.active>
                 <tab-heading>{{c.title}}</tab-heading>
                 <div class="container form">
                     <div class="row">
                         <div ng-repeat="f in c.form">
                             <div class="col-xs-{{f.column}} form-element">
                                 <label ng-if="f.type!='checkbox'">{{f.title}}:</label>
-                                <label ng-if="f.type=='checkbox'"></label>
+                                <label ng-if="f.type=='checkbox'">&nbsp;</label>
                                 <ng-form></ng-form>
                             </div>
                         </div>
@@ -68,7 +68,6 @@
                 <tab-heading>LVUP</tab-heading>
                 <div class="container form">
                     <div class="row">
-                        <!--<button class="btn btn-xs" ng-class="flagbtnClass('lvup')" ng-click="sendFlag('lvup')">{{contentsData.lvup.state}}</button> 側近をLVUPする-->
                         <button class="btn btn-xs" ng-class="flagbtnClass('lvup')" ng-click="sendFlag('lvup')">{{contentsData.lvup.state}}</button> ストライカーをLVUPする
                     </div>
                     <div class="row">
@@ -90,11 +89,18 @@
                 </div>
             </tab>
 
+           <tab>
+                <tab-heading>都市LVUP</tab-heading>
+                <div class="container form">
+                    <ng-townlvupform></ng-townlvupform>
+                </div>
+            </tab>
+
             <tab>
                 <tab-heading>
                     <i class="glyphicon glyphicon-flag"></i>
                 </tab-heading>
-                <div ng-repeat="c in config.flag" active="c.active">
+                <div ng-repeat="c in config.flag">
                     <div class="container form">
                         <div class="row">
                             <ng-flagform></ng-flagform>

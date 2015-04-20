@@ -24,6 +24,7 @@ console.log = function (message) {
     'use strict';
 
     /* Command Instances */
+    var init = null;
     var battleBuff = null;
     var blockBattle = null;
     var mapBattle = null;
@@ -33,6 +34,7 @@ console.log = function (message) {
     var recruit = null;
     var loginBonus = null;
     var townBattle = null;
+    var townLvup = null;
     var test = null;
 
     /* Flag */
@@ -41,8 +43,11 @@ console.log = function (message) {
     var battleDamage = false;
     var lvup = false;
 
-    var setting = null;
-    var data = null;
+    /* background */
+    var setting = {};
+    var data = {};
+
+    var townList = null;
 
     function buildContentsData() {
         return {
@@ -88,6 +93,17 @@ console.log = function (message) {
                 statusText: "いぐー",
                 state: COMMON.CMD_STATUS.END
             },
+            townLvup: townList !== null ? townLvup !== null ? {
+                townLvupDataList: townLvup.townLvupDataList,
+                statusText: "実行中！",
+                state: townLvup.cmd.state
+            } : {
+                statusText: "いぐー",
+                state: COMMON.CMD_STATUS.END
+            } : {
+                statusText: "都市情報取得中",
+                state: COMMON.CMD_STATUS.DISABLE
+            },
             test: test !== null ? {
                 statusText: "実行中！",
                 state: test.cmd.state
@@ -118,7 +134,8 @@ console.log = function (message) {
                 state: COMMON.CMD_STATUS.OFF
             },
             log: logBuffer.join("\n"),
-            loginBonus: loginBonus === null ? "" : loginBonus.statusMsg
+            loginBonus: loginBonus === null ? "" : loginBonus.statusMsg,
+            townList: townList
         };
     }
 
@@ -226,22 +243,38 @@ console.log = function (message) {
         }
     };
 
+    var saveSetting = function () {
+        console.log(setting);
+        var jsonString =  JSON.stringify(setting, null, 4);
+        chrome.runtime.sendMessage({
+            "op": COMMON.OP.SET_STORAGE_CONTENT,
+            "storage": jsonString
+        });
+    };
+
     $(function () {
         window.setTimeout(function () {
             loginBonus = new cmdManager.CmdLoginBonus();
         }, 5000);
+
+        init = new cmdManager.CmdInit(function () {
+            townList = init.result.townlist;
+            init = null;
+        });
 
         var camp = new cmdManager.CmdCamp(function () {
             camp = null;
         });
 
         window.setInterval(function () {
-            chrome.runtime.sendMessage({
-                "op": "get"
-            }, function (response) {
-                setting = JSON.parse(response.storage);
-                data = response.data;
-            });
+            if (init === null) {
+                chrome.runtime.sendMessage({
+                    "op": COMMON.OP.GET_STORAGE_CONTENT
+                }, function (response) {
+                    setting = JSON.parse(response.storage);
+                    data = response.data;
+                });
+            }
         }, COMMON.INTERVAL.SETTING);
     });
 
@@ -249,6 +282,7 @@ console.log = function (message) {
         var battleConfig = {};
         var giftConfig = {};
         var recruitConfig = {};
+        var townLvupConfig = [];
         var i, args;
 
         if (request.op === COMMON.OP.MAP) {
@@ -284,6 +318,7 @@ console.log = function (message) {
                 if (request.args.dystopia === 0) {
                     battleConfig.time = request.args.time;
                     battleConfig.maid = request.args.maid;
+                    battleConfig.time_hell = request.args.time_hell;
                     battleConfig.maid_hell = request.args.maid_hell;
                     dystopia = new cmdManager.CmdAllDystopia(battleConfig, function () {
                         dystopia = null;
@@ -293,6 +328,7 @@ console.log = function (message) {
                     battleConfig.rank = request.args.dystopiaMode;
                     battleConfig.time = request.args.time;
                     battleConfig.maid = request.args.maid;
+                    battleConfig.time_hell = request.args.time_hell;
                     battleConfig.maid_hell = request.args.maid_hell;
                     dystopia = new cmdManager.CmdDystopia(battleConfig, function () {
                         dystopia = null;
@@ -414,6 +450,18 @@ console.log = function (message) {
             } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
                 recruit.cmd.state = COMMON.CMD_STATUS.END;
                 recruit = null;
+            }
+
+        } else if (request.op === COMMON.OP.TOWNLVUP && townList) {
+            if (request.ctrl === COMMON.OP_CTRL.RUN) {
+                townLvupConfig = [];
+                townLvupConfig = request.args.data;
+                townLvup = new cmdManager.CmdTownLvup(townLvupConfig, function () {
+                    townLvup = null;
+                });
+            } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
+                townLvup.cmd.state = COMMON.CMD_STATUS.END;
+                townLvup = null;
             }
 
         } else if (request.op === COMMON.OP.TEST) {

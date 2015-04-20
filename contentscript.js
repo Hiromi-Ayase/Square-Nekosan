@@ -1398,7 +1398,11 @@ var task = {};
                             }
                             var newlv = parseInt(res.mdata.lv, 10) + 1;
                             log(res.mdata.name + "レベルアップ確定(Lv" + newlv + ")");
-                            defer.resolve(charaData); // submitLvup
+                            if (charaData.lvupData.type === "vip" && isFirst === false) {
+                                defer.resolve(); // submitLvupで何もしない
+                            } else {
+                                defer.resolve(charaData); // submitLvup
+                            }
                         }
                     }
                 },
@@ -1416,7 +1420,7 @@ var task = {};
     /* レベルアップ確定 */
     var submitLvup = function (charaData) {
         console.log("[Enter]submitLvup");
-        if (charaData.lvupData.type === "vip") {
+        if (!charaData) {
             return;
         }
         var defer = $.Deferred();
@@ -2116,7 +2120,7 @@ var task = {};
                             d.resolve(giftConfig);
                         } else {
                             console.log("プレゼント対象のアイテム所持なし");
-                            d.reslve();     // プレゼント対象のアイテムなし
+                            d.resolve();     // プレゼント対象のアイテムなし
                         }
                     } else {
                         log("プレゼントリスト取得に失敗");
@@ -2243,8 +2247,8 @@ var task = {};
     };
 
     /* 都市のリストと各都市のデータを取得 */
-    var getTownList = function () {
-        console.log("[Enter]getTownList");
+    task.GetTownList = function () {
+        console.log("[[TaskStart]]GetTownList");
         var defer = $.Deferred();
         var townIdList = [];
 
@@ -2270,86 +2274,80 @@ var task = {};
             error: function () {
                 log("都市のリスト取得に失敗");
                 defer.reject();
-                //return;
             }
         });
 
         return defer.promise();
     };
 
-    var getTownsData = function (townIdList) {
-        console.log("[Enter]getTownsData");
-        var defer = $.Deferred();
-        defer.resolve();
-        var townsData = {};
+    var getTownData = function (townId) {
+        console.log("[Enter]getTownData");
+        var defer = $.Deferred().resolve(townId);
 
-        $.each(townIdList, function (i, townId) {
-            defer = defer.then(function () {
-                return $.ajax({
-                    url: "town.php?town=" + townId.id,
-                    type: "GET",
-                    //cache: false,
-                    //dataType: "json",
-                    success: function (res) {
-                    },
-                    error: function () {
-                        log("都市データの取得(town.php)に失敗");
-                    }
-                });
-
-            }).then(function () {
-                return $.ajax({
-                    url: "flash_trans_xml_.php?town=" + townId.id,
-                    type: "POST",
-                    cache: false,
-                    //dataType: "json",
-                    data: ({
-                        op: "AREA"
-                    }),
-                    success: function (res) {
-                    },
-                    error: function () {
-                        log("都市データの取得(AREA)に失敗");
-                    }
-                });
-
-            }).then(function () {
-                return $.ajax({
-                    url: "flash_trans_xml_.php?town=" + townId.id,
-                    type: "POST",
-                    cache: false,
-                    //dataType: "json",
-                    data: ({
-                        op: "READ"
-                    }),
-                    success: function (res) {
-                        var json_data = null;
-                        try {
-                            json_data = $.parseJSON(res.slice(res.indexOf("["), res.indexOf("&op")));
-                        } catch (e) {}
-                        if (json_data === null) {
-                            log("都市データパース失敗");
-                            return false;
-                        } else {
-                            townsData[townId.name] = json_data;
-                            //console.log(townsData[townId]);
-                        }
-                    },
-                    error: function () {
-                        log("都市データの取得(READ)に失敗");
-                    }
-                });
+        defer = defer.then(function (townId) {
+            var d = $.Deferred();
+            $.ajax({
+                url: "town.php?town=" + townId,
+                type: "GET",
+                //cache: false,
+                //dataType: "json",
+                success: function (res) {
+                    d.resolve(townId);
+                },
+                error: function () {
+                    log("都市データの取得(town.php)に失敗");
+                    d.reject();
+                }
             });
-        });
+            return d.promise();
 
-        defer = defer.then(function () {
-            var defer2 = $.Deferred();
-            if (townsData.length === 0) {
-                defer2.reject();
-            } else {
-                defer2.resolve(townsData);
-            }
-            return defer2.promise();
+        }).then(function (townId) {
+            var d = $.Deferred();
+            $.ajax({
+                url: "flash_trans_xml_.php?town=" + townId,
+                type: "POST",
+                cache: false,
+                //dataType: "json",
+                data: ({
+                    op: "AREA"
+                }),
+                success: function (res) {
+                    d.resolve(townId);
+                },
+                error: function () {
+                    log("都市データの取得(AREA)に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        }).then(function (townId) {
+            var d = $.Deferred();
+            $.ajax({
+                url: "flash_trans_xml_.php?town=" + townId,
+                type: "POST",
+                cache: false,
+                //dataType: "json",
+                data: ({
+                    op: "READ"
+                }),
+                success: function (res) {
+                    var json_data = null;
+                    try {
+                        json_data = $.parseJSON(res.slice(res.indexOf("["), res.indexOf("&op")));
+                    } catch (e) {}
+                    if (json_data === null) {
+                        log("都市データパース失敗");
+                        d.reject();
+                    } else {
+                        d.resolve(json_data);
+                    }
+                },
+                error: function () {
+                    log("都市データの取得(READ)に失敗");
+                }
+            });
+            return d.promise();
         });
 
         return defer.promise();
@@ -2382,8 +2380,8 @@ var task = {};
         console.log("[[TaskStart]]GetTownTransducer");
         var defer = $.Deferred();
 
-        getTownList()
-            .then(getTownsData)
+        task.GetTownList()
+            .then(getTownData)
             .then(function (townsData) {
                 var townName;
                 var transducerLv = 0;
@@ -2575,84 +2573,274 @@ var task = {};
             });
             return d.promise();
 
-        }).then(function (townId) {
-            var d = $.Deferred();
-            $.ajax({
-                url: "town.php?town=" + townId,
-                type: "GET",
-                //cache: false,
-                //dataType: "json",
-                success: function (res) {
-                    d.resolve(townId);
-                },
-                error: function () {
-                    log("都市データの取得(town.php)に失敗");
-                    d.reject();
-                }
-            });
-            return d.promise();
+        }).then(getTownData)
 
-        }).then(function (townId) {
-            var d = $.Deferred();
-            $.ajax({
-                url: "flash_trans_xml_.php?town=" + townId,
-                type: "POST",
-                cache: false,
-                //dataType: "json",
-                data: ({
-                    op: "AREA"
-                }),
-                success: function (res) {
-                    d.resolve(townId);
-                },
-                error: function () {
-                    log("都市データの取得(AREA)に失敗");
+            .then(function (townData) {
+                var d = $.Deferred();
+                console.log(townData[7]);
+                if (townData[7][5]) {
+                    log("自分が協防済み");
                     d.reject();
+                } else if (townData[7][1] === 0) {
+                    log("他人が協防済み");
+                    d.reject();
+                } else if (townData[7][2] === 0) {
+                    log("自分の協防可能回数0");
+                    d.reject();
+                } else {
+                    d.resolve();
                 }
+                return d.promise();
             });
-            return d.promise();
 
-        }).then(function (townId) {
-            var d = $.Deferred();
-            $.ajax({
-                url: "flash_trans_xml_.php?town=" + townId,
-                type: "POST",
-                cache: false,
-                //dataType: "json",
-                data: ({
-                    op: "READ"
-                }),
-                success: function (res) {
-                    var json_data = null;
-                    try {
-                        json_data = $.parseJSON(res.slice(res.indexOf("["), res.indexOf("&op")));
-                    } catch (e) {}
-                    if (json_data === null) {
-                        log("都市データパース失敗");
-                        d.reject();
-                    } else {
-                        console.log(json_data[7]);
-                        if (json_data[7][5]) {
-                            log("自分が協防済み");
-                            d.reject();
-                        } else if (json_data[7][1] === 0) {
-                            log("他人が協防済み");
-                            d.reject();
-                        } else if (json_data[7][2] === 0) {
-                            log("自分の協防可能回数0");
-                            d.reject();
-                        } else {
-                            d.resolve(townId);
+        return defer.promise();
+    };
+
+    var checkBuildingType = function (building, type) {
+        if (building === null || type === null) {
+            return false;
+        }
+        var bldg = parseInt(building, 10);
+        var t = parseInt(type, 10);
+        if (bldg >= t && bldg < t + 99) {
+            return true;
+        } else {
+            return false;
+        }
+    };
+
+    /* 指定された建物が建造済みか確認 */
+    task.CheckBuilding = function (townLvupDataList) {
+        console.log("[Enter]CheckBuilding");
+        var defer = $.Deferred().resolve();
+
+        var buildings;
+        var townId;
+
+        $.each(townLvupDataList, function (index, townLvupData) {
+            defer = defer.then(function () {
+                var d = $.Deferred();
+                townId = townLvupData.townId;
+                buildings = townLvupData.buildings;
+                return d.resolve(townId).promise();
+
+            }).then(getTownData)
+
+                .then(function (townData) {
+                    var d = $.Deferred();
+                    var now = new Date();
+                    var i, j;
+                    for (i = 0; i < buildings.length; i++) {
+                        for (j = 0; j < townData[1].length; j++) {
+                            if (buildings[i].building === null) {
+                                buildings[i].status = "";
+                                break;
+                            }
+                            if (checkBuildingType(townData[1][j].building, buildings[i].building)) {
+                                buildings[i].targetTime = now;
+                                buildings[i].status = "開始予定 " + buildings[i].targetTime.toLocaleTimeString();
+                                townData[1].splice(j, 1);
+                                j--;
+                                break;
+                            }
+                            if (j === townData[1].length - 1) {
+                                buildings[i].building = null;
+                                buildings[i].status = "建造されていません";
+                            }
                         }
                     }
-                },
-                error: function () {
-                    log("都市データの取得(READ)に失敗");
-                    d.reject();
-                }
-            });
-            return d.promise();
+                    console.log(townLvupData);
+                    return d.resolve().promise();
+                });
         });
+
+        return defer.promise();
+    };
+
+    /* 指定した都市の建物をLVUP */
+    task.LvupBuilding = function (townLvupData) {
+        console.log("[Enter]LvupBuilding");
+        var defer = $.Deferred();
+
+        var townData;
+        var buildings = townLvupData.buildings;
+        var target = null;
+
+        var now = new Date();
+        // 指定されたリストからLVUP対象の建物を取得
+        var i;
+        for (i = 0; i < buildings.length; i++) {
+            if (buildings[i].targetTime < now && buildings[i].building !== null) {
+                target = i;
+                //buildings[target].index = null;
+                break;
+            }
+        }
+        if (target === null) {
+            log("あれーすることがないよー");
+            return defer.resolve().promise();
+        }
+
+        defer.resolve(townLvupData.townId);
+        defer = defer.then(getTownData)
+
+            .then(function (res_townData) {
+                townData = res_townData;
+
+            }).then(function () {
+                var d = $.Deferred();
+                var tBldg = parseInt(buildings[target].building, 10);
+                var latestTime = null;
+                var isAbuilding = false;
+                var i, j;
+
+                // 都市データのLVUP中リストから最初にLVUPが終了する時刻を取得
+                for (i = 0; i < townData[2].length; i++) {
+                    if (latestTime === null || latestTime > townData[2][i].remainTime) {
+                        latestTime = townData[2][i].remainTime;
+                    }
+
+                    if (checkBuildingType(townData[2][i].building, tBldg)) {
+                        isAbuilding = true;
+                    }
+                    /*    for (j = 0; j < buildings.length; j++) {
+                            if (buildings[j].index === townData[2][i].index) {
+                                break;
+                            }
+                            if (j === buildings.length - 1) {
+                                buildings[target].index = townData[2][i].index;
+                                now.setSeconds(now.getSeconds() + parseInt(townData[2][i].remainTime, 10) + 120);
+                                buildings[target].targetTime = now;
+                                buildings[target].status = "開始予定 " + buildings[target].targetTime.toLocaleTimeString();
+                                return d.resolve(buildings).promise();
+                            }
+                        }
+                    }*/
+                }
+
+                // 建築上限のためLVUP不可
+                if (townData[2].length === 3) {
+                    //buildings[target].index = null;
+                    now.setSeconds(now.getSeconds() + parseInt(latestTime, 10) + 120);
+                    buildings[target].targetTime = now;
+                    buildings[target].status = "開始予定 " + buildings[target].targetTime.toLocaleTimeString();
+                    log("他の建物のLVUP終了待ち");
+                    return d.resolve().promise();
+                }
+
+                // 都市データの全建物リストからLVUP中の建物を削除
+                for (i = 0; i < townData[1].length; i++) {
+                    for (j = 0; j < townData[2].length; j++) {
+                        if (townData[1][i].index === townData[2][j].index) {
+                            townData[1].splice(i, 1);
+                            i--;
+                        }
+                    }
+                }
+
+                // 指定された建物のうち、都市データから一番LVが高い建物を取得
+                var largestBldg = null;
+                for (i = 0; i < townData[1].length; i++) {
+                    var lv = parseInt(townData[1][i].lv, 10);
+                    if (checkBuildingType(townData[1][i].building, tBldg) &&
+                            parseInt(townData[1][i].lv, 10) < COMMON.BUILDING[tBldg].maxlv) {
+                        if (largestBldg === null || lv > parseInt(largestBldg.lv, 10)) {
+                            largestBldg = townData[1][i];
+                        }
+                    }
+                }
+
+                if (largestBldg === null) {
+                    if (isAbuilding) {
+                        now.setSeconds(now.getSeconds() + parseInt(latestTime, 10) + 120);
+                        buildings[target].targetTime = now;
+                        buildings[target].status = "開始予定 " + buildings[target].targetTime.toLocaleTimeString();
+                        log(COMMON.BUILDING[tBldg - tBldg % 10 + 1].name + " はLVUP中 : " + buildings[target].building);
+                        return d.resolve().promise();
+                    } else {
+                        log(COMMON.BUILDING[tBldg - tBldg % 10 + 1].name + " は全てLV上限 : " + buildings[target].building);
+                        buildings[target].building = null;
+                        buildings[target].status = "全てLVUP上限";
+                        buildings[target].targetTime = null;
+                        return d.resolve().promise();
+                    }
+                } else {
+                    largestBldg.townId = townData[0];
+                    return d.resolve(largestBldg).promise();
+                }
+
+            }).then(function (largestBldg) {
+                if (largestBldg === undefined) {
+                    return;
+                }
+                var d = $.Deferred();
+                $.ajax({
+                    url: "flash_trans_xml_.php?town=" + largestBldg.townId,
+                    type: "POST",
+                    cache: false,
+                    //dataType: "json",
+                    data: ({
+                        op: "UPGRADE",
+                        index: largestBldg.index,
+                        building: largestBldg.building,
+                        lv: largestBldg.lv
+                    }),
+                    success: function (res) {
+                        d.resolve(largestBldg);
+                    },
+                    error: function () {
+                        log("都市LVUP情報送信に失敗");
+                        d.reject();
+                    }
+                });
+                return d.promise();
+
+            }).then(function (largestBldg) {
+                if (largestBldg === undefined) {
+                    return;
+                }
+                var d = $.Deferred();
+                $.ajax({
+                    url: "flash_trans_xml_.php?town=" + largestBldg.townId,
+                    type: "POST",
+                    cache: false,
+                    //dataType: "json",
+                    data: ({
+                        op: "CQ"
+                    }),
+                    success: function (res) {
+                        var json_data = null;
+                        try {
+                            json_data = $.parseJSON(res.slice(res.indexOf("["), res.indexOf("&op")));
+                        } catch (e) {}
+                        if (json_data === null) {
+                            log("建物LVUPデータパース失敗");
+                            d.reject();
+                        } else {
+                            var i;
+                            for (i = 0; i < json_data[0].length; i++) {
+                                if (json_data[0][i].index === largestBldg.index) {
+                                    var now = new Date();
+                                    now.setSeconds(now.getSeconds() + parseInt(json_data[0][i].remainTime, 10) + 120);
+                                    log(COMMON.BUILDING[largestBldg.building - largestBldg.building % 10 + 1].name + " は " + COMMON.DATESTR(now) + " にLVUP完了します");
+                                    //buildings[target].index = json_data[0][i].index;
+                                    buildings[target].targetTime = now;
+                                    buildings[target].status = "LVUP完了予定 " + buildings[target].targetTime.toLocaleTimeString();
+                                    d.resolve(buildings);
+                                    return;
+                                }
+                            }
+                            log("建物LVUPに失敗");
+                            d.reject();
+                        }
+                    },
+                    error: function () {
+                        log("都市LVUP情報取得に失敗");
+                        d.reject();
+                    }
+                });
+                return d.promise();
+            });
 
         return defer.promise();
     };

@@ -343,6 +343,7 @@ var cmdManager = {};
         this.battleCount = 0;
         this.time = battleConfig.time;
         this.maid = battleConfig.maid;
+        this.time_hell = battleConfig.time_hell;
         this.maid_hell = battleConfig.maid_hell;
 
         this.round = 0;
@@ -386,10 +387,7 @@ var cmdManager = {};
                 var maid = this.maid  ? 1 : 0;
                 // Hellは攻略に時間をかける
                 if (this.rank === 1) {
-                    battleTime = {
-                        min: 180,
-                        max: 240
-                    };
+                    battleTime = this.time_hell;
                     maid = this.maid || this.maid_hell ? 1 : 0;
                 }
                 cmd.time = now;
@@ -434,6 +432,7 @@ var cmdManager = {};
         this.battleCount = 0;
         this.time = battleConfig.time;
         this.maid = battleConfig.maid;
+        this.time_hell = battleConfig.time_hell;
         this.maid_hell = battleConfig.maid_hell;
 
         this.round = 0;
@@ -477,10 +476,7 @@ var cmdManager = {};
                 var maid = this.maid  ? 1 : 0;
                 // Hellは攻略に時間をかける
                 if (this.rank === 1) {
-                    battleTime = {
-                        min: 180,
-                        max: 240
-                    };
+                    battleTime = this.time_hell;
                     maid = this.maid || this.maid_hell ? 1 : 0;
                 }
                 cmd.time = now;
@@ -679,6 +675,81 @@ var cmdManager = {};
         cmd.param = this.recruitConfig;
     };
 
+    /* Command : 指定された建物のLVUPをする */
+    cmdManager.CmdTownLvup = function (townLvupConfig, handler) {
+        this.townLvupDataList = [];
+
+        var now = new Date();
+        var i, j;
+        for (i = 0; i < townLvupConfig.length; i++) {
+            if (townLvupConfig[i].townId) {
+                this.townLvupDataList[i] = {
+                    townId: townLvupConfig[i].townId,
+                    buildings: []
+                };
+                for (j = 0; j < townLvupConfig.length; j++) {
+                    this.townLvupDataList[i].buildings[j] = {
+                        building: townLvupConfig[i].buildings[j].building,
+                        status: "確認中",
+                        //index: null,
+                        targetTime: null
+                    };
+                }
+            }
+        }
+
+        if (this.townLvupDataList.length === 0) {
+            log("townIdがセットされていないためCmdTownLvupを開始できません");
+            handler();
+            return;
+        }
+        this.cmd = new Command("CmdTownLvup", handler);
+        this.setNextTask();
+        cmdList.push(this);
+    };
+
+    cmdManager.CmdTownLvup.prototype.setNextTask = function () {
+        var now = new Date();
+        var cmd = this.cmd;
+
+        if (cmd.state === COMMON.CMD_STATUS.END) {
+            return;
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
+            cmd.state = COMMON.CMD_STATUS.END;
+            return;
+        }
+
+        if (cmd.func === null) {
+            cmd.reset();
+            cmd.func = task.CheckBuilding;
+            cmd.param = this.townLvupDataList;
+
+        } else {
+            var nextIndex = null, time = null;
+            var i, j;
+            for (i = 0; i < this.townLvupDataList.length; i++) {
+                for (j = 0; j < this.townLvupDataList[i].buildings.length; j++) {
+                    var bldg = this.townLvupDataList[i].buildings[j];
+                    if (bldg.targetTime &&
+                            (time === null || bldg.targetTime < time)) {
+                        time = bldg.targetTime;
+                        nextIndex = i;
+                    }
+                }
+            }
+            if (nextIndex === null || time === null) {
+                log("LVUP対象の建物がありません");
+                cmd.state = COMMON.CMD_STATUS.END;
+                return;
+            }
+
+            cmd.reset();
+            cmd.time = time;
+            cmd.func = task.LvupBuilding;
+            cmd.param = this.townLvupDataList[nextIndex];
+        }
+    };
+
     /* Command : ログインボーナスを獲得する */
     /* スクリプト開始時にトリガーされる */
     cmdManager.CmdLoginBonus = function (handler) {
@@ -788,6 +859,38 @@ var cmdManager = {};
 
     cmdManager.CmdCamp.prototype.setNextTask = function () {
         return null;
+    };
+
+    /* Command : 初期化（インスタンスはすぐ削除） */
+    cmdManager.CmdInit = function (handler) {
+        this.result = {};
+
+        this.cmd = new Command("CmdInit", handler);
+        this.setNextTask();
+        cmdList.push(this);
+    };
+
+    cmdManager.CmdInit.prototype.setNextTask = function () {
+        var now = new Date();
+        var cmd = this.cmd;
+
+        if (cmd.state === COMMON.CMD_STATUS.END) {
+            return;
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
+            log("初期化に失敗");
+            cmd.state = COMMON.CMD_STATUS.END;
+            return;
+        }
+
+        if (cmd.func === null) {
+            cmd.reset();
+            cmd.func = task.GetTownList;
+
+        } else if (cmd.func === task.GetTownList) {
+            console.log(cmd.result);
+            this.result.townlist = cmd.result;
+            cmd.state = COMMON.CMD_STATUS.END;
+        }
     };
 
     /* Command : テスト用 */

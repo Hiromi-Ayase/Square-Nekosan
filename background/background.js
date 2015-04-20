@@ -9,19 +9,33 @@
         function (request, sender, sendResponse) {
             var storageData,
                 storageObject;
-            if (request.op === COMMON.OP.GET) {
-                storageData = localStorage.getItem(COMMON.STORAGE);
+            if (request.op === COMMON.OP.GET_STORAGE_ARGS) {
+                storageData = localStorage.getItem(COMMON.STORAGE.ARGS);
                 sendResponse({
                     data: data,
                     storage: storageData
                 });
-            } else if (request.op === COMMON.OP.SET) {
+            } else if (request.op === COMMON.OP.GET_STORAGE_CONTENT) {
+                storageData = localStorage.getItem(COMMON.STORAGE.CONTENT);
+                sendResponse({
+                    data: data,
+                    storage: storageData
+                });
+            } else if (request.op === COMMON.OP.SET_STORAGE_ARGS) {
                 if (request.data !== undefined) {
                     data = request.data;
                 }
                 if (request.storage !== undefined) {
                     storageData = request.storage;
-                    localStorage.setItem(COMMON.STORAGE, storageData);
+                    localStorage.setItem(COMMON.STORAGE.ARGS, storageData);
+                }
+            } else if (request.op === COMMON.OP.SET_STORAGE_CONTENT) {
+                if (request.data !== undefined) {
+                    data = request.data;
+                }
+                if (request.storage !== undefined) {
+                    storageData = request.storage;
+                    localStorage.setItem(COMMON.STORAGE.CONTENT, storageData);
                 }
             }
         }

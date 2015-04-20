@@ -4,7 +4,8 @@
     "use strict";
     var app = angular.module("SquareNekosan", ["ui.bootstrap", "ngResource", "ui.codemirror"]),
         data = {},
-        storage = {};
+        storage = {},
+        storage_content = {};
 
     app.directive("ngForm", ['$compile', function ($compile) {
         return function (scope, element, attr) {
@@ -27,14 +28,24 @@
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
             } else if (scope.f.type === "range") {
-                html = '<div class="ng-model-box"><input type="number" class="col-xs-5 range-box" ng-model="args.' + n + '.min"' + onChange + ' /><div class="col-xs-2 range-mark">～' +
-                    '</div><input type="number" class="col-xs-5 range-box" ng-model="args.' + n + '.max"' + onChange + ' /></div>';
+                html =
+                    '<div class="ng-model-box">' +
+                    '    <input type="number" class="col-xs-5 range-box" ng-model="args.' + n + '.min"' + onChange + ' />' +
+                    '    <div class="col-xs-2 range-mark">～</div>' +
+                    '    <input type="number" class="col-xs-5 range-box" ng-model="args.' + n + '.max"' + onChange + ' />' +
+                    '</div>';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = {};
                 scope.args[scope.c.name][scope.f.name].min = scope.f.initmin;
                 scope.args[scope.c.name][scope.f.name].max = scope.f.initmax;
             } else if (scope.f.type === "checkbox") {
                 html = '<div class="ng-model-box"><input type="checkbox" ng-model="args.' + n + '"' + onChange + ' /><span class="checkbox-mark">{{f.title}}</span></div>';
+                element.append($compile(html)(scope));
+                scope.args[scope.c.name][scope.f.name] = scope.f.init;
+            } else if (scope.f.type === "textarea") {
+                var style = 'style="max-width: 100%; overflow-x: scroll; margin-bottom: 10px; height: ' + scope.f.height + '"';
+                html = '<textarea class="ng-model-box form-control" ' + style + ' ng-model="args.' + n + '"' + onChange + '></textarea>';
+                console.log(html);
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
             }
@@ -90,6 +101,76 @@
         };
     }]);
 
+    app.directive("ngTownlvupform", ['$compile', function ($compile) {
+        return function (scope, element, attr) {
+            var i, j;
+            if (scope.args[COMMON.OP.TOWNLVUP] === undefined) {
+                scope.args[COMMON.OP.TOWNLVUP] = {};
+                scope.args[COMMON.OP.TOWNLVUP].data = [];
+
+                for (i = 0; i < 3; i++) {
+                    scope.args[COMMON.OP.TOWNLVUP].data[i] = {
+                        townName: "都市" + i,
+                        townId: null,
+                        buildings: []
+                    };
+                    for (j = 0; j < 3; j++) {
+                        scope.args[COMMON.OP.TOWNLVUP].data[i].buildings[j] = {
+                            building: null
+                        };
+                    }
+                }
+
+            } else {
+                for (i = 0; i < 3; i++) {
+                    scope.args[COMMON.OP.TOWNLVUP].data[i].townName = "都市" + i;
+                    scope.args[COMMON.OP.TOWNLVUP].data[i].townId = null;
+                }
+            }
+            scope.args[COMMON.OP.TOWNLVUP].ctrl = [
+                { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
+                { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
+            ];
+            console.log(scope.args[COMMON.OP.TOWNLVUP].data);
+            scope.buildingList = COMMON.BUILDING;
+
+            var html;
+            var onChange = ' ng-change="onChange(' + "'townLvup'" + ')"';
+            html =
+                '<div ng-repeat="t in args.townLvup.data track by $index">' +
+                '    <div class="row">' +
+                '            <div class="col-xs-12 form-element">' +
+                '                <label>{{t.townName}}:</label>' +
+                '            </div>' +
+                '    </div>' +
+                '    <div ng-repeat="bldg in t.buildings track by $index">' +
+                '        <div class="row">' +
+                '            <div class="col-xs-6 form-element">' +
+                '                <select class="ng-model-box" ng-model="bldg.building" ng-options="id as b.name + \' (\' + id + \')\' for (id, b) in buildingList"' + onChange + '/>' +
+                '            </div>' +
+                '            <div class="col-xs-6 form-element">' +
+                '                {{contentsData[' + "'townLvup'" + '].townLvupDataList[$parent.$index].buildings[$index].status}}' +
+                '            </div>' +
+                '        </div>' +
+                '    </div>' +
+                '</div>' +
+                '    <div class="row control">' +
+                '        <div class="col-xs-12">' +
+                '            <p class="status">' +
+                '                Status: {{contentsData[' + "'townLvup'" + '].statusText}}' +
+                '            </p>' +
+                '        </div>' +
+                '    </div>' +
+                '    <div class="row">' +
+                '        <div class="col-xs-12 text-right">' +
+                '            <button ng-repeat="b in args.townLvup.ctrl" class="btn btn-xs {{b.class}}" ng-class="btnClass(b.name, \'townLvup\')" ng-click="send(b.name, \'townLvup\')"><span class="glyphicon {{b.icon}}">{{b.title}}</button>' +
+                '        </div>' +
+                '    </div>' +
+                '</div>';
+            element.append($compile(html)(scope));
+        };
+    }]);
+
     app.factory("getData", ["$http", function ($http) {
         return {
             get: function (file) {
@@ -136,7 +217,8 @@
         };
 
         $scope.btnClass = function (ctrl, op) {
-            if ($scope.contentsData === undefined || $scope.contentsData[op] === undefined) {
+            if ($scope.contentsData === undefined || $scope.contentsData[op] === undefined ||
+                    $scope.contentsData[op].state === COMMON.CMD_STATUS.DISABLE) {
                 return { disabled: true };
             }
             var s = $scope.contentsData[op].state;
@@ -219,7 +301,7 @@
             //storage.config = $scope.config;
             var jsonString =  JSON.stringify(storage, null, 4);
             chrome.runtime.sendMessage({
-                "op": COMMON.OP.SET,
+                "op": COMMON.OP.SET_STORAGE_ARGS,
                 "storage": jsonString
             });
             cmSetting.setValue(jsonString);
@@ -234,7 +316,7 @@
                     return;
                 }
                 chrome.runtime.sendMessage({
-                    "op": COMMON.OP.SET,
+                    "op": COMMON.OP.SET_STORAGE_ARGS,
                     "storage": jsonString
                 });
                 cmSetting.setValue(jsonString);
@@ -251,12 +333,20 @@
                 "op": COMMON.OP.CONTENTS_DATA
             }, function (response) {
                 $scope.contentsData = response;
+
+                var i;
+                if ($scope.args[COMMON.OP.TOWNLVUP].data && $scope.contentsData.townList && $scope.contentsData.townList.length > 0) {
+                    for (i = 0; i < $scope.contentsData.townList.length; i++) {
+                        $scope.args[COMMON.OP.TOWNLVUP].data[i].townName = $scope.contentsData.townList[i].name;
+                        $scope.args[COMMON.OP.TOWNLVUP].data[i].townId = $scope.contentsData.townList[i].id;
+                    }
+                }
             });
         }, COMMON.INTERVAL.CONTENTS_DATA);
 
 
         chrome.runtime.sendMessage({
-            "op": COMMON.OP.GET
+            "op": COMMON.OP.GET_STORAGE_ARGS
         }, function (response) {
             data = response.data;
             storage = JSON.parse(response.storage) || {};
