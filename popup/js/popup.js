@@ -85,7 +85,7 @@
             var html;
             var onChange = ' ng-change="onChange(' + "'lvup'" + ')"';
             html =
-                '<div class="row" ng-repeat="a in args.lvup.data">' +
+                '<div class="row" ng-repeat="a in args.lvup.data track by $index">' +
                 '    <span class="glyphicon glyphicon-ok" ng-if="a.judge" />' +
                 '    <span class="glyphicon glyphicon-remove" ng-if="!a.judge" />' +
                 '    <input class="ng-model-box lvupform-element" style="width:20%" type="text" ng-model="a.name"' + onChange + ' />' +
