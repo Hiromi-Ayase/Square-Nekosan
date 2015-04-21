@@ -2120,6 +2120,10 @@ var task = {};
                             d.resolve(giftConfig);
                         } else {
                             console.log("プレゼント対象のアイテム所持なし");
+                            // 30分後にリトライ
+                            var  now = new Date();
+                            now.setMinutes(now.getMinutes() + 30);
+                            giftConfig.time = now;
                             d.resolve();     // プレゼント対象のアイテムなし
                         }
                     } else {
@@ -2137,11 +2141,7 @@ var task = {};
         }).then(function (giftConfig) {
             var d = $.Deferred();
             if (!giftConfig) {
-                // 30分後にリトライ
-                var  now = new Date();
-                now.setMinutes(now.getMinutes() + 30);
-                giftConfig.time = now;
-                return d.resolve(giftConfig).promise();
+                return d.resolve().promise();
             }
 
             $.ajax({
