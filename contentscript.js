@@ -2137,7 +2137,11 @@ var task = {};
         }).then(function (giftConfig) {
             var d = $.Deferred();
             if (!giftConfig) {
-                return d.resolve().promise();
+                // 30分後にリトライ
+                var  now = new Date();
+                now.setMinutes(now.getMinutes() + 30);
+                giftConfig.time = now;
+                return d.resolve(giftConfig).promise();
             }
 
             $.ajax({
