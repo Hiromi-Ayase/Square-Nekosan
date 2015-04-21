@@ -211,7 +211,6 @@
         ],
         "ctrl": [
             { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
-            { "name": "pause", "title": "中断", "icon": "glyphicon-pause", "class": "btn-primary" },
             { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
         ]
     },

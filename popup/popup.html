@@ -37,7 +37,7 @@
 
     <div class="main" ng-controller="MainController">
         <tabset>
-            <tab ng-repeat="c in config.cmd" active=c.active>
+            <tab ng-repeat="c in config.cmd" active=args[c.name].active>
                 <tab-heading>{{c.title}}</tab-heading>
                 <div class="container form">
                     <div class="row">
@@ -64,7 +64,7 @@
                 </div>
             </tab>
 
-            <tab>
+            <tab active=args['lvup'].active>
                 <tab-heading>LVUP</tab-heading>
                 <div class="container form">
                     <div class="row">
@@ -89,14 +89,14 @@
                 </div>
             </tab>
 
-           <tab>
+           <tab active=args['townLvup'].active>
                 <tab-heading>都市LVUP</tab-heading>
                 <div class="container form">
                     <ng-townlvupform></ng-townlvupform>
                 </div>
             </tab>
 
-            <tab>
+            <tab active=args['trans'].active>
                 <tab-heading>
                     <i class="glyphicon glyphicon-flag"></i>
                 </tab-heading>
@@ -149,12 +149,6 @@
                             <p class="status">Etc: {{contentsData.loginBonus}}</p>
                         </div>
                     </div>
-                    <!--<div class="row control">
-                        <div class="col-xs-12">
-                            <input type="checkbox" ng-model="args.trans" ng-change="onChangeCheckbox()"> 魔晶石 → 蒼水晶 変換</input>
-                        </div>
-                    </div>-->
-
                 </div>
                 </select>
             </tab>

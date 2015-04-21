@@ -45,7 +45,6 @@
             } else if (scope.f.type === "textarea") {
                 var style = 'style="max-width: 100%; overflow-x: scroll; margin-bottom: 10px; height: ' + scope.f.height + '"';
                 html = '<textarea class="ng-model-box form-control" ' + style + ' ng-model="args.' + n + '"' + onChange + '></textarea>';
-                console.log(html);
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
             }
@@ -131,7 +130,6 @@
                 { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" },
                 { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" }
             ];
-            console.log(scope.args[COMMON.OP.TOWNLVUP].data);
             scope.buildingList = COMMON.BUILDING;
 
             var html;
