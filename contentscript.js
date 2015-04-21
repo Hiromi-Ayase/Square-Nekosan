@@ -2755,10 +2755,10 @@ var task = {};
                         now.setSeconds(now.getSeconds() + parseInt(latestTime, 10) + 120);
                         buildings[target].targetTime = now;
                         buildings[target].status = "開始予定 " + buildings[target].targetTime.toLocaleTimeString();
-                        log(COMMON.BUILDING[tBldg - tBldg % 10 + 1].name + " はLVUP中 : " + buildings[target].building);
+                        log(COMMON.BUILDING[tBldg - tBldg % 100 + 1].name + " はLVUP中 : " + buildings[target].building);
                         return d.resolve().promise();
                     } else {
-                        log(COMMON.BUILDING[tBldg - tBldg % 10 + 1].name + " は全てLV上限 : " + buildings[target].building);
+                        log(COMMON.BUILDING[tBldg - tBldg % 100 + 1].name + " は全てLV上限 : " + buildings[target].building);
                         buildings[target].building = null;
                         buildings[target].status = "全てLVUP上限";
                         buildings[target].targetTime = null;
@@ -2822,7 +2822,7 @@ var task = {};
                                 if (json_data[0][i].index === largestBldg.index) {
                                     var now = new Date();
                                     now.setSeconds(now.getSeconds() + parseInt(json_data[0][i].remainTime, 10) + 120);
-                                    log(COMMON.BUILDING[largestBldg.building - largestBldg.building % 10 + 1].name + " は " + COMMON.DATESTR(now) + " にLVUP完了します");
+                                    log(COMMON.BUILDING[largestBldg.building - largestBldg.building % 100 + 1].name + " は " + COMMON.DATESTR(now) + " にLVUP完了します");
                                     //buildings[target].index = json_data[0][i].index;
                                     buildings[target].targetTime = now;
                                     buildings[target].status = "LVUP完了予定 " + buildings[target].targetTime.toLocaleTimeString();
