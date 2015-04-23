@@ -143,10 +143,10 @@
                 '    </div>' +
                 '    <div ng-repeat="bldg in t.buildings track by $index">' +
                 '        <div class="row">' +
-                '            <div class="col-xs-6 form-element">' +
+                '            <div class="col-xs-5 form-element">' +
                 '                <select class="ng-model-box" ng-model="bldg.building" ng-options="id as b.name + \' (\' + id + \')\' for (id, b) in buildingList"' + onChange + '/>' +
                 '            </div>' +
-                '            <div class="col-xs-6 form-element">' +
+                '            <div class="col-xs-7 form-element">' +
                 '                {{contentsData[' + "'townLvup'" + '].townLvupDataList[$parent.$index].buildings[$index].status}}' +
                 '            </div>' +
                 '        </div>' +

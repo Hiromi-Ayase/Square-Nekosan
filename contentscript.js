@@ -2642,7 +2642,8 @@ var task = {};
                             }
                             if (checkBuildingType(townData[1][j].building, buildings[i].building)) {
                                 buildings[i].targetTime = now;
-                                buildings[i].status = "開始予定 " + buildings[i].targetTime.toLocaleTimeString();
+                                var s = COMMON.DATESTR(buildings[i].targetTime);
+                                buildings[i].status = "開始予定 " + s.slice(s.indexOf("/")+1, s.indexOf("."));
                                 townData[1].splice(j, 1);
                                 j--;
                                 break;
@@ -2727,7 +2728,8 @@ var task = {};
                     //buildings[target].index = null;
                     now.setSeconds(now.getSeconds() + parseInt(latestTime, 10) + 120);
                     buildings[target].targetTime = now;
-                    buildings[target].status = "開始予定 " + buildings[target].targetTime.toLocaleTimeString();
+                    var s = COMMON.DATESTR(buildings[target].targetTime);
+                    buildings[target].status = "開始予定 " + s.slice(s.indexOf("/")+1, s.indexOf("."));
                     log("他の建物のLVUP終了待ち");
                     return d.resolve().promise();
                 }
@@ -2829,7 +2831,8 @@ var task = {};
                                     log(COMMON.BUILDING[largestBldg.building - largestBldg.building % 100 + 1].name + " は " + COMMON.DATESTR(now) + " にLVUP完了します");
                                     //buildings[target].index = json_data[0][i].index;
                                     buildings[target].targetTime = now;
-                                    buildings[target].status = "LVUP完了予定 " + buildings[target].targetTime.toLocaleTimeString();
+                                    var s = COMMON.DATESTR(buildings[target].targetTime);
+                                    buildings[target].status = "LVUP完了予定 " + s.slice(s.indexOf("/")+1, s.indexOf("."));
                                     d.resolve(buildings);
                                     return;
                                 }
