@@ -2653,7 +2653,7 @@ var task = {};
                             if (checkBuildingType(townData[1][j].building, buildings[i].building)) {
                                 buildings[i].targetTime = now;
                                 var s = COMMON.DATESTR(buildings[i].targetTime);
-                                buildings[i].status = "開始予定 " + s.slice(s.indexOf("/")+1, s.indexOf("."));
+                                buildings[i].status = "開始予定 " + s.slice(s.indexOf("/") + 1, s.indexOf("."));
                                 townData[1].splice(j, 1);
                                 j--;
                                 break;
@@ -2739,7 +2739,7 @@ var task = {};
                     now.setSeconds(now.getSeconds() + parseInt(latestTime, 10) + 120);
                     buildings[target].targetTime = now;
                     var s = COMMON.DATESTR(buildings[target].targetTime);
-                    buildings[target].status = "開始予定 " + s.slice(s.indexOf("/")+1, s.indexOf("."));
+                    buildings[target].status = "開始予定 " + s.slice(s.indexOf("/") + 1, s.indexOf("."));
                     log("他の建物のLVUP終了待ち");
                     return d.resolve().promise();
                 }
@@ -2842,7 +2842,7 @@ var task = {};
                                     //buildings[target].index = json_data[0][i].index;
                                     buildings[target].targetTime = now;
                                     var s = COMMON.DATESTR(buildings[target].targetTime);
-                                    buildings[target].status = "LVUP完了予定 " + s.slice(s.indexOf("/")+1, s.indexOf("."));
+                                    buildings[target].status = "LVUP完了予定 " + s.slice(s.indexOf("/") + 1, s.indexOf("."));
                                     d.resolve(buildings);
                                     return;
                                 }
