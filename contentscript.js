@@ -1903,7 +1903,7 @@ var task = {};
                                     nextBlockid = targetBlockid;
                                     break;
                                 }
-                                if (i === res.remain.length - 1) {
+                                if (j === res.remain.length - 1) {
                                     log("次のマスの決定に失敗");
                                     defer.reject();
                                     return;
@@ -2433,12 +2433,22 @@ var task = {};
 
                         if (rarity !== null && charaid !== null) {
                             recruitConfig.count--;
-                            log("☆" + rarity + res[1].merc.name + "を召喚");
-                            if (rarity < recruitConfig.rarity) {
-                                defer2.resolve(true, charaid);
-                            } else {
+                            log("☆" + rarity + res[1].merc.name + "(" + res[1].merc.behavior.name + ")を召喚");
+
+                            if (recruitConfig.isSpBhv && res[1].merc.behavior.sp && parseInt(res[1].merc.behavior.sp, 10) === 1) {
                                 recruitConfig.maxnum--;
                                 defer2.resolve(false, null);
+                            } else if (recruitConfig.isStriker && res[1].merc.name.indexOf("オムニ") < 0) {
+                                recruitConfig.maxnum--;
+                                defer2.resolve(false, null);
+                            } else if (recruitConfig.isGoldBhv && COMMON.GOLDBHV.indexOf(res[1].merc.behavior.name) >= 0) {
+                                recruitConfig.maxnum--;
+                                defer2.resolve(false, null);
+                            } else if (rarity >= recruitConfig.rarity) {
+                                recruitConfig.maxnum--;
+                                defer2.resolve(false, null);
+                            } else {
+                                defer2.resolve(true, charaid);
                             }
 
                         } else {

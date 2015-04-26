@@ -444,6 +444,9 @@ console.log = function (message) {
                 recruitConfig.rarity = request.args.rarity;
                 recruitConfig.maxnum = request.args.maxnum;
                 recruitConfig.count = request.args.count;
+                recruitConfig.isSpBhv = request.args.isSpBhv;
+                recruitConfig.isStriker = request.args.isStriker;
+                recruitConfig.isGoldBhv = request.args.isGoldBhv;
                 recruit = new cmdManager.CmdRecruit(recruitConfig, function () {
                     recruit = null;
                 });

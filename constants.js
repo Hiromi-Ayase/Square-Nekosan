@@ -148,6 +148,12 @@ COMMON.BUILDING = {
     }
 };
 
+COMMON.GOLDBHV = [
+    "高値", "金銭", "泡銭", "貪欲", "経済", "愛財",
+    "優待", "軌跡", "重宝",
+    "美夢", "泳練", "典雅", "猫娘", "店長", "艶麗", "追跡", "商人"
+];
+
 COMMON.DATESTR = function (date) {
     'use strict';
     if (date === undefined) {

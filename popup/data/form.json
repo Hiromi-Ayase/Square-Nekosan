@@ -268,6 +268,27 @@
                 "title": "召喚試行回数",
                 "init": 0,
                 "column": 4
+            },
+            {
+                "type": "checkbox",
+                "name": "isSpBhv",
+                "title": "貴重特性",
+                "column": 6,
+                "init": false
+            },
+            {
+                "type": "checkbox",
+                "name": "isStriker",
+                "title": "ストライカー",
+                "column": 6,
+                "init": false
+            },
+            {
+                "type": "checkbox",
+                "name": "isGoldBhv",
+                "title": "ダイムボーナス特性",
+                "column": 6,
+                "init": false
             }
         ],
         "ctrl": [
