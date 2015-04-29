@@ -2715,7 +2715,7 @@ var task = {};
                         latestTime = townData[2][i].remainTime;
                     }
 
-                    if (checkBuildingType(townData[2][i].building, tBldg)) {
+                    if (checkBuildingType(townData[2][i].id, tBldg)) {
                         isAbuilding = true;
                     }
                     /*    for (j = 0; j < buildings.length; j++) {
