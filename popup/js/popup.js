@@ -105,6 +105,7 @@
             var i, j;
             if (scope.args[COMMON.OP.TOWNLVUP] === undefined) {
                 scope.args[COMMON.OP.TOWNLVUP] = {};
+                scope.args[COMMON.OP.TOWNLVUP].isLowest = false;
                 scope.args[COMMON.OP.TOWNLVUP].data = [];
 
                 for (i = 0; i < 3; i++) {
@@ -135,6 +136,10 @@
             var html;
             var onChange = ' ng-change="onChange(' + "'townLvup'" + ')"';
             html =
+                '<div class="ng-model-box">' +
+                '    <input type="checkbox" ng-model="args.townLvup.isLowest"' + onChange + ' />' +
+                '    <span class="checkbox-mark">低いLVの建物からLVUPする</span>' +
+                '</div>' +
                 '<div ng-repeat="t in args.townLvup.data track by $index">' +
                 '    <div class="row">' +
                 '            <div class="col-xs-12 form-element">' +

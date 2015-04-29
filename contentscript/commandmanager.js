@@ -681,15 +681,16 @@ var cmdManager = {};
 
         var now = new Date();
         var i, j;
-        for (i = 0; i < townLvupConfig.length; i++) {
-            if (townLvupConfig[i].townId) {
+        for (i = 0; i < townLvupConfig.data.length; i++) {
+            if (townLvupConfig.data[i].townId) {
                 this.townLvupDataList[i] = {
-                    townId: townLvupConfig[i].townId,
+                    townId: townLvupConfig.data[i].townId,
+                    isLowest: townLvupConfig.isLowest,
                     buildings: []
                 };
-                for (j = 0; j < townLvupConfig.length; j++) {
+                for (j = 0; j < townLvupConfig.data[i].buildings.length; j++) {
                     this.townLvupDataList[i].buildings[j] = {
-                        building: townLvupConfig[i].buildings[j].building,
+                        building: townLvupConfig.data[i].buildings[j].building,
                         status: "確認中",
                         //index: null,
                         targetTime: null

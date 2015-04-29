@@ -457,8 +457,10 @@ console.log = function (message) {
 
         } else if (request.op === COMMON.OP.TOWNLVUP && townList) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
-                townLvupConfig = [];
-                townLvupConfig = request.args.data;
+                townLvupConfig = {};
+                townLvupConfig.data = [];
+                townLvupConfig.data = request.args.data;
+                townLvupConfig.isLowest = request.args.isLowest;
                 townLvup = new cmdManager.CmdTownLvup(townLvupConfig, function () {
                     townLvup = null;
                 });

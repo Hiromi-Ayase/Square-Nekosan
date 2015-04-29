@@ -2754,14 +2754,20 @@ var task = {};
                     }
                 }
 
-                // 指定された建物のうち、都市データから一番LVが高い建物を取得
+                // 指定された建物のうち、都市データから一番LVが高い/低い建物を取得
                 var largestBldg = null;
                 for (i = 0; i < townData[1].length; i++) {
                     var lv = parseInt(townData[1][i].lv, 10);
                     if (checkBuildingType(townData[1][i].building, tBldg) &&
-                            parseInt(townData[1][i].lv, 10) < COMMON.BUILDING[tBldg].maxlv) {
-                        if (largestBldg === null || lv > parseInt(largestBldg.lv, 10)) {
-                            largestBldg = townData[1][i];
+                            lv < COMMON.BUILDING[tBldg].maxlv) {
+                        if (townLvupData.isLowest) {
+                            if (largestBldg === null || lv < parseInt(largestBldg.lv, 10)) {
+                                largestBldg = townData[1][i];
+                            }
+                        } else {
+                            if (largestBldg === null || lv > parseInt(largestBldg.lv, 10)) {
+                                largestBldg = townData[1][i];
+                            }
                         }
                     }
                 }
@@ -2770,7 +2776,8 @@ var task = {};
                     if (isAbuilding) {
                         now.setSeconds(now.getSeconds() + parseInt(latestTime, 10) + 120);
                         buildings[target].targetTime = now;
-                        buildings[target].status = "開始予定 " + buildings[target].targetTime.toLocaleTimeString();
+                        var t = COMMON.DATESTR(buildings[target].targetTime);
+                        buildings[target].status = "開始予定 " + t.slice(t.indexOf("/") + 1, t.indexOf("."));
                         log(COMMON.BUILDING[tBldg - tBldg % 100 + 1].name + " はLVUP中 : " + buildings[target].building);
                         return d.resolve().promise();
                     } else {
