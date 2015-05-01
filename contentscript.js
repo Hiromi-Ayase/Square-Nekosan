@@ -2797,7 +2797,7 @@ var task = {};
                 }
 
             }).then(function (param) {
-                if (param.largestBldg === undefined) {
+                if (param === undefined || param.largestBldg === undefined) {
                     return;
                 }
                 var d = $.Deferred();
