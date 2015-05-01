@@ -2816,7 +2816,7 @@ var task = {};
                         var now = new Date();
                         var s;
                         // 建築上限のためLVUP不可
-                        if (res === "showCQ=8&op=UPGRADE") {
+                        if (res === "showCQ=8&op=UPGRADE" || res === "showCQ=5&op=UPGRADE") {
                             now.setSeconds(now.getSeconds() + parseInt(param.latestTime, 10) + 120);
                             buildings[target].targetTime = now;
                             s = COMMON.DATESTR(buildings[target].targetTime);
