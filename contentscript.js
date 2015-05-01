@@ -2734,15 +2734,15 @@ var task = {};
                 }
 
                 // 建築上限のためLVUP不可
-                if (townData[2].length === 3) {
-                    //buildings[target].index = null;
-                    now.setSeconds(now.getSeconds() + parseInt(latestTime, 10) + 120);
-                    buildings[target].targetTime = now;
-                    var s = COMMON.DATESTR(buildings[target].targetTime);
-                    buildings[target].status = "開始予定 " + s.slice(s.indexOf("/") + 1, s.indexOf("."));
-                    log("他の建物のLVUP終了待ち");
-                    return d.resolve().promise();
-                }
+//                if (townData[2].length === 3) {
+//                    //buildings[target].index = null;
+//                    now.setSeconds(now.getSeconds() + parseInt(latestTime, 10) + 120);
+//                    buildings[target].targetTime = now;
+//                    var s = COMMON.DATESTR(buildings[target].targetTime);
+//                    buildings[target].status = "開始予定 " + s.slice(s.indexOf("/") + 1, s.indexOf("."));
+//                    log("他の建物のLVUP終了待ち");
+//                    return d.resolve().promise();
+//                }
 
                 // 都市データの全建物リストからLVUP中の建物を削除
                 for (i = 0; i < townData[1].length; i++) {
@@ -2789,27 +2789,61 @@ var task = {};
                     }
                 } else {
                     largestBldg.townId = townData[0];
-                    return d.resolve(largestBldg).promise();
+                    var param = {
+                        largestBldg: largestBldg,
+                        latestTime: latestTime
+                    };
+                    return d.resolve(param).promise();
                 }
 
-            }).then(function (largestBldg) {
-                if (largestBldg === undefined) {
+            }).then(function (param) {
+                if (param.largestBldg === undefined) {
                     return;
                 }
                 var d = $.Deferred();
                 $.ajax({
-                    url: "flash_trans_xml_.php?town=" + largestBldg.townId,
+                    url: "flash_trans_xml_.php?town=" + param.largestBldg.townId,
                     type: "POST",
                     cache: false,
                     //dataType: "json",
                     data: ({
                         op: "UPGRADE",
-                        index: largestBldg.index,
-                        building: largestBldg.building,
-                        lv: largestBldg.lv
+                        index: param.largestBldg.index,
+                        building: param.largestBldg.building,
+                        lv: param.largestBldg.lv
                     }),
                     success: function (res) {
-                        d.resolve(largestBldg);
+                        var now = new Date();
+                        var s;
+                        // 建築上限のためLVUP不可
+                        if (res === "showCQ=8&op=UPGRADE") {
+                            now.setSeconds(now.getSeconds() + parseInt(param.latestTime, 10) + 120);
+                            buildings[target].targetTime = now;
+                            s = COMMON.DATESTR(buildings[target].targetTime);
+                            buildings[target].status = "開始予定 " + s.slice(s.indexOf("/") + 1, s.indexOf("."));
+                            log("他の建物のLVUP終了待ち");
+                            return d.resolve();
+
+                        // 資源不足のためLVUP不可
+                        } else if (res === "showCQ=1&op=UPGRADE") {
+                            if (param.latestTime === null) {
+                                now.setHours(now.getHours() + 1);   // 建設中の建物がない場合は1時間後にリトライ
+                            } else {
+                                now.setSeconds(now.getSeconds() + parseInt(param.latestTime, 10) + 120);
+                            }
+                            buildings[target].targetTime = now;
+                            s = COMMON.DATESTR(buildings[target].targetTime);
+                            buildings[target].status = "開始予定 " + s.slice(s.indexOf("/") + 1, s.indexOf("."));
+                            log("資源不足");
+                            return d.resolve();
+
+                        } else if (res === "showCQ=0&op=UPGRADE") {
+                            d.resolve(param.largestBldg);
+
+                        } else {
+                            log("都市LVUPエラー");
+                            d.reject();
+                        }
                     },
                     error: function () {
                         log("都市LVUP情報送信に失敗");
@@ -2845,11 +2879,12 @@ var task = {};
                                 if (json_data[0][i].index === largestBldg.index) {
                                     var now = new Date();
                                     now.setSeconds(now.getSeconds() + parseInt(json_data[0][i].remainTime, 10) + 120);
-                                    log(COMMON.BUILDING[largestBldg.building - largestBldg.building % 100 + 1].name + " は " + COMMON.DATESTR(now) + " にLVUP完了します");
+                                    log(COMMON.BUILDING[largestBldg.building - largestBldg.building % 100 + 1].name + "(Lv" + largestBldg.lv + ")は " +
+                                        COMMON.DATESTR(now) + " にLVUP完了します");
                                     //buildings[target].index = json_data[0][i].index;
                                     buildings[target].targetTime = now;
                                     var s = COMMON.DATESTR(buildings[target].targetTime);
-                                    buildings[target].status = "LVUP完了予定 " + s.slice(s.indexOf("/") + 1, s.indexOf("."));
+                                    buildings[target].status = "(Lv" + largestBldg.lv + ") LVUP完了 " + s.slice(s.indexOf("/") + 1, s.indexOf("."));
                                     d.resolve(buildings);
                                     return;
                                 }

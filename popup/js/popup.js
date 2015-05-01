@@ -148,14 +148,18 @@
                 '    </div>' +
                 '    <div ng-repeat="bldg in t.buildings track by $index">' +
                 '        <div class="row">' +
-                '            <div class="col-xs-5 form-element">' +
-                '                <select class="ng-model-box" ng-model="bldg.building" ng-options="id as b.name + \' (\' + id + \')\' for (id, b) in buildingList"' + onChange + '/>' +
+                '            <div class="col-xs-1 form-element">' +
+                '               <button class="btn btn-default btn-xs glyphicon glyphicon-minus pull-right" ng-click="delTownLvupform(t.buildings, $index)" ></button>' +
+                '            </div>' +
+                '            <div class="col-xs-4 form-element">' +
+                '                <select class="ng-model-box" ng-model="bldg.building" ng-options="id as b.name for (id, b) in buildingList"' + onChange + '/>' +
                 '            </div>' +
                 '            <div class="col-xs-7 form-element">' +
                 '                {{contentsData[' + "'townLvup'" + '].townLvupDataList[$parent.$index].buildings[$index].status}}' +
                 '            </div>' +
                 '        </div>' +
                 '    </div>' +
+                '    <button class="btn btn-default btn-xs glyphicon glyphicon-plus" ng-click="addTownLvupform(t.buildings)"></button>' +
                 '</div>' +
                 '    <div class="row control">' +
                 '        <div class="col-xs-12">' +
@@ -217,6 +221,17 @@
         $scope.delLvupform = function (i) {
             $scope.args.lvup.data.splice(i, 1);
             $scope.onChange(COMMON.OP.LVUP);
+        };
+
+        $scope.addTownLvupform = function (bldg) {
+            bldg.push({
+                building: null
+            });
+            $scope.onChange(COMMON.OP.TOWNLVUP);
+        };
+        $scope.delTownLvupform = function (bldg, i) {
+            bldg.splice(i, 1);
+            $scope.onChange(COMMON.OP.TOWNLVUP);
         };
 
         $scope.btnClass = function (ctrl, op) {
