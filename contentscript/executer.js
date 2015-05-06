@@ -287,13 +287,12 @@ console.log = function (message) {
 
         if (request.op === COMMON.OP.MAP) {
             if (request.ctrl === COMMON.OP_CTRL.RUN) {
-                /*var mapid = request.args.map + request.args.level;
-                if (request.args.mapid) {
-                    mapid = request.args.mapid;
-                }*/
-
                 battleConfig = {};
-                battleConfig.mapid = request.args.mapid || request.args.map + request.args.level;
+                if (request.args.map === -1) {
+                    battleConfig.mapid = request.args.mapid;
+                } else {
+                    battleConfig.mapid = request.args.map + request.args.level;
+                }
                 battleConfig.count = request.args.map_count;
                 battleConfig.isFirst = request.args.isFirst;
                 battleConfig.time = request.args.time;
@@ -352,36 +351,32 @@ console.log = function (message) {
             } else if (request.ctrl === COMMON.OP_CTRL.RUN) {
                 if (blockBattle !== null) {
                     blockBattle.cmd.state = COMMON.CMD_STATUS.RUN;
-                } else if (request.args.blockid === "" && request.args.map === "0") {
-                    battleConfig.time = request.args.time;
-                    blockBattle = new cmdManager.CmdAllBossBlock(battleConfig, function () {
-                        blockBattle = null;
-                    });
-                    if (!battleBuff) {
-                        battleBuff = new cmdManager.CmdBattleBuff(function () {
-                            battleBuff = null;
-                        });
-                    }
                 } else {
-                    var blockid;
-                    if (request.args.blockid === "") {
-                        blockid = request.args.map;
-                    } else {
-                        blockid = request.args.blockid;
-                    }
-                    blockid = blockid.toString().split(",").map(parseFloat);
-                    var blockidList = [];
-                    for (i = 0; i < request.args.block_count; i++) {
-                        blockidList.push.apply(blockidList, blockid);
-                    }
                     battleConfig = {};
-                    battleConfig.blockidList = blockidList;
                     battleConfig.time = request.args.time;
                     battleConfig.sudden = request.args.sudden;
                     battleConfig.maid = request.args.maid;
-                    blockBattle = new cmdManager.CmdBlockBattle(battleConfig, function () {
-                        blockBattle = null;
-                    });
+                    var blockid;
+                    if (request.args.map === "0") {
+                        blockBattle = new cmdManager.CmdAllBossBlock(battleConfig, function () {
+                            blockBattle = null;
+                        });
+                    } else if (request.args.map === "-1") {
+                        blockid = request.args.blockid;
+                    } else {
+                        blockid = request.args.map;
+                    }
+                    if (request.args.map !== "0") {
+                        blockid = blockid.toString().split(",").map(parseFloat);
+                        var blockidList = [];
+                        for (i = 0; i < request.args.block_count; i++) {
+                            blockidList.push.apply(blockidList, blockid);
+                        }
+                        battleConfig.blockidList = blockidList;
+                        blockBattle = new cmdManager.CmdBlockBattle(battleConfig, function () {
+                            blockBattle = null;
+                        });
+                    }
                     if (!battleBuff) {
                         battleBuff = new cmdManager.CmdBattleBuff(function () {
                             battleBuff = null;
@@ -400,13 +395,8 @@ console.log = function (message) {
                 if (townBattle !== null) {
                     townBattle.cmd.state = COMMON.CMD_STATUS.RUN;
                 } else {
-                    /*blockid = blockid.toString().split(",").map(parseFloat);
-                    var blockidList = [];
-                    for (i = 0; i < request.args.block_count; i++) {
-                        blockidList.push.apply(blockidList, blockid);
-                    }*/
                     battleConfig = {};
-                    battleConfig.player = request.args.player;
+                    battleConfig.player = (request.args.player).split(",").map(function (s) { return s.trim(); });
                     battleConfig.time = request.args.time;
                     //battleConfig.sudden = request.args.sudden;
                     //battleConfig.maid = request.args.maid;

@@ -39,12 +39,25 @@
                 scope.args[scope.c.name][scope.f.name].min = scope.f.initmin;
                 scope.args[scope.c.name][scope.f.name].max = scope.f.initmax;
             } else if (scope.f.type === "checkbox") {
-                html = '<div class="ng-model-box"><input type="checkbox" ng-model="args.' + n + '"' + onChange + ' /><span class="checkbox-mark">{{f.title}}</span></div>';
+                html = '<div class="ng-model-box"><input type="checkbox" ng-model="args.' + n + '"' + onChange + ' />' +
+                    '<span class="checkbox-mark">{{f.title}}</span></div>';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
             } else if (scope.f.type === "textarea") {
                 var style = 'style="max-width: 100%; overflow-x: scroll; margin-bottom: 10px; height: ' + scope.f.height + '"';
                 html = '<textarea class="ng-model-box form-control" ' + style + ' ng-model="args.' + n + '"' + onChange + '></textarea>';
+                element.append($compile(html)(scope));
+                scope.args[scope.c.name][scope.f.name] = scope.f.init;
+            } else if (scope.f.type === "textHistory") {
+                html =
+                    '<div class="dropdown" dropdown>' +
+                    '    <input type="text" class="dropdown-toggle" dropdown-toggle ng-model="args.' + n + '"' + onChange + ' />' +
+                    '    <ul class="dropdown-menu">' +
+                    '        <li ng-repeat="val in args.' + scope.c.name + '.history.' + scope.f.name + '">' +
+                    '            <a href="#" ng-click="selectFromDropdown(c.name, f.name, val)">{{val}}</a>' +
+                    '        </li>' +
+                    '    </ul>' +
+                    '</div>';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
             }
@@ -63,7 +76,6 @@
             scope.args[scope.c.name].enable = scope.c.init;
         };
     }]);
-
 
     app.directive("ngLvupform", ['$compile', function ($compile) {
         return function (scope, element, attr) {
@@ -198,12 +210,41 @@
         //$scope.config = $resource("/popup/data/form.json").query();
         $scope.args = {};
         $scope.send = function (ctrl, op) {
+            var arg;
+            for (arg in $scope.args[op]) {
+                if ($scope.args[op].hasOwnProperty(arg) && arg !== "history") {
+                    if ($scope.args[op].history === undefined) {
+                        $scope.args[op].history = {};
+                    }
+                    var val = $scope.args[op][arg];
+                    if ($scope.args[op].history[arg] === undefined) {
+                        $scope.args[op].history[arg] = [val];
+                    } else {
+                        $scope.args[op].history[arg].unshift(val);
+                    }
+                    var i;
+                    for (i = 1; i < $scope.args[op].history[arg].length; i++) {
+                        if ($scope.args[op].history[arg][i] === val) {
+                            $scope.args[op].history[arg].splice(i, 1);
+                            i--;
+                        }
+                    }
+                    while ($scope.args[op].history[arg].length > 5) {
+                        $scope.args[op].history[arg].pop();
+                    }
+                }
+            }
             $scope.saveSetting();
+
             chrome.tabs.sendMessage(data.tabId, {
                 "op": op,
                 "ctrl": ctrl,
                 "args": $scope.args[op]
             }, function (response) {});
+        };
+
+        $scope.selectFromDropdown = function (op, arg, val) {
+            $scope.args[op][arg] = val;
         };
 
         $scope.addLvupform = function () {

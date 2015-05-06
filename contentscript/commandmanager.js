@@ -495,7 +495,7 @@ var cmdManager = {};
 
     /* Command : 指定された都市で手動戦闘する */
     cmdManager.CmdTownBattle = function (battleConfig, handler) {
-        this.townPlayer = battleConfig.player;
+        this.townPlayerList = battleConfig.player;
         this.counterStr = "";
         this.time = battleConfig.time;
         //this.sudden = battleConfig.sudden;
@@ -519,12 +519,17 @@ var cmdManager = {};
             return;
         }
 
-        if (cmd.func === null) {
+        if (cmd.func === null || cmd.func === task.Battle) {
             cmd.reset();
 
-            cmd.time = now;
-            cmd.func = task.GetMemberTown;
-            cmd.param = this.townPlayer;
+            var player = (this.townPlayerList).shift();
+            if (player) {
+                cmd.time = now;
+                cmd.func = task.GetMemberTown;
+                cmd.param = player;
+            } else {
+                cmd.state = COMMON.CMD_STATUS.END;
+            }
 
         } else if (cmd.func === task.GetMemberTown) {
             if (cmd.result) {

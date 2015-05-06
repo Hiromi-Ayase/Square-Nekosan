@@ -10,6 +10,7 @@
                 "title": "マップ",
                 "column": 7,
                 "values": [
+                    { "name": "ID直接入力", "value": -1 },
                     { "name": "フィグルの森", "value": 1000 },
                     { "name": "デガート遺跡", "value": 2000 },
                     { "name": "アミルレイク", "value": 3000 },
@@ -36,7 +37,7 @@
                 ]
             },
             {
-                "type": "text",
+                "type": "textHistory",
                 "name": "mapid",
                 "title": "ID指定",
                 "init": "",
@@ -167,13 +168,13 @@
                 "title": "マップ名",
                 "column": 12,
                 "values": [
+                    { "name": "ID直接入力", "value": "-1" },
                     { "name": "全ボス", "value": "0" },
-                    { "name": "森,デガ,桜,ゴーズのN,H,Mボス", "value": "1025,1050,1075,2025,2050,2075,3025,3050,3075,4025,4050,4075" },
-                    { "name": "フィグルの森の最初", "value": "1001" }
+                    { "name": "森,デガ,桜,ゴーズのN,H,Mボス", "value": "1025,1050,1075,2025,2050,2075,3025,3050,3075,4025,4050,4075" }
                 ]
             },
             {
-                "type": "text",
+                "type": "textHistory",
                 "name": "blockid",
                 "title": "ID指定",
                 "init": "",
@@ -301,7 +302,7 @@
         "title": "都市協防",
         "form": [
             {
-                "type": "text",
+                "type": "textHistory",
                 "name": "player",
                 "title": "管理官名",
                 "init": "",
