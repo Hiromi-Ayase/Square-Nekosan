@@ -306,7 +306,7 @@
                 "name": "player",
                 "title": "管理官名",
                 "init": "",
-                "column": 6
+                "column": 12
             },
             {
                 "type": "range",

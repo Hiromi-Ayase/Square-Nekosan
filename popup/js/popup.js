@@ -51,7 +51,7 @@
             } else if (scope.f.type === "textHistory") {
                 html =
                     '<div class="dropdown" dropdown>' +
-                    '    <input type="text" class="dropdown-toggle" dropdown-toggle ng-model="args.' + n + '"' + onChange + ' />' +
+                    '    <input type="text" class="ng-model-box dropdown-toggle" dropdown-toggle ng-model="args.' + n + '"' + onChange + ' />' +
                     '    <ul class="dropdown-menu">' +
                     '        <li ng-repeat="val in args.' + scope.c.name + '.history.' + scope.f.name + '">' +
                     '            <a href="#" ng-click="selectFromDropdown(c.name, f.name, val)">{{val}}</a>' +

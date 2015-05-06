@@ -2815,8 +2815,9 @@ var task = {};
                     success: function (res) {
                         var now = new Date();
                         var s;
-                        // 建築上限のためLVUP不可
-                        if (res === "showCQ=8&op=UPGRADE" || res === "showCQ=5&op=UPGRADE") {
+                        var cq = res.replace("showCQ=", "").replace("&op=UPGRADE", "");
+                        // 建築上限のためLVUP不可(showCQ=x: xは建築上限数(エラー時)と想定(0: 成功, 1: 資源不足?))
+                        if (Number(cq) > 1) {
                             now.setSeconds(now.getSeconds() + parseInt(param.latestTime, 10) + 120);
                             buildings[target].targetTime = now;
                             s = COMMON.DATESTR(buildings[target].targetTime);
@@ -2825,7 +2826,7 @@ var task = {};
                             return d.resolve();
 
                         // 資源不足のためLVUP不可
-                        } else if (res === "showCQ=1&op=UPGRADE") {
+                        } else if (Number(cq) === 1) {
                             if (param.latestTime === null) {
                                 now.setHours(now.getHours() + 1);   // 建設中の建物がない場合は1時間後にリトライ
                             } else {
@@ -2837,11 +2838,11 @@ var task = {};
                             log("資源不足");
                             return d.resolve();
 
-                        } else if (res === "showCQ=0&op=UPGRADE") {
+                        } else if (Number(cq) === 0) {
                             d.resolve(param.largestBldg);
 
                         } else {
-                            log("都市LVUPエラー");
+                            log("都市LVUP UPGRADEにエラー応答[" + res + "]");
                             d.reject();
                         }
                     },
