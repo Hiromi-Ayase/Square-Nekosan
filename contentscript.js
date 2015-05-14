@@ -273,7 +273,6 @@ var task = {};
         /* プレイヤ情報解析 */
         var player_list = [];
         var player_count = 0;
-        var maid_partyNo = null;
 
         // 特性のHP小隊ボーナスの合計値を取得
         var hp_bonus = [];
@@ -300,10 +299,6 @@ var task = {};
                 p += p_party_mem.id + "-" + hp + "-";
                 player_list[i].push(p);
                 player_count++;
-
-                if (COMMON.MAID.indexOf(p_party_mem.name) >= 0) {
-                    maid_partyNo = i;
-                }
             });
         });
 
@@ -321,56 +316,31 @@ var task = {};
 
                 var eid_list = "";
                 var eid_count_list = "";
-                var tmp_array = [];
-                var eid;
 
-                // メイドが参加していない場合
-                if (maid_partyNo === null) {
-                    beat_count = (enemy_list.length - num) / player_count;
-                    if (player_num < num) { beat_count++; }
+                beat_count = (enemy_list.length - num) / player_count;
+                if (player_num < num) { beat_count++; }
 
-                    if (enemy_list.length > beat_enemy_num && beat_count > 0) {
-                        for (k = beat_enemy_num; k < beat_enemy_num + beat_count; k++) {
-                            if (tmp_array.hasOwnProperty(enemy_list[k])) {
-                                tmp_array[enemy_list[k]]++;
-                            } else {
-                                tmp_array[enemy_list[k]] = 1;
-                            }
+                if (enemy_list.length > beat_enemy_num && beat_count > 0) {
+                    var tmp_array = [];
+                    for (k = beat_enemy_num; k < beat_enemy_num + beat_count; k++) {
+                        if (tmp_array.hasOwnProperty(enemy_list[k])) {
+                            tmp_array[enemy_list[k]]++;
+                        } else {
+                            tmp_array[enemy_list[k]] = 1;
                         }
-
-                        for (eid in tmp_array) {
-                            if (tmp_array.hasOwnProperty(eid)) {
-                                eid_list += eid + ",";
-                                eid_count_list += tmp_array[eid] + ",";
-                            }
-                        }
-                        beat_enemy_num += beat_count;
-                    } else {
-                        eid_list = "0,";
-                        eid_count_list = "0,";
                     }
 
-                // メイドが参加している場合、メイドPTで全部の敵を倒す
+                    var eid;
+                    for (eid in tmp_array) {
+                        if (tmp_array.hasOwnProperty(eid)) {
+                            eid_list += eid + ",";
+                            eid_count_list += tmp_array[eid] + ",";
+                        }
+                    }
+                    beat_enemy_num += beat_count;
                 } else {
-                    if (i === maid_partyNo && j === 0) {
-                        for (k = 0; k < enemy_list.length; k++) {
-                            if (tmp_array.hasOwnProperty(enemy_list[k])) {
-                                tmp_array[enemy_list[k]]++;
-                            } else {
-                                tmp_array[enemy_list[k]] = 1;
-                            }
-                        }
-
-                        for (eid in tmp_array) {
-                            if (tmp_array.hasOwnProperty(eid)) {
-                                eid_list += eid + ",";
-                                eid_count_list += tmp_array[eid] + ",";
-                            }
-                        }
-                    } else {
-                        eid_list = "0,";
-                        eid_count_list = "0,";
-                    }
+                    eid_list = "0,";
+                    eid_count_list = "0,";
                 }
 
                 pteam_txt += player_list[i][j] + eid_list.slice(0, -1) + "-" + eid_count_list.slice(0, -1);
