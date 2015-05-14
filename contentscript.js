@@ -371,7 +371,7 @@ var task = {};
             }),
             success: function (res) {
                 battleData.result_txt = createBattleResult(res);
-                if (battleData.result_txt.pteam_txt === "" || battleData.result_txt.eteam_txt === "") {
+                if (battleData.result_txt.pteam_txt === "") {
                     log("手動戦闘開始に失敗[戦闘結果データ生成に失敗]");
                     defer.reject(["power"]); // goto updateCQ
                 } else {
@@ -393,7 +393,7 @@ var task = {};
         console.log("[Enter]battleSendResult");
         var defer = $.Deferred();
 
-        if (battleData.result_txt.pteam_txt === "" || battleData.result_txt.eteam_txt === "") {
+        if (battleData.result_txt.pteam_txt === "") {
             return;
         }
 
