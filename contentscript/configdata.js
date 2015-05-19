@@ -1,3 +1,4 @@
+/*global COMMON*/
 var config = {};
 
 config.trans = {
@@ -8,7 +9,8 @@ config.trans = {
 
 config.sudden = {
     enable: false,
-    minHp: 1000000
+    minhp: 1000000,
+    assist: COMMON.SUDDEN_ASSIST.DEFAULT
 };
 
 config.battleDamage = {

@@ -505,8 +505,9 @@ console.log = function (message) {
                     log("サドンの設定値がおかしいので確認しろばか");
                     sudden = false;
                 } else {
-                    config.sudden.minHp = request.args.minhp;
+                    config.sudden.minhp = request.args.minhp;
                 }
+                config.sudden.assist = request.args.assist;
                 config.sudden.enable = sudden;
                 args = request.args;
                 args.enable = sudden;
@@ -629,8 +630,9 @@ console.log = function (message) {
                 log("サドンの設定値がおかしいので確認しろばか");
                 sudden = false;
             } else {
-                config.sudden.minHp = request.args[COMMON.OP.SUDDEN].minhp;
+                config.sudden.minhp = request.args[COMMON.OP.SUDDEN].minhp;
             }
+            config.sudden.assist = request.args[COMMON.OP.SUDDEN].assist;
             config.sudden.enable = sudden;
 
             battleDamage = request.args[COMMON.OP.BATTLEDAMAGE].enable;

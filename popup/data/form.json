@@ -373,6 +373,17 @@
                 "title": "攻撃対象サドン 下限HP",
                 "init": 50000,
                 "column": 6
+            },
+            {
+                "type": "select",
+                "name": "assist",
+                "title": "援護要請",
+                "column": 6,
+                "values": [
+                    { "name": "30%以上削れたらする", "value": 0 },
+                    { "name": "常に要請する", "value": 1 },
+                    { "name": "要請しない", "value": -1 }
+                ]
             }
         ]
     },
