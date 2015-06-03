@@ -34,14 +34,16 @@
                     { "name": "Hard", "value": 2 },
                     { "name": "Master", "value": 3 },
                     { "name": "God", "value": 4 }
-                ]
+                ],
+                "disabled": "args.map.map==-1"
             },
             {
                 "type": "textHistory",
                 "name": "mapid",
                 "title": "ID指定",
                 "init": "",
-                "column": 6
+                "column": 6,
+                "disabled": "args.map.map!=-1"
             },
             {
                 "type": "number",
@@ -120,7 +122,8 @@
                 "values": [
                     { "name": "Heaven", "value": 0 },
                     { "name": "Hell", "value": 1 }
-                ]
+                ],
+                "disabled": "args.dystopia.dystopia==0"
             },
             {
                 "type": "range",
@@ -178,7 +181,8 @@
                 "name": "blockid",
                 "title": "ID指定",
                 "init": "",
-                "column": 6
+                "column": 6,
+                "disabled": "args.block.map!='-1'"
             },
             {
                 "type": "number",

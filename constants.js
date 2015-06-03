@@ -14,6 +14,7 @@ COMMON.OP = {
     LVUP: "lvup",
     TOWNLVUP: "townLvup",
     RECRUIT: "recruit",
+    ITEM: "item",
     CONTENTS_DATA: "contents_data",
     INIT: "init",
     TEST: "test",
@@ -71,6 +72,13 @@ COMMON.STATUSLIST = [
     "HP", "ATK", "DEF", "DEX", "FLEE", "LUK"
 ];
 
+COMMON.MAID = [
+    "フリューネ",
+    "キサナ",
+    "アリシア",
+    "リエル"
+];
+
 COMMON.BUILDING = {
     "": { name: "", maxlv: 0 },
     1: { name: "遺跡管理局", maxlv: 30 },
@@ -99,6 +107,38 @@ COMMON.GOLDBHV = [
     "優待", "軌跡", "重宝",
     "美夢", "泳練", "典雅", "猫娘", "店長", "艶麗", "追跡", "商人"
 ];
+
+COMMON.ITEMTYPE = {
+    ITEM_ALL : 0,		//標籤 全部
+    ITEM_BADGE : 1,		//道具類型 徽章
+    ITEM_STONE : 2,		//道具類型 原石
+    ITEM_JADE : 3,		//道具類型 勾玉
+    ITEM_SPECIAL : 4,	//道具類型 特殊
+    BOX : 4,		//道具類型 寶箱
+    PIECE : 5,	    //道具類型 碎片
+    EVOLVE : 7,	    //道具類型 進化道具
+    JEWEL_PIECE : 9,//道具類型 珠寶碎片
+    RES : 10,	    //道具類型 資源
+    MERCEGG : 11,	//道具類型 召喚蛋
+    SPECIAL : 12,	//道具類型 特殊
+    LUCKY_BAG : 13,	//道具類型 福袋
+    RESET : 14,	    //道具類型 重置
+    RARUP : 15,	    //道具類型 升階
+    SPWEPON : 16,	//道具類型 專武
+    SKL_LEARN : 17,	//道具類型 技能書
+    CHWEPON : 20,	//道具類型 魔具
+    MERCLV_RANK : 21,//道具類型 轉生
+    SET_PIECE : 22,	//道具類型 配件		// 共鳴装備
+    FREE_NUM : 23,	//道具類型 加值
+    MGP : 24,	    //道具類型 好感度
+    AHP : 25,       //道具類型 HP回復
+    EVOLVE_2 : 27,	//道具類型 進化道具2
+    RPOWER : 28,	//道具類型 召喚能量
+    BEHAGET : 29,	//道具類型 特性獲得
+    SP_BOX : 30,	//道具類型 特殊寶箱
+    ALCHEMY : 31//道具類型 鍊金道具
+};
+
 
 COMMON.DATESTR = function (date) {
     'use strict';

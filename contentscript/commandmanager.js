@@ -867,6 +867,34 @@ var cmdManager = {};
         return null;
     };
 
+    /* Command : アイテム整理 */
+    cmdManager.CmdCleanBag = function (handler) {
+        this.cmd = new Command("CmdCleanBag", handler);
+        this.setNextTask();
+        cmdList.push(this);
+    };
+
+    cmdManager.CmdCleanBag.prototype.setNextTask = function () {
+        var now = new Date();
+        var cmd = this.cmd;
+
+        if (cmd.state === COMMON.CMD_STATUS.END) {
+            return;
+        } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
+            cmd.state = COMMON.CMD_STATUS.END;
+            return;
+        }
+
+        if (cmd.func === null) {
+            cmd.reset();
+            cmd.func = task.CleanBag;
+
+        } else {
+            console.log("complete");
+            cmd.state = COMMON.CMD_STATUS.END;
+        }
+    };
+
     /* Command : 初期化（インスタンスはすぐ削除） */
     cmdManager.CmdInit = function (handler) {
         this.result = {};
@@ -913,6 +941,7 @@ var cmdManager = {};
         if (cmd.state === COMMON.CMD_STATUS.END) {
             return;
         } else if (cmd.funcState === COMMON.CMD_RESULT.NG) {
+            console.log("error");
             cmd.state = COMMON.CMD_STATUS.END;
             return;
         }
@@ -920,21 +949,45 @@ var cmdManager = {};
         if (cmd.func === null) {
             cmd.reset();
 
-            cmd.func = task.GetAllBossBlockid;
-            //cmd.param = { current : 98000, limit: 100000 };
-
-            //var $iframe = $('#main');
-            //var ifrmDoc = $iframe[0].contentWindow.document;
-            //$("#merc_title", ifrmDoc).click();
-        /*} else if (cmd.func === task.GetBattleBuff) {
-            var techList = cmd.result;
-
-            cmd.reset();
-            cmd.func = task.SetBattleBuff;
-            cmd.param = techList;*/
+            cmd.func = task.CleanBag;
+            cmd.param = {};
+            cmd.param.bagData = [
+                {name : "B級無謀徽章"},
+                {name : "ギルマトーク"},
+                {name : "itemZ"},
+                {name : "itemX"},
+                {name : "itemO"},
+                {name : "itemP"},
+                {name : "itemQ"},
+                {name : "itemA"},
+                {name : "itemB"},
+                {name : "itemD"}
+            ];
+            cmd.param.itemConfig = {
+                sell : [
+                    {name : "B級無謀徽章"},
+                    {name : "B級雛鳥原石"}
+                ],
+                move : [
+                    {name : "A級巧妙徽章"},
+                    {name : "B級荒魂勾玉"}
+                ],
+                use : [
+                    {name : "タクレット"},
+                    {name : "初級裝備箱"},
+                    {name : "資源ギフト3000"},
+                    {name : "クルル硬貨（金）"}
+                ],
+                alchemy : [
+                    {name : "D級氷晶石", num : 3},
+                    {name : "錬成秘石(1号)", num : 2}
+                ],
+                maid : "フリューネ",
+                contribute : "500"
+            };
 
         } else {
-            console.log(cmd.result);
+            console.log("complete");
             cmd.state = COMMON.CMD_STATUS.END;
         }
     };

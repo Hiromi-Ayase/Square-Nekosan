@@ -69,7 +69,7 @@
                 <tab-heading>LVUP</tab-heading>
                 <div class="container form">
                     <div class="row">
-                        <button class="btn btn-xs" ng-class="flagbtnClass('lvup')" ng-click="sendFlag('lvup')">{{contentsData.lvup.state}}</button> ストライカーをLVUPする
+                        <button class="btn btn-xs" ng-class="flagbtnClass('lvup')" ng-click="sendFlag('lvup')">{{contentsData.lvup.fstate}}</button> ストライカーをLVUPする
                     </div>
                     <div class="row">
                         <span class="lvupform-label" style="display:inline-block;width:4%"></span>
@@ -90,10 +90,91 @@
                 </div>
             </tab>
 
-           <tab active=args['townLvup'].active>
+            <tab active=args['townLvup'].active>
                 <tab-heading>都市LVUP</tab-heading>
                 <div class="container form">
                     <ng-townlvupform></ng-townlvupform>
+                </div>
+            </tab>
+
+            <tab active=args['item'].active>
+                <tab-heading>アイテム</tab-heading>
+                <div class="container form">
+                    <div class="row">
+                        <button class="btn btn-xs" ng-class="flagbtnClass('item')" ng-click="sendFlag('item')" tooltip-html-unsafe="戦闘10回ごとまたは<br>サドン出現後に実行" tooltip-trigger="mouseenter" tooltip-placement="right">{{contentsData.item.fstate}}</button> アイテムを整理する
+                        <button ng-repeat="b in item.ctrl" class="btn btn-xs {{b.class}} pull-right" ng-class="btnClass(b.name, 'item')" ng-click="send(b.name, 'item')" tooltip="今すぐに1回だけ実行" tooltip-trigger="mouseenter" tooltip-placement="top"><span class="glyphicon {{b.icon}}">{{b.title}}</button>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-xs-12 form-element">
+                            <span class="glyphicon glyphicon-usd"></span> <label>売るアイテム:</label>
+                        </div>
+                    </div>
+                    <textarea class="ng-model-box form-control itemform-textarea" ng-model="args.item.sell" ng-change="onChange('item')" ></textarea>
+
+                    <div class="row">
+                        <div class="col-xs-12 form-element">
+                            <span class="glyphicon glyphicon-transfer"></span> <label>移動するアイテム:</label>
+                        </div>
+                    </div>
+                    <textarea class="ng-model-box form-control itemform-textarea" ng-model="args.item.move" ng-change="onChange('item')" ></textarea>
+
+                    <div class="row">
+                        <div class="col-xs-12 form-element">
+                            <span class="glyphicon glyphicon-check"></span> <label>使うアイテム:</label>
+                        </div>
+                    </div>
+                    <textarea class="ng-model-box form-control itemform-textarea" ng-model="args.item.use" ng-change="onChange('item')" ></textarea>
+
+                    <div class="row">
+                        <div class="col-xs-12 form-element">
+                            <span class="glyphicon glyphicon-tint"></span> <label>練成するアイテム:</label>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-xs-6 form-element">
+                            側近: <select style="width: 80%; height: 26px" ng-model="args.item.maid" ng-options="m for m in {{item.maidlist}}"  ng-change="onChange('item')" ></select>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <span class="lvupform-label" style="display:inline-block;width:10%"></span>
+                        <span class="lvupform-label" style="display:inline-block;width:50%">アイテム名</span>
+                        <span class="lvupform-label" style="display:inline-block">個数</span>
+                    </div>
+                    <div ng-repeat="i in args.item.alchemy track by $index">
+                        <div class="row">
+                            <div class="col-xs-1 form-element">
+                                <button class="btn btn-default btn-xs glyphicon glyphicon-minus pull-right" ng-click="delAlcItemform($index)" ></button>
+                            </div>
+                            <div class="col-xs-6 form-element">
+                                <input class="ng-model-box" type="text" ng-model="i.name" ng-change="onChange('item')"  />
+                            </div>
+                            <div class="col-xs-2 form-element">
+                                <select class="ng-model-box" ng-model="i.num" ng-options="n for n in item.alcitemNum" ng-change="onChange('item')" ></select>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-default btn-xs glyphicon glyphicon-plus" ng-click="addAlcItemform()"></button>
+
+                    <div class="row control">
+                        <div class="col-xs-4 form-element">
+                            <input type="checkbox" ng-model="args.item.contribute.enable" ng-change="onChange('item')"  />
+                            <span class="glyphicon glyphicon-gift"></span> <label class="checkbox-mark">寄付する</label>
+                        </div>
+                        <div class="col-xs-8 form-element">
+                            寄付額: <input style="width: 50%; height: 26px" type="number" ng-model="args.item.contribute.stone" ng-change="onChange('item')"  />
+                        </div>
+                    </div>
+
+                    <div class="row control">
+                        <div class="col-xs-12">
+                            <p class="status">
+                                Status: {{contentsData['item'].statusText}}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </tab>
 

@@ -16,42 +16,42 @@
             var n = scope.c.name + "." + scope.f.name;
             var onChange = ' ng-change="onChange(c.name)"';
             if (scope.f.type === "select") {
-                html = '<select class="ng-model-box" ng-model="args.' + n + '" ng-options="m.value as m.name + \' (\' + m.value + \')\' for m in f.values"' + onChange + ' />';
+                html = '<select class="ng-model-box" ng-disabled="' + scope.f.disabled + '" ng-model="args.' + n + '" ng-options="m.value as m.name + \' (\' + m.value + \')\' for m in f.values"' + onChange + ' />';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.values[0].value;
             } else if (scope.f.type === "text") {
-                html = '<input class="ng-model-box" type="text" ng-model="args.' + n + '"' + onChange + ' />';
+                html = '<input class="ng-model-box" type="text" ng-disabled="' + scope.f.disabled + '" ng-model="args.' + n + '"' + onChange + ' />';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
             } else if (scope.f.type === "number") {
-                html = '<input class="ng-model-box" type="number" ng-model="args.' + n + '"' + onChange + ' />';
+                html = '<input class="ng-model-box" type="number" ng-disabled="' + scope.f.disabled + '" ng-model="args.' + n + '"' + onChange + ' />';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
             } else if (scope.f.type === "range") {
                 html =
                     '<div class="ng-model-box">' +
-                    '    <input type="number" class="col-xs-5 range-box" ng-model="args.' + n + '.min"' + onChange + ' />' +
+                    '    <input type="number" class="col-xs-5 range-box" ng-disabled="' + scope.f.disabled + '" ng-model="args.' + n + '.min"' + onChange + ' />' +
                     '    <div class="col-xs-2 range-mark">～</div>' +
-                    '    <input type="number" class="col-xs-5 range-box" ng-model="args.' + n + '.max"' + onChange + ' />' +
+                    '    <input type="number" class="col-xs-5 range-box" ng-disabled="' + scope.f.disabled + '" ng-model="args.' + n + '.max"' + onChange + ' />' +
                     '</div>';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = {};
                 scope.args[scope.c.name][scope.f.name].min = scope.f.initmin;
                 scope.args[scope.c.name][scope.f.name].max = scope.f.initmax;
             } else if (scope.f.type === "checkbox") {
-                html = '<div class="ng-model-box"><input type="checkbox" ng-model="args.' + n + '"' + onChange + ' />' +
+                html = '<div class="ng-model-box"><input type="checkbox" ng-disabled="' + scope.f.disabled + '" ng-model="args.' + n + '"' + onChange + ' />' +
                     '<span class="checkbox-mark">{{f.title}}</span></div>';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
             } else if (scope.f.type === "textarea") {
                 var style = 'style="max-width: 100%; overflow-x: scroll; margin-bottom: 10px; height: ' + scope.f.height + '"';
-                html = '<textarea class="ng-model-box form-control" ' + style + ' ng-model="args.' + n + '"' + onChange + '></textarea>';
+                html = '<textarea class="ng-model-box form-control" ' + style + ' ng-disabled="' + scope.f.disabled + '" ng-model="args.' + n + '"' + onChange + '></textarea>';
                 element.append($compile(html)(scope));
                 scope.args[scope.c.name][scope.f.name] = scope.f.init;
             } else if (scope.f.type === "textHistory") {
                 html =
                     '<div class="dropdown" dropdown>' +
-                    '    <input type="text" class="ng-model-box dropdown-toggle" dropdown-toggle ng-model="args.' + n + '"' + onChange + ' />' +
+                    '    <input type="text" class="ng-model-box dropdown-toggle" dropdown-toggle ng-disabled="' + scope.f.disabled + '" ng-model="args.' + n + '"' + onChange + ' />' +
                     '    <ul class="dropdown-menu">' +
                     '        <li ng-repeat="val in args.' + scope.c.name + '.history.' + scope.f.name + '">' +
                     '            <a href="#" ng-click="selectFromDropdown(c.name, f.name, val)">{{val}}</a>' +
@@ -71,7 +71,7 @@
             }
             var html;
             html = '<button class="btn btn-xs" ng-class="flagbtnClass(c.name)" ng-click="sendFlag(c.name)">' +
-                '{{contentsData.' + scope.c.name + '.state}}</button> {{c.title}}';
+                '{{contentsData.' + scope.c.name + '.fstate}}</button> {{c.title}}';
             element.append($compile(html)(scope));
             scope.args[scope.c.name].enable = scope.c.init;
         };
@@ -173,17 +173,16 @@
                 '    </div>' +
                 '    <button class="btn btn-default btn-xs glyphicon glyphicon-plus" ng-click="addTownLvupform(t.buildings)"></button>' +
                 '</div>' +
-                '    <div class="row control">' +
-                '        <div class="col-xs-12">' +
-                '            <p class="status">' +
-                '                Status: {{contentsData[' + "'townLvup'" + '].statusText}}' +
-                '            </p>' +
-                '        </div>' +
-                '    </div>' +
-                '    <div class="row">' +
-                '        <div class="col-xs-12 text-right">' +
-                '            <button ng-repeat="b in args.townLvup.ctrl" class="btn btn-xs {{b.class}}" ng-class="btnClass(b.name, \'townLvup\')" ng-click="send(b.name, \'townLvup\')"><span class="glyphicon {{b.icon}}">{{b.title}}</button>' +
-                '        </div>' +
+                '<div class="row control">' +
+                '   <div class="col-xs-12">' +
+                '       <p class="status">' +
+                '           Status: {{contentsData[' + "'townLvup'" + '].statusText}}' +
+                '       </p>' +
+                '   </div>' +
+                '</div>' +
+                '<div class="row">' +
+                '    <div class="col-xs-12 text-right">' +
+                '          <button ng-repeat="b in args.townLvup.ctrl" class="btn btn-xs {{b.class}}" ng-class="btnClass(b.name, \'townLvup\')" ng-click="send(b.name, \'townLvup\')"><span class="glyphicon {{b.icon}}">{{b.title}}</button>' +
                 '    </div>' +
                 '</div>';
             element.append($compile(html)(scope));
@@ -208,6 +207,7 @@
             console.log($scope.config);
         });
         //$scope.config = $resource("/popup/data/form.json").query();
+
         $scope.args = {};
         $scope.send = function (ctrl, op) {
             var arg;
@@ -240,7 +240,12 @@
                 "op": op,
                 "ctrl": ctrl,
                 "args": $scope.args[op]
-            }, function (response) {});
+            }, function (response) {
+                if (response !== undefined) {
+                    $scope.args[op] = response;
+                }
+                $scope.saveSetting();
+            });
         };
 
         $scope.selectFromDropdown = function (op, arg, val) {
@@ -275,6 +280,35 @@
             $scope.onChange(COMMON.OP.TOWNLVUP);
         };
 
+        /* item */
+        $scope.item = {};
+        $scope.item.alcitemNum = [2, 3, 5];
+        $scope.item.maidlist = COMMON.MAID;
+        $scope.item.ctrl = [
+            { "name": "abort", "title": "停止", "icon": "glyphicon-stop", "class": "btn-danger" },
+            { "name": "run", "title": "開始", "icon": "glyphicon-play", "class": "btn-primary" }
+        ];
+        $scope.args.item = {
+            enable: false,
+            sell : "",
+            move : "",
+            use : "",
+            alchemy: [],
+            maid: "フリューネ",
+            contribute: {}
+        };
+        $scope.addAlcItemform = function () {
+            $scope.args.item.alchemy.push({
+                name: null,
+                num: 2
+            });
+            $scope.onChange(COMMON.OP.ITEM);
+        };
+        $scope.delAlcItemform = function (i) {
+            $scope.args.item.alchemy.splice(i, 1);
+            $scope.onChange(COMMON.OP.ITEM);
+        };
+
         $scope.btnClass = function (ctrl, op) {
             if ($scope.contentsData === undefined || $scope.contentsData[op] === undefined ||
                     $scope.contentsData[op].state === COMMON.CMD_STATUS.DISABLE) {
@@ -296,16 +330,18 @@
                 "ctrl": COMMON.OP_CTRL.FLAG,
                 "args": $scope.args[op]
             }, function (response) {
-                $scope.args[op] = response;
+                if (response !== undefined) {
+                    $scope.args[op] = response;
+                }
                 $scope.saveSetting();
             });
         };
 
         $scope.flagbtnClass = function (op) {
-            if ($scope.contentsData === undefined || $scope.contentsData[op] === undefined || $scope.contentsData[op].state === undefined) {
+            if ($scope.contentsData === undefined || $scope.contentsData[op] === undefined || $scope.contentsData[op].fstate === undefined) {
                 return { "btn-primary": true };
             }
-            var s = $scope.contentsData[op].state;
+            var s = $scope.contentsData[op].fstate;
             return {
                 "btn-primary": s === COMMON.CMD_STATUS.ON,
                 "btn-default": s === COMMON.CMD_STATUS.OFF

@@ -99,3 +99,10 @@ body {
     font-size: 12px;
     font-weight: 700;
 }
+
+.itemform-textarea {
+    max-width: 100%;
+    overflow-x: scroll;
+    margin-bottom: 10px;
+    height: 80px
+}

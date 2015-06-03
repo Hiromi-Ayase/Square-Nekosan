@@ -905,7 +905,8 @@ var task = {};
             });
             return defer2.promise();
 
-        }).then(task.TransBattlePrepare);
+        });
+//            .then(task.TransBattlePrepare);
 
         return defer.promise();
     };
@@ -2033,9 +2034,17 @@ var task = {};
                 return updateCQ();
             })
 
+            .then(task.TransBattlePrepare)
+
             .then(function () {
                 if (battleData.isSudden || battleData.round % 10 === 0) {
                     return suddenAllAttack();
+                }
+            })
+
+            .then(function () {
+                if (config.item.enable === true && (battleData.isSudden || battleData.round % 10 === 0)) {
+                    return task.CleanBag();
                 }
             })
 
@@ -2367,6 +2376,7 @@ var task = {};
                 },
                 error: function () {
                     log("都市データの取得(READ)に失敗");
+                    d.reject();
                 }
             });
             return d.promise();
@@ -2395,36 +2405,6 @@ var task = {};
             console.log("変喚器は" + town + "を使います");
             TRANS.TOWNID = townsData[name][0];
         }
-    };
-
-    /*** 魔晶石変換に使用する練成器（がある都市）を取得する ***/
-    task.GetTownTransducer = function () {
-        console.log("[[TaskStart]]GetTownTransducer");
-        var defer = $.Deferred();
-
-        task.GetTownList()
-            .then(getTownData)
-            .then(function (townsData) {
-                var townName;
-                var transducerLv = 0;
-                $.each(townsData, function (name, townData) {
-                    $.each(townData[1], function () {
-                        if (this.building > 400 && this.building < 500) {
-                            if (transducerLv < parseInt(this.lv, 10)) {
-                                transducerLv = parseInt(this.lv, 10);
-                                townName = name;
-                            }
-                        }
-                    });
-                });
-                if (townName) {
-                    console.log(townName + " の練成器を使います");
-                    TRANS.TOWNID = townsData[townName][0];
-                }
-                defer.resolve();
-            });
-
-        return defer.promise();
     };
 
     /*** 指定された☆以上のキャラを名声召喚する(指定☆以下のキャラは解雇する) ***/
@@ -2568,7 +2548,7 @@ var task = {};
         var townsData = {};
 
         var townId = null;
-        //$.each(townIdList, function (i, townId) {
+
         log(playerName + " の都市を防衛");
         defer = defer.then(function () {
             var d = $.Deferred();
@@ -2639,6 +2619,55 @@ var task = {};
         } else {
             return false;
         }
+    };
+
+    /**
+     * 指定された建物で一番高いLVのものが建っている都市を取得する
+     * @param   {number}   buildingType 建物のタイプ
+     * @returns {string} townid 一番高いLVの建物が建っている都市のID(numberの文字列)
+     */
+    task.GetHighestBuilding = function (buildingType) {
+        console.log("[[TaskStart]]GetTownTransducer");
+        var defer = $.Deferred();
+
+        var townIdList, townName, townid, lv = 0;
+        task.GetTownList()
+            .then(function (res) {
+                townIdList = res;
+
+            }).then(function () {
+                var d = $.Deferred().resolve();
+                $.each(townIdList, function (i, town) {
+                    d = d.then(function () {
+                        return $.Deferred().resolve(town.id).promise();
+
+                    }).then(getTownData)
+
+                        .then(function (townData) {
+                            $.each(townData[1], function () {
+                                if (checkBuildingType(this.building, buildingType)) {
+                                    if (lv < parseInt(this.lv, 10)) {
+                                        lv = parseInt(this.lv, 10);
+                                        townName = town.name;
+                                        townid = town.id;
+                                    }
+                                }
+                            });
+                        });
+                });
+                return d.promise();
+
+            }).then(function () {
+                if (lv > 0) {
+                    console.log(townName + "の" + COMMON.BUILDING[buildingType].name + "(Lv" + lv + ")");
+                    defer.resolve(townid);
+                } else {
+                    console.log(COMMON.BUILDING[buildingType].name + "は建造されていない");
+                    defer.resolve();
+                }
+            });
+
+        return defer.promise();
     };
 
     /* 指定された建物が建造済みか確認 */
@@ -2768,6 +2797,7 @@ var task = {};
                         if (townData[1][i].index === townData[2][j].index) {
                             townData[1].splice(i, 1);
                             i--;
+                            break;
                         }
                     }
                 }
@@ -2923,6 +2953,697 @@ var task = {};
         return defer.promise();
     };
 
+    var loadBagData = function () {
+        console.log("[Enter]loadBagData");
+        var defer = $.Deferred();
+
+        $.ajax({
+            url: "item_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: ({
+                op: "merc_equip",
+                append: 0,      // ソート（表示アイテム切り替え）
+                nTag: 0         // 通常/特殊倉庫切り替え
+            }),
+            success: function (res) {
+                if (res.num && res.show_num && res.num === res.show_num) {
+                    defer.resolve(res);
+                } else {
+                    log("インベントリ情報エラー");
+                    console.log(res);
+                    defer.reject();
+                }
+            },
+            error: function () {
+                log("インベントリ情報取得売却に失敗");
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
+    };
+
+    var getItemDatafromBag = function (bagData, item) {
+        var list = [];
+        var i;
+        for (i = 0; bagData[i]; i++) {
+            if (bagData[i].name === item) {
+                list.push(i);
+            }
+        }
+        return list;
+    };
+
+    /**
+     * 指定されたアイテムを売る、ロック中・装備中のアイテムは売らない
+     * (同じ名前のアイテムが複数個倉庫にある場合は全て売る)
+     * @param   {Object} bagData 倉庫内のアイテムリスト
+     * @param   {Object} item    売るアイテム
+     */
+    var sellItem = function (bagData, item) {
+        console.log("[Enter]sellItem");
+        var defer = $.Deferred();
+
+        var sellItemInner = function (bagData, item) {
+            //console.log(bagData);
+
+            var i = 0, itemData = null;
+            while (bagData[i]) {
+                if (bagData[i].name === item && parseInt(bagData[i].pack, 10) > 0 &&
+                        bagData[i].ilock === "0" && bagData[i].merc === undefined) {
+                    itemData = bagData[i];
+                    break;
+                }
+                i++;
+            }
+
+            if (itemData) {
+                var sellNum = parseInt(itemData.pack, 10) > 10 ? 10 : itemData.pack;
+
+                $.ajax({
+                    url: "item_.php",
+                    type: "POST",
+                    cache: false,
+                    dataType: "json",
+                    data: ({
+                        op: "item_sell",
+                        item: itemData.id,
+                        num: sellNum
+                    }),
+                    success: function (res) {
+                        if (res.result === "success") {
+                            log(itemData.name + "x" + sellNum + "を売却");
+                            bagData[i].pack = res.num;
+
+                            // 指定されたアイテムが倉庫からなくなるまで繰り返す
+                            // bagDataは個数以外更新されない(reponseが残り個数の情報のみなので)
+                            sellItemInner(bagData, item);
+                        } else {
+                            console.log(itemData.name + "売却に失敗[" + res + "]");
+                            defer.resolve();
+                        }
+                    },
+                    error: function () {
+                        log(itemData.name + "売却情報送信に失敗");
+                        defer.reject();
+                    }
+                });
+            } else {
+                defer.resolve(bagData);
+            }
+        };
+
+        sellItemInner(bagData, item);
+        return defer.promise();
+    };
+
+    /**
+     * 指定されたアイテムを倉庫からオルタへ移動する、ロックされているアイテムも移動するが装備中のアイテムは移動しない
+     * (同じ名前のアイテムが複数個倉庫にある場合は全て移動する)
+     * @param   {Object} bagData 倉庫内のアイテムリスト
+     * @param   {Object} item    オルタへ移動させるアイテム
+     */
+    var moveItem = function (bagData, item) {
+        console.log("[Enter]moveItem");
+        var defer = $.Deferred();
+
+        var moveItemInner = function (bagData, item) {
+
+            var i = 0, itemData = null;
+            while (bagData[i]) {
+                if (bagData[i].name === item && parseInt(bagData[i].pack, 10) > 0 && bagData[i].merc === undefined) {
+                    itemData = bagData[i];
+                    break;
+                }
+                i++;
+            }
+
+            if (itemData) {
+                $.ajax({
+                    url: "item_.php",
+                    type: "POST",
+                    cache: false,
+                    dataType: "json",
+                    data: ({
+                        op: "storage_exchange",
+                        id: itemData.id,
+                        sappend: 0,
+                        tostore: 1
+                    }),
+                    success: function (res) {
+                        if (!res.result) {
+                            console.log(itemData.name + "移動に失敗");
+                            defer.reject();     // 予期しないエラーなので、アイテム整理を中断する
+                        } else if (res.result === "success") {
+                            log(itemData.name + "を移動");
+                            bagData = res.pack;
+                            // 指定されたアイテムが倉庫からなくなるまで繰り返す
+                            moveItemInner(bagData, item);
+                        } else {
+                            console.log(itemData.name + "移動に失敗[" + res.result + "]");
+                            defer.resolve(bagData);     // 倉庫がいっぱいな場合は移動を終了するが、アイテム整理は中断しない
+                        }
+                    },
+                    error: function () {
+                        log(itemData.name + "移動情報送信に失敗");
+                        defer.reject();
+                    }
+                });
+            } else {
+                defer.resolve(bagData);
+            }
+        };
+
+        moveItemInner(bagData, item);
+        return defer.promise();
+    };
+
+    /**
+     * 指定されたアイテムを開封する、ロック中・装備中のアイテムは開封しない
+     * (同じ名前のアイテムが複数個倉庫にある場合は全て開封する)
+     * @param   {Object} bagData 倉庫内のアイテムリスト
+     * @param   {Object} item    開封するアイテム
+     */
+    var useItem = function (bagData, item) {
+        console.log("[Enter]useItem");
+        var defer = $.Deferred();
+        var used = false;   // アイテム整理ルーチンを初めからやり直すかどうかのフラグ（資源以外のアイテムを開封したらtrueにする）
+
+        var useItemInner = function (bagData, item) {
+
+            var i = 0, itemData = null;
+            while (bagData[i]) {
+                if (bagData[i].name === item && parseInt(bagData[i].pack, 10) > 0 &&
+                        bagData[i].ilock === "0" && bagData[i].merc === undefined) {
+                    itemData = bagData[i];
+                    break;
+                }
+                i++;
+            }
+
+            if (itemData) {
+                var data = {};
+                var openNum = 0;
+                var type = parseInt(itemData.type, 10);
+                if ((type === COMMON.ITEMTYPE.BOX || type === COMMON.ITEMTYPE.LUCKY_BAG || type === COMMON.ITEMTYPE.RES)
+                        && parseInt(itemData.pack, 10) > 1) {
+                    openNum = parseInt(itemData.pack, 10) > 10 ? 10 : itemData.pack;
+                    data = {
+                        op: "multi_open",
+                        cItem: itemData.id,
+                        append: 0,      // ソート（表示アイテム切り替え）
+                        inum: openNum,
+                        nTag: 0         // 通常/特殊倉庫切り替え
+                    };
+                } else {
+                    openNum = 1;
+                    data = {
+                        op: "item_open",
+                        cItem: itemData.id,
+                        item: itemData.item,
+                        append: 0,      // ソート（表示アイテム切り替え）
+                        sel_co: 0,      // _ITEM_TYPE_SP_BOX用?
+                        nTag: 0         // 通常/特殊倉庫切り替え
+                    };
+                }
+
+                $.ajax({
+                    url: "item_.php",
+                    type: "POST",
+                    cache: false,
+                    dataType: "json",
+                    data: data,
+                    success: function (res) {
+                        if (res[0] === -1) {
+                            console.log(itemData.name + "開封に失敗[full]");     // 倉庫がいっぱいな場合は移動を終了するが、アイテム整理は中断しない
+                            defer.resolve(bagData, used);
+                        } else if (res.item) {
+                            // 開封したアイテムが資源系なら、続けて次のアイテムを開封するのでused = falseのままにする
+                            if (res[0] !== COMMON.ITEMTYPE.RES) {
+                                used = true;    // アイテム整理ルーチンを初めからやり直す
+                            }
+                            log(itemData.name + "x" + openNum + "を開封");
+                            bagData = res.item;
+                            // 指定されたアイテムが倉庫からなくなるまで繰り返す
+                            useItemInner(bagData, item);
+                        } else {
+                            console.log(itemData.name + "開封に失敗[" + res + "]");
+                            defer.reject();     // 予期しないエラーなので、アイテム整理を中断する
+                        }
+                    },
+                    error: function () {
+                        log(itemData.name + "開封情報送信に失敗");
+                        defer.reject();
+                    }
+                });
+            } else {
+                defer.resolve(bagData, used);
+            }
+        };
+
+        useItemInner(bagData, item);
+        return defer.promise();
+    };
+
+    var getAlchemyBagData = function () {
+        console.log("[Enter]getAlchemyBagData");
+        var defer = $.Deferred();
+
+        $.ajax({
+            url: "mdmerc_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: {
+                op: "alchemy_data"
+            },
+            success: function (res) {
+                if (res.item) {
+                    defer.resolve(res.item);
+                } else {
+                    log("練成アイテム情報取得に失敗");
+                    defer.resolve();    // アイテム整理ルーチンは止めない
+                }
+            },
+            error: function () {
+                log("練成アイテム情報取得に失敗");
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
+    };
+
+    /**
+     * 指定されたアイテムを練成する(同じアイテムのみ)
+     * @param   {Object} bagData 倉庫内のアイテムリスト
+     * @param   {Object} item    開封するアイテム
+     */
+    var alchemyItem = function (maid, item) {
+        console.log("[Enter]alchemyItem");
+        var defer = $.Deferred();
+
+        var itemList = [];
+        var itype = 0;
+        if (item.num === 5) {
+            itype = 2;  // エトワール
+        } else if (item.num === 3) {
+            itype = 1;  // トライアングル
+        } else {
+            itype = 0;  // ライン
+        }
+
+        var alchemyItemInner = function (bagData, item) {
+            var defer2 = $.Deferred().resolve();
+            defer2 = defer2.then(function () {
+                var d = $.Deferred();
+
+                var itemIndexList = [], i;
+                for (i = 0; bagData[i]; i++) {
+                    if (bagData[i].name === item.name) {
+                        itemIndexList.push(bagData[i]);
+                    }
+                }
+
+                if (itemIndexList.length >= 1 &&
+                        (itemIndexList.length >= item.num || itemIndexList[0].pack >= item.num)) {
+                    itemList = [];
+                    for (i = 0; i < item.num; i++) {
+                        if (itemIndexList[0].pack >= item.num) {
+                            itemList.push(itemIndexList[0].id);
+                        } else {
+                            itemList.push(itemIndexList[i].id);
+                        }
+                    }
+
+                    $.ajax({
+                        url: "mdmerc_.php",
+                        type: "POST",
+                        cache: false,
+                        dataType: "json",
+                        data: {
+                            op: "alchemy_test",
+                            mid: maid,
+                            item: itemList,
+                            itype: itype
+                        },
+                        success: function (res) {
+                            if (res.result && res.result === 1) {
+                                d.resolve(itemList);
+                            } else {
+                                console.log(item.name + "の練成に失敗[alchemy_test]");
+                                defer.resolve();    // アイテム整理ルーチンは止めない
+                            }
+                        },
+                        error: function () {
+                            log(item.name + "練成情報送信に失敗");
+                            defer.reject();
+                        }
+                    });
+                } else {
+                    // 練成アイテムなしまたは不足
+                    defer.resolve();
+                }
+                return d.promise();
+
+            }).then(function (itemList) {
+                if (!itemList) {
+                    defer.resolve();
+                    return;
+                }
+                var d = $.Deferred();
+
+                $.ajax({
+                    url: "mdmerc_.php",
+                    type: "POST",
+                    cache: false,
+                    dataType: "json",
+                    data: {
+                        op: "alchemy_change",
+                        mid: maid,
+                        item: itemList,
+                        itype: itype,
+                        eset: 0,    // バルスタを使用するか
+                        eit: 0      // バルスタ使用時のベース材料ID?
+                    },
+                    success: function (res) {
+                        if (res.result && res.result === 1) {
+                            log(item.name + "x" + item.num + "から" + res.get + "を練成");
+                            bagData = res.item;
+                            alchemyItemInner(bagData, item);
+                        } else {
+                            console.log(item.name + "の練成に失敗[alchemy_change]");
+                            defer.resolve();    // アイテム整理ルーチンは止めない
+                        }
+                    },
+                    error: function () {
+                        log(item.name + "練成情報送信に失敗");
+                        defer.reject();
+                    }
+                });
+                return d.promise();
+            });
+
+            return defer2.promise();
+        };
+
+        getAlchemyBagData()
+            .then(function (alchembagData) {
+                if (alchembagData) {
+                    return alchemyItemInner(alchembagData, item);
+                } else {
+                    defer.resolve();
+                }
+            });
+
+        return defer.promise();
+    };
+
+    var getMaidId = function (maidName) {
+        console.log("[Enter]getMaidId");
+        var defer = $.Deferred();
+
+        $.ajax({
+            url: "dialog_.php",
+            type: "POST",
+            cache: false,
+            dataType: "json",
+            data: {
+                op: "md_page"
+            },
+            success: function (res) {
+                if (res.md_merc) {
+                    var i;
+                    for (i = 0; i < res.md_merc.length; i++) {
+                        if (res.md_merc[i].name === maidName) {
+                            defer.resolve(res.md_merc[i].id);
+                            return;
+                        }
+                    }
+                    log(maidName + "が存在しません");
+                    defer.resolve();    // アイテム整理ルーチンは止めない
+                } else {
+                    log("メイド情報取得に失敗");
+                    defer.resolve();    // アイテム整理ルーチンは止めない
+                }
+            },
+            error: function () {
+                log("メイド情報取得に失敗");
+                defer.reject();
+            }
+        });
+
+        return defer.promise();
+    };
+
+    /**
+     * 指定された都市で寄付をする
+     * (寄付の結果はチェックしない。気が向いたら追加する)
+     * @param   {string} townId     最もレベルが高い教会がある都市のID
+     * @param   {Object}   itemConfig 寄付する魔晶石の数(itemConfig.contribute)
+     */
+    var contributeStone = function (townId, itemConfig) {
+        console.log("[Enter]contributeStone");
+        if (!townId || !itemConfig.contribute.enable) {
+            return;
+        }
+
+        var defer = $.Deferred().resolve(townId);
+
+        defer = defer.then(function (townId) {
+            var d = $.Deferred();
+            $.ajax({
+                url: "town.php?town=" + townId,
+                type: "GET",
+                //cache: false,
+                //dataType: "json",
+                success: function (res) {
+                    d.resolve(townId);
+                },
+                error: function () {
+                    log("都市データの取得(town.php)に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        }).then(function (townId) {
+            var d = $.Deferred();
+            $.ajax({
+                url: "flash_trans_xml_.php?town=" + townId,
+                type: "POST",
+                cache: false,
+                //dataType: "json",
+                data: ({
+                    op: "AREA"
+                }),
+                success: function (res) {
+                    d.resolve(townId);
+                },
+                error: function () {
+                    log("都市データの取得(AREA)に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        }).then(function (townId) {
+            var d = $.Deferred();
+            $.ajax({
+                url: "flash_trans_xml_.php?town=" + townId,
+                type: "POST",
+                cache: false,
+                //dataType: "json",
+                data: ({
+                    op: "READ"
+                }),
+                success: function (res) {
+                    var json_data = null;
+                    try {
+                        json_data = $.parseJSON(res.slice(res.indexOf("["), res.indexOf("&op")));
+                    } catch (e) {}
+                    if (json_data === null) {
+                        log("都市データパース失敗");
+                        d.reject();
+                    } else {
+                        d.resolve(json_data);
+                    }
+                },
+                error: function () {
+                    log("都市データの取得(READ)に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+
+        }).then(function () {
+            var d = $.Deferred();
+            $.ajax({
+                url: "flash_trans_xml_.php?town=" + townId,
+                type: "POST",
+                cache: false,
+                //dataType: "json",
+                data: ({
+                    mall: 0,
+                    op: "CONTRIBUTE",
+                    num: itemConfig.contribute.stone
+                }),
+                success: function (res) {
+                    var json_data = null;
+                    try {
+                        json_data = $.parseJSON(res.slice(res.indexOf("[")));
+                        if (json_data === null) {
+                            log("寄付データパース失敗");
+                        } else if (json_data[0].result === 1) {
+                            log("寄付 " + json_data[0].msg);
+                        } else {
+                            log("寄付失敗");
+                        }
+                    } catch (e) {}
+                    d.resolve();
+                },
+                error: function () {
+                    log("寄付情報送信に失敗");
+                    d.reject();
+                }
+            });
+            return d.promise();
+        });
+
+        return defer.promise();
+    };
+
+    task.CleanBag = function () {
+        console.log("[[TaskStart]]CleanBag");
+        if (!config.item.enable) {
+            return $.Deferred().resolve().promise();
+        }
+        var defer = $.Deferred();
+        var bagData;
+        var itemConfig = config.item;
+
+// 1. アイテムを練成する
+// 2. 売るリストのアイテムを全部売る
+// 3. オルタ移動リストのアイテムを全部移動する（ロック無視）、移動ごとに応答からデータを取得
+// 4. 使うリストのアイテムを1種類使う、更新されたBagDataを応答から取得、資源以外のアイテムを獲得したら1.へ
+// 5. 資源、倉庫の空きがあれば寄付(スタック可だが、倉庫に空きがなければもらえないはず)
+
+        var sell, move, use, alchemy, contrib;
+
+        var maid;
+        alchemy = function (itemConfig) {
+            if (!itemConfig.maid || itemConfig.maid === "" ||
+                    !itemConfig.alchemy || itemConfig.alchemy.length === 0) {
+                return sell(itemConfig);
+            }
+            var d = $.Deferred().resolve(itemConfig.maid);
+            d = d.then(getMaidId)
+                .then(function (res) {
+                    maid = res;
+                });
+            $.each(itemConfig.alchemy, function (index, item) {
+                d = d.then(function () {
+                    return alchemyItem(maid, item);
+                });
+            });
+            d = d.then(function () {
+                console.log("アイテム練成完了");
+                return sell(itemConfig);
+            });
+            return d.promise();
+        };
+
+        sell = function (itemConfig) {
+            var d = $.Deferred().resolve();
+            d = d.then(loadBagData)
+                .then(function (res) {
+                    bagData = res;
+                });
+            $.each(itemConfig.sell, function (index, item) {
+                d = d.then(function () {
+                    return sellItem(bagData, item);
+                });
+            });
+            d = d.then(function () {
+                console.log("アイテム売却完了");
+                return move(itemConfig);
+            });
+            return d.promise();
+        };
+
+        move = function (itemConfig) {
+            var d = $.Deferred().resolve();
+            d = d.then(loadBagData)
+                .then(function (res) {
+                    bagData = res;
+                });
+            $.each(itemConfig.move, function (index, item) {
+                d = d.then(function () {
+                    return moveItem(bagData, item);
+                });
+            });
+            d = d.then(function () {
+                console.log("アイテム移動完了");
+                return use(bagData, itemConfig, 0);
+            });
+            return d.promise();
+        };
+
+        use = function (bagData, itemConfig, index) {
+            var d = $.Deferred().resolve();
+            if (index < itemConfig.use.length) {
+                useItem(bagData, itemConfig.use[index])
+                    .then(function (bagData, used) {
+                        if (used) {
+                            return alchemy(itemConfig);
+                        // 開けたアイテムが資源だった場合、あるいは対象アイテムが存在しなかった場合、続けて次のアイテムを開封する
+                        } else {
+                            return use(bagData, itemConfig, index + 1);
+                        }
+                    });
+            } else {
+                console.log("アイテム開封完了");
+                return contrib(itemConfig);
+            }
+            return d.promise();
+        };
+
+        contrib = function (itemConfig) {
+            if (!itemConfig.contribute.enable) {
+                defer.resolve();
+                return;
+            }
+
+            var d = $.Deferred();
+            loadBagData()
+                .then(function (res) {
+                    if (res.max > res.total) {
+                        return updateCQ()
+                            .then(function (res) {
+                                if (parseInt(res.current, 10) > parseInt(itemConfig.contribute.stone, 10)) {
+                                    return task.GetHighestBuilding(1601);
+                                }
+                            }).then(function (townId) {
+                                if (townId) {
+                                    return contributeStone(townId, itemConfig);
+                                }
+                            });
+                    }
+                }).then(function () {
+                    d.resolve();
+                    defer.resolve();
+                    console.log("アイテム整理完了");
+                });
+            return d.promise();
+        };
+
+        alchemy(itemConfig);
+
+        return defer.promise();
+    };
+
 }());
 
 $(function () {
@@ -2931,84 +3652,8 @@ $(function () {
     var timer;
     log("Start script");
 
-
     cmdManager.pollTask();
-    var watch = function () {
-        var $iframe = $('#main');
-        var ifrmDoc = $iframe[0].contentWindow.document;
 
-        if (!$("#igu", ifrmDoc)[0]) {
-            $("#remain_bg", ifrmDoc).append($(
-                '<a href="javascript: void(0);" id="igu" class="top_menu_btn tmc" title="自動戦闘" alt="自動戦闘" style="position: absolute; right: 0px; top: 0px; background:url(http://lm-s4.ujj.co.jp/web/image2/wnd/main/md_btn.png) no-repeat;" ><span id="igu_title" class="top_font">自動戦闘</span></a>'
-            ));
-
-            $("#igu", ifrmDoc).on("click", function () {
-                log("Clicked");
-
-                //var mapBattle = new cmdMapBatttle();
-                //g_cmdList.push(mapBattle);
-
-                //var blockBattle = new cmdBlockBatttle();
-                //g_cmdList.push(blockBattle);
-                
-                //getDailyLoginPresent();
-
-                // *** 現在このスクリプトでできること ***
-
-                // 1.指定された1つ以上のマスで手動戦闘する
-                // g_blockidList(グローバル)にマスのリストを設定し、repeatBattleを呼ぶ
-
-                //g_blockidList = [1100, 2100, 3100];
-                //g_blockidList = [];
-                //for (i = 0; i < 10; i++) g_blockidList.push(26048);
-                //repeatBattle();
-
-                // 2.指定されたマップの初めから順にすべてのマスで手動戦闘する
-                // マップIDをgetAllBlockidに渡し(blockListが設定される)、repeatBattleを呼ぶ
-
-                // 3.入場可能な魔界戦マップをすべて手動戦闘する（攻略済みがあってもOK）
-                //rank = 1;   // 0 : Heaven, 1: Hell
-                //dystopiaAllBattle(rank);
-
-                // 魔界戦で1マップのみ攻略する場合は #動作未確認
-                //isAvailableDystopia(94001, 1)
-                //.then(getAllBlockidDystopia)
-                //.then(repeatBattle);
-
-                // 4. 出現中のサドンボスのリストを取得して、HPが30%以下ならLV1のキャラ1匹で殴る
-                //getSuddenList()
-                //.then(suddenAllAttack);
-
-                // 5. キャラのLVUP
-                //lvupProcess(7769528);
-
-                /*
-                var battle = new Battle();
-                battle.getParty(2)
-                .then(battle.prepare)
-                .then(battle.start)
-                .then(battle.sendResult)
-                .then(battle.getReport)
-                .then(updateCQ, updateCQ);
-                */
-
-                /*if (auto_battle) {
-                    var battle = new Battle();
-                    battle.getParty(2)
-                    .then(battle.prepare)
-                    .then(battle.getReport)
-                    .then(updateCQ, updateCQ);
-                }*/
-
-                //log("---- Completed ----");
-            });
-        }
-
-        //cmdManager();
-        //setSchedule();
-        //popTaskQueue();
-    };
-    timer = setInterval(watch, 1000);
 /*
     chrome.runtime.onMessage.addListener(
         function (request, sender, sendResponse) {

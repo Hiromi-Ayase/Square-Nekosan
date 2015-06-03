@@ -43,14 +43,18 @@ console.log = function (message) {
     var battleDamage = false;
     var lvup = false;
 
+    var item = null;        // Command用(Flagはconfig.itemを直接参照)
+
     /* background */
     var setting = {};
     var data = {};
 
     var townList = null;
 
+    // ポップアップ表示用情報
     function buildContentsData() {
         return {
+            // Command
             block: blockBattle !== null ? {
                 statusText: "実行中！ - " + blockBattle.counterStr,
                 state: blockBattle.cmd.state
@@ -111,27 +115,41 @@ console.log = function (message) {
                 state: COMMON.CMD_STATUS.END,
                 statusText: "いぐー"
             },
+            // Flag
             trans: trans !== false ? {
-                state: COMMON.CMD_STATUS.ON
+                fstate: COMMON.CMD_STATUS.ON
             } : {
-                state: COMMON.CMD_STATUS.OFF
+                fstate: COMMON.CMD_STATUS.OFF
             },
             sudden: sudden !== false ? {
-                state: COMMON.CMD_STATUS.ON
+                fstate: COMMON.CMD_STATUS.ON
             } : {
-                state: COMMON.CMD_STATUS.OFF
+                fstate: COMMON.CMD_STATUS.OFF
             },
             battleDamage: battleDamage !== false ? {
-                state: COMMON.CMD_STATUS.ON
+                fstate: COMMON.CMD_STATUS.ON
             } : {
-                state: COMMON.CMD_STATUS.OFF
+                fstate: COMMON.CMD_STATUS.OFF
             },
             lvup: lvup !== false ? {
                 statusText: COMMON.STATUSLIST + "を設定してください",
-                state: COMMON.CMD_STATUS.ON
+                fstate: COMMON.CMD_STATUS.ON
             } : {
                 statusText: COMMON.STATUSLIST + "を設定してください",
-                state: COMMON.CMD_STATUS.OFF
+                fstate: COMMON.CMD_STATUS.OFF
+            },
+            item: config.item.enable !== false ? item !== null ? {
+                statusText: "実行中！",
+                state: item.cmd.state,
+                fstate: COMMON.CMD_STATUS.ON
+            } : {
+                statusText: "いぐー",
+                state: COMMON.CMD_STATUS.END,
+                fstate: COMMON.CMD_STATUS.ON
+            } : {
+                statusText: "いぐー",
+                state: COMMON.CMD_STATUS.END,
+                fstate: COMMON.CMD_STATUS.OFF
             },
             log: logBuffer.join("\n"),
             loginBonus: loginBonus === null ? "" : loginBonus.statusMsg,
@@ -283,6 +301,7 @@ console.log = function (message) {
         var giftConfig = {};
         var recruitConfig = {};
         var townLvupConfig = [];
+        var itemConfig = {};
         var i, args;
 
         if (request.op === COMMON.OP.MAP) {
@@ -610,9 +629,58 @@ console.log = function (message) {
                 config.lvup.enable = lvup;
             }
 
+        } else if (request.op === COMMON.OP.ITEM) {
+            // Command
+            if (request.ctrl === COMMON.OP_CTRL.RUN) {
+                // 強制的にON
+                if (!config.item.enable) {
+                    if (config.setItemConfig(request.args)) {
+                        config.item.enable = true;
+                        log("[Flag]アイテム整理ON");
+                    }
+                }
+                if (config.item.enable) {
+                    item = new cmdManager.CmdCleanBag(function () {
+                        item = null;
+                    });
+                } else {
+                    log("アイテム整理実行に失敗 設定を確認してください");
+                }
+            } else if (request.ctrl === COMMON.OP_CTRL.ABORT) {
+                item.cmd.state = COMMON.CMD_STATUS.END;
+                item = null;
+
+            // Flag
+            } else if (request.ctrl === COMMON.OP_CTRL.FLAG) {
+                // ON/OFFボタンが押されたら、enableを切り替える
+                // configの値を書き換えるのはOFF->ONの時のみ
+                // configのenble
+
+                // OFF->ON
+                if (!config.item.enable) {
+                    if (config.setItemConfig(request.args)) {
+                        config.item.enable = true;
+                        log("[Flag]アイテム整理ON");
+                    }
+                // ON->OFF
+                } else {
+                    config.item.enable = false;
+                    log("[Flag]アイテム整理OFF");
+                }
+            } else if (request.ctrl === COMMON.OP_CTRL.CHANGE) {
+                // 何か入力されたら、enableをfalseにする
+                config.item.enable = false;
+            }
+
+            args = request.args;
+            args.enable = config.item.enable;
+            sendResponse(request.args);
+
         } else if (request.op === COMMON.OP.CONTENTS_DATA) {
             sendResponse(buildContentsData());
 
+        // sotrageに保存されたポップアップ上の入力情報($scope.args)をconfigへ反映する
+        // 各Flagのenableもstorageに保存されるため、configdata, storage, $scope.argsのenableを常に一致させておく必要がある
         } else if (request.op === COMMON.OP.INIT) {
             trans = request.args[COMMON.OP.TRANS].enable;
             if (request.args[COMMON.OP.TRANS].ratio < 0 || request.args[COMMON.OP.TRANS].ratio > 100 ||
@@ -647,6 +715,9 @@ console.log = function (message) {
             lvup = request.args[COMMON.OP.LVUP].enable;
             config.lvup.data = request.args[COMMON.OP.LVUP].data;
             config.lvup.enable = lvup;
+
+            config.setItemConfig(request.args[COMMON.OP.ITEM]);
+            config.item.enable = request.args[COMMON.OP.ITEM].enable;
         }
     });
 }());
